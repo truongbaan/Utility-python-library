@@ -3,13 +3,12 @@
 
 import pyautogui # need pip install pyautogui (use to screenshot)
 import easyocr# need pip install easyocr (use to read text from image)
-from wrapper import time_it
 
 """ Copy part """
+
 reader = easyocr.Reader(['en'])
 screen_width, screen_height = pyautogui.size()
 
-@time_it
 def get_text_from_screen(capture_region = (0,0,screen_width,screen_height)) -> str: #func to get text 
     screenshot = pyautogui.screenshot(region = capture_region) #select region if want, default is capture fullscreen
     screenshot.save("screenshot.png")
@@ -20,6 +19,7 @@ def get_text_from_screen(capture_region = (0,0,screen_width,screen_height)) -> s
 
 """ Copy part """
 
+#how to use
 if __name__ == "__main__":
     text = get_text_from_screen()
     print("Text from screen:", text)
