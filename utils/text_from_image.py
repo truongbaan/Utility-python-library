@@ -19,6 +19,16 @@ class Text_Extractor_EasyOCR:
         return " ".join(result)  #extract and return str
 
     def set_capture_region(self, crop_left=0, crop_right=0, crop_up=0, crop_down=0) -> tuple:
+         # Validate crop percentage values
+        if not (0 <= crop_left <= 100):
+            raise ValueError("crop_left must be between 0 and 100")
+        if not (0 <= crop_right <= 100):
+            raise ValueError("crop_right must be between 0 and 100")
+        if not (0 <= crop_up <= 100):
+            raise ValueError("crop_up must be between 0 and 100")
+        if not (0 <= crop_down <= 100):
+            raise ValueError("crop_down must be between 0 and 100")
+    
         top_percentage_to_ignore = crop_up / 100
         bottom_percentage_to_ignore = crop_down / 100
         left_percentage_to_ignore = crop_left / 100
