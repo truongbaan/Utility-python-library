@@ -2,11 +2,11 @@ import pyttsx3 #need pip install pyttsx3
 import traceback
 
 class Speech_To_Text_Pyttsx3:
-    def __init__(self, rate=170, volume=1.0, voice_index=0):
+    def __init__(self, rate=170, volume=1.0, voice_index=0) -> None:
         self.engine = pyttsx3.init()
         self.config_voice(rate, volume, voice_index)
 
-    def config_voice(self, rate: float = 170, volume: float = 1.0, voice_index: int = 0):
+    def config_voice(self, rate: float = 170, volume: float = 1.0, voice_index: int = 0) -> None:
         if not isinstance(rate, (int, float)):
             raise TypeError("Rate must be a number.")
         if not (0.0 <= volume <= 1.0):
@@ -20,13 +20,13 @@ class Speech_To_Text_Pyttsx3:
         self.engine.setProperty('volume', volume)
         self.engine.setProperty('voice', voices[voice_index].id)
 
-    def speak(self, text: str):
+    def speak(self, text: str) -> None:
         if not isinstance(text, str):
             raise ValueError(f"The provided text is not string!")
         self.engine.say((text))
         self.engine.runAndWait()
 
-    def stop(self):
+    def stop(self) -> None:
         self.engine.stop()
         
 if __name__ == "__main__":
@@ -34,6 +34,6 @@ if __name__ == "__main__":
     speaking.speak("Hello there my friend")
     speaking.config_voice(165, 0.8) #the first number is for rate, second is the volume, and last is the voice_id
     try:
-        speaking.speak(56)
+        speaking.speak(56) #this would raise valueError, dont worry, the code is fine :)
     except ValueError as e:
         traceback.print_exc() 

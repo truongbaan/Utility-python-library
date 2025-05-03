@@ -17,7 +17,7 @@ def gtts_speak(text: str, lang: str ='vi') -> str: #return 'temp_ID.mp3' for del
 """ Copy part """
 
 #for those who need what language it supports and the code lang for it
-def gtts_print_supported_languages():
+def gtts_print_supported_languages() -> None:
     supported_languages = lang.tts_langs()  # Get the dictionary of supported languages
     print("Supported languages by gTTS:")
     for code, language in supported_languages.items():

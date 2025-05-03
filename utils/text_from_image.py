@@ -5,11 +5,11 @@ import pyautogui # need pip install pyautogui (use to screenshot)
 import easyocr# need pip install easyocr (use to read text from image)
 
 class Text_Extractor_EasyOCR:
-    def __init__(self, language='en'):
+    def __init__(self, language='en') -> None:
         self.reader = easyocr.Reader([language])
         self.screen_width, self.screen_height = pyautogui.size()
 
-    def get_text_from_screen(self, capture_region=None) -> str:
+    def get_text_from_screen(self, capture_region: tuple = None) -> str:
         if capture_region is None: #if default, take fullscreen
             capture_region = (0, 0, self.screen_width, self.screen_height)
             
@@ -18,7 +18,7 @@ class Text_Extractor_EasyOCR:
         result = self.reader.readtext("screenshot.png", detail=0)
         return " ".join(result)  #extract and return str
 
-    def set_capture_region(self, crop_left=0, crop_right=0, crop_up=0, crop_down=0) -> tuple:
+    def set_capture_region(self, crop_left: float = 0, crop_right: float = 0, crop_up: float = 0, crop_down: float = 0) -> tuple:
          # Validate crop percentage values
         if not (0 <= crop_left <= 100):
             raise ValueError("crop_left must be between 0 and 100")
@@ -49,6 +49,9 @@ class Text_Extractor_EasyOCR:
 # Example usage:
 if __name__ == "__main__":
     extractor = Text_Extractor_EasyOCR(language='en')
+    # Extract text from the screen
+    text = extractor.get_text_from_screen()
+    print(f"Extracted text: {text}")
     
     # Set capture region (optional, defaults to full screen if not specified)
     region = extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
