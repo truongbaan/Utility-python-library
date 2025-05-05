@@ -26,5 +26,5 @@ def gtts_print_supported_languages() -> None:
 #how to use
 if __name__=="__main__":
     gtts_print_supported_languages()
-    temp_ID = gtts_speak("Xin chào người đẹp, em tên là gì thế", "vi")
-    print("You can get file name as output: "+ temp_ID)
+    _temp_ID = gtts_speak("Xin chào người đẹp, em tên là gì thế", "vi")
+    print("You can get file name as output: "+ _temp_ID)

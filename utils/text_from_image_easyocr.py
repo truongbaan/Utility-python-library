@@ -66,18 +66,18 @@ class Text_Extractor_EasyOCR:
         
 # Example usage:
 if __name__ == "__main__":
-    extractor = Text_Extractor_EasyOCR(language='en')
+    _extractor = Text_Extractor_EasyOCR(language='en')
     # Extract text from the screen
-    text = extractor.get_text_from_screen()
-    print(f"Extracted text: {text}")
+    _text = _extractor.get_text_from_screen()
+    print(f"Extracted text: {_text}")
     
     # Set capture region (optional, defaults to full screen if not specified)
-    region = extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
-    print(f"Capture region: {region}")
+    _region = _extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
+    print(f"Capture region: {_region}")
 
     # Extract text from the screen
-    text = extractor.get_text_from_screen(capture_region=region)
-    print(f"Extracted text: {text}")
+    _text = _extractor.get_text_from_screen(capture_region=_region)
+    print(f"Extracted text: {_text}")
 
 #SUPPORTED LANG easyocr:
 # Abaza	abq

@@ -87,7 +87,7 @@ class GeminiClient:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
 if __name__ == "__main__":
-    client = GeminiClient()
-    client.list_models()
-    client.ask("Hello, how are you?")
+    _client = GeminiClient()
+    _client.list_models()
+    _client.ask("Hello, how are you?")
     

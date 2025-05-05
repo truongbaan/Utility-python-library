@@ -46,7 +46,7 @@ def clean_ai_text_for_tts(text: str) -> str:
     return text.strip()
 
 if __name__=="__main__":
-    raw = """
+    _raw = """
         # Summary
 
         Heres what you need to do:
@@ -59,4 +59,4 @@ if __name__=="__main__":
         # this code block will be removed entirely
         print("hello world")
         """
-    print(clean_ai_text_for_tts(raw))
+    print(clean_ai_text_for_tts(_raw))

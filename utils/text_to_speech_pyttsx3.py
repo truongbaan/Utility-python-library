@@ -30,10 +30,10 @@ class Text_To_Speech_Pyttsx3:
         self.engine.stop()
         
 if __name__ == "__main__":
-    speaking = Text_To_Speech_Pyttsx3()
-    speaking.speak("Hello there my friend")
-    speaking.config_voice(165, 0.8) #the first number is for rate, second is the volume, and last is the voice_id
+    _speaking = Text_To_Speech_Pyttsx3()
+    _speaking.speak("Hello there my friend")
+    _speaking.config_voice(165, 0.8) #the first number is for rate, second is the volume, and last is the voice_id
     try:
-        speaking.speak(56) #this would raise valueError, dont worry, the code is fine :)
+        _speaking.speak(56) #this would raise valueError, dont worry, the code is fine :)
     except ValueError as e:
         traceback.print_exc() 
