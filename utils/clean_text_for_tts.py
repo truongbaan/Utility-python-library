@@ -3,6 +3,8 @@ import re
 
 #Strip out markdown/HTML artifacts so that text-to-speech reads clean prose.
 def clean_ai_text_for_tts(text: str) -> str:
+    if not isinstance(text, str):
+            raise TypeError("Text must be str type.")
     
     # 1. Remove fenced code blocks (```…```)
     text = re.sub(r'```[\s\S]*?```', '', text)
