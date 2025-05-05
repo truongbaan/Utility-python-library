@@ -16,7 +16,7 @@ class GeminiClient:
         
         #check data type before proceed further into connecting
         self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(api_key, str, "api_key")
+        self.__enforce_type(self.api_key, str, "api_key")
         
         try:
             genai.configure(api_key=self.api_key)
