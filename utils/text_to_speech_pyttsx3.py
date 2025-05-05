@@ -1,7 +1,7 @@
 import pyttsx3 #need pip install pyttsx3
 import traceback
 
-class Speech_To_Text_Pyttsx3:
+class Text_To_Speech_Pyttsx3:
     def __init__(self, rate=170, volume=1.0, voice_index=0) -> None:
         self.engine = pyttsx3.init()
         self.config_voice(rate, volume, voice_index)
@@ -30,7 +30,7 @@ class Speech_To_Text_Pyttsx3:
         self.engine.stop()
         
 if __name__ == "__main__":
-    speaking = Speech_To_Text_Pyttsx3()
+    speaking = Text_To_Speech_Pyttsx3()
     speaking.speak("Hello there my friend")
     speaking.config_voice(165, 0.8) #the first number is for rate, second is the volume, and last is the voice_id
     try:
