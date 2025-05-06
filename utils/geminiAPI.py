@@ -4,9 +4,9 @@ from dotenv import load_dotenv #need pip install python-dotenv
 import os
 
 class GeminiClient:
-    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None):
-        #if not str, gonna return error
-        
+    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None, memories_length : int = 4):
+        #check data type
+        self.__enforce_type(memories_length, int, "memories_length")
         
         load_dotenv() # load if there is env file
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -33,6 +33,9 @@ class GeminiClient:
         except Exception as e:
             print(f"ERROR: Error initializing model {self.model_name}: {e}")
             raise
+        
+        self.history = []
+        self.max_length = memories_length
     
     def ask(self, prompt : str) -> str:
         #not str, return...
@@ -82,12 +85,42 @@ class GeminiClient:
                 print("WARNING: CANT COPY TO CLIPBOARD")
         return answer
 
+    def ask_with_memories(self, prompt : str) -> str: # use if you want to store history to ask again (cap with memories_length)
+        line = "Here's our previous conversation:\n"
+        if self.history:
+            for turn in self.history:
+                line += f"User: {turn['question']}\nAI: {turn['answer']}\n"
+        line += "Now, continue the conversation:\n"
+        line += prompt
+        answer = self.ask(line)
+        self.__add_turn(prompt, answer)
+        return answer
+    
+    def _clear_history(self):
+        if self.history:
+            self.history.clear()
+    
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
+    def __add_turn(self, question, answer):
+        self.__enforce_type(question, str, "question")
+        self.__enforce_type(answer, str, answer)
+
+        if len(self.history) >= self.max_length:
+            self.history.pop(0)  # Remove the oldest turn
+        self.history.append({"question": question, "answer": answer})
+    
+    
 if __name__ == "__main__":
     _client = GeminiClient()
     _client.list_models()
-    _client.ask("Hello, how are you?")
+    _answer = _client.ask("What land animal do you think is the best?")
+    print(_answer)
+    
+    _answer = _client.ask_with_memories("My name is An")
+    print(_answer)
+    _answer = _client.ask_with_memories("Do you remember what we're talking about?")
+    print(_answer)
     
