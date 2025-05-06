@@ -1,0 +1,143 @@
+import pyaudio # need pip install pyaudio
+import wave
+import time
+import numpy as np # need pip install numpy
+import keyboard #need pip install keyboard
+
+#Record with pyaudio
+#3 function: fixed-duration recording, toggle-controlled recording, and silence-based recording.
+
+class WavRecorder:
+    def __init__(self, channels=1, rate=44100, chunk=1024, fmt=pyaudio.paInt16):
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
+        self.format = fmt
+        self.p = pyaudio.PyAudio()
+        self.frames = []
+        self._stream = None
+        self._recording = False
+        print("NOTE: Please remember this one only do for .wav file, any other type would not be supported")
+        
+    def _open_stream(self):
+        self._stream = self.p.open(format=self.format, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
+        self.frames = []
+
+    def _close_stream(self):
+        if self._stream is not None:
+            self._stream.stop_stream()
+            self._stream.close()
+            self._stream = None
+
+    def _save_wave(self, filename):
+        wf = wave.open(filename, 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(self.p.get_sample_size(self.format))
+        wf.setframerate(self.rate)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+        print(f"Audio saved as {filename}")
+
+    def __rms(self, data):
+        #switch from audioop to this because python 3.13 wont support it anymore
+        samples = np.frombuffer(data, dtype=np.int16).astype(np.float64)
+        return np.sqrt(np.mean(samples**2))
+
+    def record_fixed(self, duration : int, output_filename : str ="fixed_record.wav") -> None:  # duration in seconds
+        self.__enforce_type(duration, int, "duration")
+        self.__enforce_type(output_filename, str, "output_filename")
+        
+        # record audio for a fixed duration
+        self._open_stream()
+        print(f"Recording for {duration} seconds...")
+        for _ in range(0, int(self.rate / self.chunk * duration)):
+            data = self._stream.read(self.chunk)
+            self.frames.append(data)
+        print("Fixed-time recording finished.")
+        self._close_stream()
+        self._save_wave(output_filename)
+
+    def record_toggle(self, toggle_key : str ='`', output_filename : str ="toggle_record.wav") -> None:  # default toggle key: backtick
+        #check type
+        self.__enforce_type(toggle_key, str, "toggle_key")
+        self.__enforce_type(output_filename, str, "output_filename")
+        
+        #Start recording until toggle_key is pressed again.
+        self._open_stream()
+        self._recording = True
+        print(f"Recording... press '{toggle_key}' to stop.")
+
+        # Hotkey to toggle recording state
+        keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
+
+        while self._recording:
+            data = self._stream.read(self.chunk)
+            self.frames.append(data)
+            # slight sleep to allow key event processing
+            time.sleep(0.01)
+
+        print("Toggle recording stopped.")
+        keyboard.remove_hotkey(toggle_key)
+        self._close_stream()
+        self._save_wave(output_filename)
+
+    def record_silence(self, silence_threshold : int = 800, max_silence_seconds : int = 3, output_filename : str ="silence_record.wav") -> None: 
+        #check type 
+        self.__enforce_type(silence_threshold, int, "silence_threshold")
+        self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
+        self.__enforce_type(output_filename, str, "output_filename")
+        
+        #Record until a period of silence longer than max_silence_seconds is detected.
+        self._open_stream()
+        print("Recording... will stop after silence of", f"> {max_silence_seconds}s below threshold {silence_threshold}.")
+        silence_start = None
+
+        try:
+            while True:
+                data = self._stream.read(self.chunk)
+                self.frames.append(data)
+
+                rms_val = self.__rms(data)
+                # print(rms_val) # check value it is hearing so you could adjust base on your need
+                if rms_val < silence_threshold:
+                    if silence_start is None:
+                        silence_start = time.time()
+                    elif time.time() - silence_start > max_silence_seconds:
+                        print("Silence detected. Stopping...")
+                        break
+                else:
+                    silence_start = None
+        except KeyboardInterrupt:
+            print("Recording stopped manually.")
+
+        self._close_stream()
+        self._save_wave(output_filename)
+
+    def terminate(self):
+        self.p.terminate()
+
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+
+#EXAMPLE
+def function():
+    _rec = WavRecorder()
+    _rec.record_toggle()
+        
+if __name__ == "__main__":
+    import multiprocessing
+    _p = multiprocessing.Process(target=function)
+    _p.start()
+    # Simulate later termination, this would not provide you any audio output
+    time.sleep(5)
+    _p.terminate()  
+    _p.join()
+    
+    _d = multiprocessing.Process(target=function) #this would pause until you actually press ` to stop recording
+    _d.start()
+    _d.join()
+    
+    _rec = WavRecorder() # you could just use as normal if you dont need to interrupt midway 
+    _rec.record_fixed(3) 
+    
