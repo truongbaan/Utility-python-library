@@ -3,6 +3,7 @@
 
 import pyautogui # need pip install pyautogui (use to screenshot)
 import easyocr# need pip install easyocr (use to read text from image)
+import time
 
 class Text_Extractor_EasyOCR:
     def __init__(self, language : str ='en') -> None:
@@ -11,19 +12,28 @@ class Text_Extractor_EasyOCR:
         
         self.reader = easyocr.Reader([language])
         self.screen_width, self.screen_height = pyautogui.size()
+        self.capture_region = (0, 0, self.screen_width, self.screen_height) # default, capture fullscreen
 
     def get_text_from_screen(self, capture_region: tuple = None) -> str:
-        if capture_region is None: #if default, take fullscreen
-            capture_region = (0, 0, self.screen_width, self.screen_height)
+        __region = self.capture_region
+        # Rationale: This design provides flexibility.  
+        # The class's `self.capture_region` acts as a default, while the `capture_region` parameter allows for one-off, 
+        # specific capture areas without altering the default setting. 
+        # This avoids repetitive specification of the same region when capturing multiple screenshots with the default area.
+        
+        if capture_region is not None: #if default, take base on config
+            __region = capture_region
             
         #check type of the input
-        self.__enforce_type(capture_region, tuple, "capture_region")
-            
-        screenshot = pyautogui.screenshot(region=capture_region)  #capture
-        screenshot.save("screenshot.png") #careful if there is a file screenshot before run, it would replace that file
-        result = self.reader.readtext("screenshot.png", detail=0)
+        self.__enforce_type(__region, tuple, "capture_region")
+        
+        _temp_ID = (str)(round(time.time() * 10)) + ".png"   
+        screenshot = pyautogui.screenshot(region=__region)  #capture
+        screenshot.save(_temp_ID) #careful if there is a file screenshot before run, it would replace that file
+        result = self.reader.readtext(_temp_ID, detail=0)
         return " ".join(result)  #extract and return str
 
+    #set capture region
     def set_capture_region(self, crop_left: float = 0, crop_right: float = 0, crop_up: float = 0, crop_down: float = 0) -> tuple:
         #check type of the input
         self.__enforce_type(crop_left, (int, float), "crop_left")
@@ -56,6 +66,7 @@ class Text_Extractor_EasyOCR:
         right_x = int(self.screen_width * (1 - right_percentage_to_ignore))
         capture_width = right_x - left_x 
 
+        self.capture_region = (left_x, top_y, capture_width, capture_height)
         return (left_x, top_y, capture_width, capture_height)
         
     def __enforce_type(self, value, expected_types, arg_name):
@@ -71,12 +82,15 @@ if __name__ == "__main__":
     _text = _extractor.get_text_from_screen()
     print(f"Extracted text: {_text}")
     
-    # Set capture region (optional, defaults to full screen if not specified)
-    _region = _extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
-    print(f"Capture region: {_region}")
+    # Set config for screen capture
+    _extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
 
-    # Extract text from the screen
-    _text = _extractor.get_text_from_screen(capture_region=_region)
+    # Extract text from the screen (this one already config the screen capture size)
+    _text = _extractor.get_text_from_screen()
+    print(f"Extracted text: {_text}")
+    
+    #Extract text from the screen (fixed size capture)
+    _text = _extractor.get_text_from_screen( capture_region= (0,0,1920, 1080))
     print(f"Extracted text: {_text}")
 
 #SUPPORTED LANG easyocr:
