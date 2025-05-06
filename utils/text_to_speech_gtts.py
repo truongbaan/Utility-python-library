@@ -1,18 +1,25 @@
 from gtts import gTTS, lang # need pip install gTTS
 import time
 import os
-import playsound # need pip install playsound
+import playsound # need pip install playsound==1.2.2 (the later version wouldn't work)
 
 """ Copy part """
 
-def gtts_speak(text: str, lang: str ='vi') -> str: #return 'temp_ID.mp3' for deleting manually
-    temp_ID = (str)(round(time.time() * 10)) + ".mp3"
+def gtts_speak(text: str, lang: str ='vi') -> str:
+    temp_filename = str(round(time.time() * 10)) + ".mp3"
+    # Get the absolute path to the directory where the script is running
+    script_dir = os.path.dirname(os.path.abspath(__file__)) # Or use os.getcwd() if appropriate
+    temp_ID_path = os.path.join(script_dir, temp_filename)
+
     tts = gTTS(text=text, lang=lang)
-    tts.save(temp_ID) # create mp3 file
-    playsound.playsound(temp_ID) # play mp3 file
-    if os.path.exists(temp_ID): # delete mp3 file
-        os.remove(temp_ID)
-    return temp_ID #this is for interruption of the function when speaking, if needed, you can manually delete the file 
+    tts.save(temp_ID_path) # change to save with full path
+
+    try:
+        playsound.playsound(temp_ID_path) # play mp3 file using full path
+    finally:
+        if os.path.exists(temp_ID_path): # delete mp3 file
+            os.remove(temp_ID_path)
+    return temp_ID_path # return full path 
 
 """ Copy part """
 

@@ -2,6 +2,8 @@ from transformers import AutoProcessor, AutoModelForVision2Seq # need pip instal
 from PIL import Image # need pip install torch
 import torch # need pip install torch
 
+#Another model_name : "Salesforce/blip-image-captioning-base"
+
 class ImageCaptioner:
     def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: str = None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
