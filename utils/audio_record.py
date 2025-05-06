@@ -3,6 +3,7 @@ import wave
 import time
 import numpy as np # need pip install numpy
 import keyboard #need pip install keyboard
+from lameenc import Encoder #need pip install lameenc (this is use for MP3Recorder)
 
 #Record with pyaudio
 #3 function: fixed-duration recording, toggle-controlled recording, and silence-based recording.
@@ -17,7 +18,7 @@ class WavRecorder:
         self.frames = []
         self._stream = None
         self._recording = False
-        print("NOTE: Please remember this one only do for .wav file, any other type would not be supported")
+        print("NOTE: WavRecorder supports only .wav output files.")
         
     def _open_stream(self):
         self._stream = self.p.open(format=self.format, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
@@ -120,6 +121,125 @@ class WavRecorder:
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
+class MP3Recorder:
+    def __init__(self, channels=1, rate=44100, chunk=1024, bitrate=192):
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
+        self.bitrate = bitrate
+
+        # Initialize lame encoder
+        self.encoder = Encoder()
+        self.encoder.set_bit_rate(self.bitrate)
+        self.encoder.set_in_sample_rate(self.rate)
+        self.encoder.set_channels(self.channels)
+        self.encoder.set_quality(2)  # 2 = high quality
+
+        self.p = pyaudio.PyAudio()
+        self.frames = []  # raw PCM frames
+        self._stream = None
+        self._recording = False
+        print("NOTE: MP3Recorder supports only .mp3 output files.")
+
+    def _open_stream(self):
+        self._stream = self.p.open(
+            format=pyaudio.paInt16,
+            channels=self.channels,
+            rate=self.rate,
+            input=True,
+            frames_per_buffer=self.chunk
+        )
+        self.frames = []
+
+    def _close_stream(self):
+        if self._stream:
+            self._stream.stop_stream()
+            self._stream.close()
+            self._stream = None
+
+    def _save_mp3(self, filename):
+        # Encode raw PCM to MP3 and write
+        with open(filename, 'wb') as f:
+            for chunk in self.frames:
+                mp3_data = self.encoder.encode(chunk)
+                if mp3_data:
+                    f.write(mp3_data)
+            # flush encoder
+            f.write(self.encoder.flush())
+        print(f"Audio saved as {filename}")
+
+    def __rms(self, data):
+        samples = np.frombuffer(data, dtype=np.int16).astype(np.float64)
+        return np.sqrt(np.mean(samples**2))
+
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(
+                f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+
+    def record_fixed(self, duration: int, output_filename: str ="fixed_record.mp3") -> None:
+        self.__enforce_type(duration, int, "duration")
+        self.__enforce_type(output_filename, str, "output_filename")
+
+        self._open_stream()
+        print(f"Recording for {duration} seconds...")
+        for _ in range(int(self.rate / self.chunk * duration)):
+            data = self._stream.read(self.chunk)
+            self.frames.append(data)
+        print("Fixed-time recording finished.")
+        self._close_stream()
+        self._save_mp3(output_filename)
+
+    def record_toggle(self, toggle_key: str ='`', output_filename: str ="toggle_record.mp3") -> None:
+        self.__enforce_type(toggle_key, str, "toggle_key")
+        self.__enforce_type(output_filename, str, "output_filename")
+
+        self._open_stream()
+        self._recording = True
+        print(f"Recording... press '{toggle_key}' to stop.")
+        keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
+
+        while self._recording:
+            data = self._stream.read(self.chunk)
+            self.frames.append(data)
+            time.sleep(0.01)
+
+        print("Toggle recording stopped.")
+        keyboard.remove_hotkey(toggle_key)
+        self._close_stream()
+        self._save_mp3(output_filename)
+
+    def record_silence(self, silence_threshold: int = 800, max_silence_seconds: int = 3,
+                       output_filename: str ="silence_record.mp3") -> None:
+        self.__enforce_type(silence_threshold, int, "silence_threshold")
+        self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
+        self.__enforce_type(output_filename, str, "output_filename")
+
+        self._open_stream()
+        print(f"Recording... will stop after >{max_silence_seconds}s below threshold {silence_threshold}.")
+        silence_start = None
+        try:
+            while True:
+                data = self._stream.read(self.chunk)
+                self.frames.append(data)
+                rms_val = self.__rms(data)
+                if rms_val < silence_threshold:
+                    if silence_start is None:
+                        silence_start = time.time()
+                    elif time.time() - silence_start > max_silence_seconds:
+                        print("Silence detected. Stopping...")
+                        break
+                else:
+                    silence_start = None
+        except KeyboardInterrupt:
+            print("Recording stopped manually.")
+
+        self._close_stream()
+        self._save_mp3(output_filename)
+
+    def terminate(self):
+        self.p.terminate()
+
 #EXAMPLE
 def function():
     _rec = WavRecorder()
@@ -140,4 +260,7 @@ if __name__ == "__main__":
     
     _rec = WavRecorder() # you could just use as normal if you dont need to interrupt midway 
     _rec.record_fixed(3) 
+    
+    _rec = MP3Recorder()
+    _rec.record_fixed(4)
     
