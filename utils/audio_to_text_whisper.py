@@ -9,14 +9,14 @@ from typing import Dict, Any
 #                 get_lang_detect -> return str (return the language)
 #                 get_translation -> return str (return the translation only, for people who doesnt care what language or anything else)
 class OpenAIWhisper:
-    def __init__(self, model_size: str = "medium", sample_rate: int = 16000) -> None:
-        # model_size: Whisper model size ("tiny", "base", "small", "medium", "large")
-        self.sample_rate = sample_rate
-        self.model = None 
-        self.device = None 
-        
+    def __init__(self, model: str = "medium", sample_rate: int = 16000) -> None:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
+        
+        # model: Whisper model size ("tiny", "base", "small", "medium", "large")
+        self._sample_rate = sample_rate
+        self._model = None 
+        self._device = None 
         
         # check GPU first, fall back to CPU if not work
         preferred_devices = []
@@ -27,9 +27,9 @@ class OpenAIWhisper:
         last_err = None
         for dev in preferred_devices:
             try:
-                print(f"[OpenAIWhisper] Loading '{model_size}' model on {dev}...")
-                self.model = whisper.load_model(model_size, device=dev)
-                self.device = dev
+                print(f"[OpenAIWhisper] Loading '{model}' model on {dev}...")
+                self._model = whisper.load_model(model, device=dev)
+                self._device = dev
                 print(f"[OpenAIWhisper] Model successfully loaded on {dev}.")
                 break
             except RuntimeError as e:
@@ -39,9 +39,24 @@ class OpenAIWhisper:
                 last_err = e
                 print(f"[OpenAIWhisper] An unexpected error occurred while loading model on {dev}: {e}")
         
-        if self.model is None: #check if nothing works, then raise error
+        if self._model is None: #check if nothing works, then raise error
             raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")
 
+    @property
+    def sample_rate(self):
+        """Returns the sample rate used by the model."""
+        return self._sample_rate
+
+    @property
+    def model(self):
+        """Returns the loaded Whisper model."""
+        return self._model
+
+    @property
+    def device(self):
+        """Returns the device the model is loaded on."""
+        return self._device
+    
     def _load_wav(self, path: str) -> np.ndarray:
         try:
             audio, orig_sr = sf.read(path)
@@ -55,8 +70,8 @@ class OpenAIWhisper:
         if audio.ndim > 1:
             audio = np.mean(audio, axis=1) # Chuyển sang mono
         
-        if orig_sr != self.sample_rate:
-            audio = librosa.resample(audio, orig_sr=orig_sr, target_sr=self.sample_rate)
+        if orig_sr != self._sample_rate:
+            audio = librosa.resample(audio, orig_sr=orig_sr, target_sr=self._sample_rate)
         
         return audio.astype(np.float32)
 
@@ -77,8 +92,8 @@ class OpenAIWhisper:
             audio_data = self._load_wav(audio_path)
             
             # get the np.ndarray to the transcribe
-            print(f"[OpenAIWhisper] Transcribing audio from {audio_path} on {self.device}...")
-            result = self.model.transcribe(audio_data, fp16=fp16 if self.device == "cuda" else False, **transcribe_kwargs)
+            print(f"[OpenAIWhisper] Transcribing audio from {audio_path} on {self._device}...")
+            result = self._model.transcribe(audio_data, fp16=fp16 if self._device == "cuda" else False, **transcribe_kwargs)
             print(f"[OpenAIWhisper] Transcription successful.")
             return result #return result
         except Exception as e:
