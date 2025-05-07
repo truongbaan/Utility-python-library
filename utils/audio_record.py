@@ -10,19 +10,39 @@ from lameenc import Encoder #need pip install lameenc (this is use for MP3Record
 
 class WavRecorder:
     def __init__(self, channels=1, rate=44100, chunk=1024, fmt=pyaudio.paInt16):
-        self.channels = channels
-        self.rate = rate
-        self.chunk = chunk
-        self.format = fmt
-        self.p = pyaudio.PyAudio()
-        self.frames = []
+        self._channels = channels
+        self._rate = rate
+        self._chunk = chunk
+        self._format = fmt
+        self._p = pyaudio.PyAudio()
+        self._frames = []
         self._stream = None
         self._recording = False
         print("NOTE: WavRecorder supports only .wav output files.")
-        
+    
+    @property
+    def channels(self):
+        """Returns the number of audio channels."""
+        return self._channels
+
+    @property
+    def rate(self):
+        """Returns the audio sample rate."""
+        return self._rate
+
+    @property
+    def chunk(self):
+        """Returns the audio chunk size."""
+        return self._chunk
+
+    @property
+    def format(self):
+        """Returns the audio format."""
+        return self._format
+       
     def _open_stream(self):
-        self._stream = self.p.open(format=self.format, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
-        self.frames = []
+        self._stream = self._p.open(format=self._format, channels=self._channels, rate=self._rate, input=True, frames_per_buffer=self._chunk)
+        self._frames = []
 
     def _close_stream(self):
         if self._stream is not None:
@@ -32,10 +52,10 @@ class WavRecorder:
 
     def _save_wave(self, filename):
         wf = wave.open(filename, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(self.p.get_sample_size(self.format))
-        wf.setframerate(self.rate)
-        wf.writeframes(b''.join(self.frames))
+        wf.setnchannels(self._channels)
+        wf.setsampwidth(self._p.get_sample_size(self._format))
+        wf.setframerate(self._rate)
+        wf.writeframes(b''.join(self._frames))
         wf.close()
         print(f"Audio saved as {filename}")
 
@@ -51,9 +71,9 @@ class WavRecorder:
         # record audio for a fixed duration
         self._open_stream()
         print(f"Recording for {duration} seconds...")
-        for _ in range(0, int(self.rate / self.chunk * duration)):
-            data = self._stream.read(self.chunk)
-            self.frames.append(data)
+        for _ in range(0, int(self._rate / self._chunk * duration)):
+            data = self._stream.read(self._chunk)
+            self._frames.append(data)
         print("Fixed-time recording finished.")
         self._close_stream()
         self._save_wave(output_filename)
@@ -72,8 +92,8 @@ class WavRecorder:
         keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
 
         while self._recording:
-            data = self._stream.read(self.chunk)
-            self.frames.append(data)
+            data = self._stream.read(self._chunk)
+            self._frames.append(data)
             # slight sleep to allow key event processing
             time.sleep(0.01)
 
@@ -95,8 +115,8 @@ class WavRecorder:
 
         try:
             while True:
-                data = self._stream.read(self.chunk)
-                self.frames.append(data)
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
 
                 rms_val = self.__rms(data)
                 # print(rms_val) # check value it is hearing so you could adjust base on your need
@@ -115,7 +135,7 @@ class WavRecorder:
         self._save_wave(output_filename)
 
     def terminate(self):
-        self.p.terminate()
+        self._p.terminate()
 
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
@@ -123,33 +143,53 @@ class WavRecorder:
 
 class MP3Recorder:
     def __init__(self, channels=1, rate=44100, chunk=1024, bitrate=192):
-        self.channels = channels
-        self.rate = rate
-        self.chunk = chunk
-        self.bitrate = bitrate
+        self._channels = channels
+        self._rate = rate
+        self._chunk = chunk
+        self._bitrate = bitrate
 
         # Initialize lame encoder
         self.encoder = Encoder()
-        self.encoder.set_bit_rate(self.bitrate)
-        self.encoder.set_in_sample_rate(self.rate)
-        self.encoder.set_channels(self.channels)
+        self.encoder.set_bit_rate(self._bitrate)
+        self.encoder.set_in_sample_rate(self._rate)
+        self.encoder.set_channels(self._channels)
         self.encoder.set_quality(2)  # 2 = high quality
 
-        self.p = pyaudio.PyAudio()
-        self.frames = []  # raw PCM frames
+        self._p = pyaudio.PyAudio()
+        self._frames = []  # raw PCM frames
         self._stream = None
         self._recording = False
         print("NOTE: MP3Recorder supports only .mp3 output files.")
 
+    @property
+    def channels(self):
+        """Returns the number of audio channels."""
+        return self._channels
+
+    @property
+    def rate(self):
+        """Returns the audio sample rate."""
+        return self._rate
+
+    @property
+    def chunk(self):
+        """Returns the audio chunk size."""
+        return self._chunk
+
+    @property
+    def bitrate(self):
+        """Returns the audio bitrate."""
+        return self._bitrate
+
     def _open_stream(self):
-        self._stream = self.p.open(
+        self._stream = self._p.open(
             format=pyaudio.paInt16,
-            channels=self.channels,
-            rate=self.rate,
+            channels=self._channels,
+            rate=self._rate,
             input=True,
-            frames_per_buffer=self.chunk
+            frames_per_buffer=self._chunk
         )
-        self.frames = []
+        self._frames = []
 
     def _close_stream(self):
         if self._stream:
@@ -160,7 +200,7 @@ class MP3Recorder:
     def _save_mp3(self, filename):
         # Encode raw PCM to MP3 and write
         with open(filename, 'wb') as f:
-            for chunk in self.frames:
+            for chunk in self._frames:
                 mp3_data = self.encoder.encode(chunk)
                 if mp3_data:
                     f.write(mp3_data)
@@ -183,9 +223,9 @@ class MP3Recorder:
 
         self._open_stream()
         print(f"Recording for {duration} seconds...")
-        for _ in range(int(self.rate / self.chunk * duration)):
-            data = self._stream.read(self.chunk)
-            self.frames.append(data)
+        for _ in range(int(self._rate / self._chunk * duration)):
+            data = self._stream.read(self._chunk)
+            self._frames.append(data)
         print("Fixed-time recording finished.")
         self._close_stream()
         self._save_mp3(output_filename)
@@ -200,8 +240,8 @@ class MP3Recorder:
         keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
 
         while self._recording:
-            data = self._stream.read(self.chunk)
-            self.frames.append(data)
+            data = self._stream.read(self._chunk)
+            self._frames.append(data)
             time.sleep(0.01)
 
         print("Toggle recording stopped.")
@@ -220,8 +260,8 @@ class MP3Recorder:
         silence_start = None
         try:
             while True:
-                data = self._stream.read(self.chunk)
-                self.frames.append(data)
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
                 rms_val = self.__rms(data)
                 if rms_val < silence_threshold:
                     if silence_start is None:
@@ -238,7 +278,7 @@ class MP3Recorder:
         self._save_mp3(output_filename)
 
     def terminate(self):
-        self.p.terminate()
+        self._p.terminate()
 
 #EXAMPLE
 def function():
