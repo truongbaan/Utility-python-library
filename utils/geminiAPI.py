@@ -4,9 +4,10 @@ from dotenv import load_dotenv #need pip install python-dotenv
 import os
 
 class GeminiClient:
-    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None, memories_length : int = 4):
+    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
         self.__enforce_type(memories_length, int, "memories_length")
+        self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
         
         load_dotenv() # load if there is env file
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -36,6 +37,7 @@ class GeminiClient:
         
         self.history = []
         self.max_length = memories_length
+        self.word_prompt = f"Please remember to answer with less than {limit_word_per_respond} words."
     
     def ask(self, prompt : str) -> str:
         #not str, return...
@@ -46,7 +48,7 @@ class GeminiClient:
             return None
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(self.word_prompt + prompt)
 
             if response.parts:
                 answer = response.text
@@ -76,7 +78,7 @@ class GeminiClient:
             print(f"Error retrieving: {e}")
    
     def ask_and_copy_to_clipboard(self, prompt : str) -> str:
-        answer = self.ask(prompt)
+        answer = self.ask(self.word_prompt + prompt)
         if answer:
             try:
                 pyperclip.copy(answer)
