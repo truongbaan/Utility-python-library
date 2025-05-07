@@ -26,18 +26,51 @@ class GeminiClient:
             print(f"Error configuring Gemini API: {e}")
             raise
 
-        self.model_name = model_name
+        self._model_name = model_name
         try:
-            self.model = genai.GenerativeModel(self.model_name)
-            print(f"Successfully initialized model: {self.model_name}") 
+            self.model = genai.GenerativeModel(self._model_name)
+            print(f"Successfully initialized model: {self._model_name}") 
             print(f"Using endpoint: {self.model.model_name}") 
         except Exception as e:
-            print(f"ERROR: Error initializing model {self.model_name}: {e}")
+            print(f"ERROR: Error initializing model {self._model_name}: {e}")
             raise
         
-        self.history = []
-        self.max_length = memories_length
-        self.word_prompt = f"Please remember to answer with less than {limit_word_per_respond} words."
+        self._history = []
+        self._max_length = memories_length
+        self._word_prompt = f"Please remember to answer with less than {limit_word_per_respond} words."
+    
+    @property
+    def model_name(self):
+        """Returns the name of the Gemini model being used."""
+        return self._model_name
+
+    @property
+    def gemini_model(self):
+        """Returns the loaded Gemini GenerativeModel object."""
+        return self.model
+
+    @property
+    def history(self):
+        """Returns the conversation history as a tuple."""
+        return tuple(self._history) # Return as tuple to prevent external modification
+
+    @property
+    def max_memory_length(self):
+        """Returns the maximum length of the conversation history."""
+        return self._max_length
+
+    @property
+    def word_prompt(self):
+        """Returns the word limit prompt."""
+        return self._word_prompt
+
+    @max_memory_length.setter
+    def max_memory_length(self, value):
+        """Sets the maximum length of the conversation history."""
+        if isinstance(value, int) and value > 0:
+            self._max_length = value
+        else:
+            raise ValueError("Memory length must be a positive integer.")
     
     def ask(self, prompt : str) -> str:
         #not str, return...
@@ -48,7 +81,7 @@ class GeminiClient:
             return None
         
         try:
-            response = self.model.generate_content(self.word_prompt + prompt)
+            response = self.model.generate_content(self._word_prompt + prompt)
 
             if response.parts:
                 answer = response.text
@@ -78,7 +111,7 @@ class GeminiClient:
             print(f"Error retrieving: {e}")
    
     def ask_and_copy_to_clipboard(self, prompt : str) -> str:
-        answer = self.ask(self.word_prompt + prompt)
+        answer = self.ask(prompt)
         if answer:
             try:
                 pyperclip.copy(answer)
@@ -89,8 +122,8 @@ class GeminiClient:
 
     def ask_with_memories(self, prompt : str) -> str: # use if you want to store history to ask again (cap with memories_length)
         line = "Here's our previous conversation:\n"
-        if self.history:
-            for turn in self.history:
+        if self._history:
+            for turn in self._history:
                 line += f"User: {turn['question']}\nAI: {turn['answer']}\n"
         line += "Now, continue the conversation:\n"
         line += prompt
@@ -99,8 +132,8 @@ class GeminiClient:
         return answer
     
     def _clear_history(self):
-        if self.history:
-            self.history.clear()
+        if self._history:
+            self._history.clear()
     
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
@@ -110,9 +143,9 @@ class GeminiClient:
         self.__enforce_type(question, str, "question")
         self.__enforce_type(answer, str, answer)
 
-        if len(self.history) >= self.max_length:
-            self.history.pop(0)  # Remove the oldest turn
-        self.history.append({"question": question, "answer": answer})
+        while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
+            self._history.pop(0)  # Remove the oldest turn
+        self._history.append({"question": question, "answer": answer})
     
     
 if __name__ == "__main__":
@@ -125,4 +158,8 @@ if __name__ == "__main__":
     print(_answer)
     _answer = _client.ask_with_memories("Do you remember what we're talking about?")
     print(_answer)
+    
+    print(_client.max_memory_length)
+    _client.max_memory_length = 6
+    print(_client.max_memory_length)
     
