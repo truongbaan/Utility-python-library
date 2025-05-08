@@ -10,14 +10,24 @@ class Text_Extractor_EasyOCR:
         #check type of the input
         self.__enforce_type(language, str, "language")
         
-        self.reader = easyocr.Reader([language])
+        self._reader = easyocr.Reader([language])
         self.screen_width, self.screen_height = pyautogui.size()
-        self.capture_region = (0, 0, self.screen_width, self.screen_height) # default, capture fullscreen
+        self._capture_region = (0, 0, self.screen_width, self.screen_height) # default, capture fullscreen
 
+    @property
+    def capture_region(self) -> None:
+        return self._capture_region
+    
+    @capture_region.setter
+    def capture_region(self, value: tuple) -> None: #this to modify the region manually
+        if not isinstance(value, tuple) or len(value) != 4:
+            raise ValueError("capture_region must be a tuple of size 4.")
+        self._capture_region = value
+    
     def get_text_from_screen(self, capture_region: tuple = None, image_name : str = None) -> str:
-        __region = self.capture_region
+        __region = self._capture_region
         # Rationale: This design provides flexibility.  
-        # The class's `self.capture_region` acts as a default, while the `capture_region` parameter allows for one-off, 
+        # The class's `self._capture_region` acts as a default, while the `capture_region` parameter allows for one-off, 
         # specific capture areas without altering the default setting. 
         # This avoids repetitive specification of the same region when capturing multiple screenshots with the default area.
         
@@ -33,10 +43,10 @@ class Text_Extractor_EasyOCR:
             _temp_ID = image_name
         screenshot = pyautogui.screenshot(region=__region)  #capture
         screenshot.save(_temp_ID) #careful if there is a file screenshot before run, it would replace that file
-        result = self.reader.readtext(_temp_ID, detail=0)
+        result = self._reader.readtext(_temp_ID, detail=0)
         return " ".join(result)  #extract and return str
 
-    #set capture region
+    #set capture region base on percentage instead of choosing specific size capture
     def set_capture_region(self, crop_left: float = 0, crop_right: float = 0, crop_up: float = 0, crop_down: float = 0) -> tuple:
         #check type of the input
         self.__enforce_type(crop_left, (int, float), "crop_left")
@@ -69,7 +79,7 @@ class Text_Extractor_EasyOCR:
         right_x = int(self.screen_width * (1 - right_percentage_to_ignore))
         capture_width = right_x - left_x 
 
-        self.capture_region = (left_x, top_y, capture_width, capture_height)
+        self._capture_region = (left_x, top_y, capture_width, capture_height)
         return (left_x, top_y, capture_width, capture_height)
         
     def __enforce_type(self, value, expected_types, arg_name):

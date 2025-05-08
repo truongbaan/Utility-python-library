@@ -10,17 +10,17 @@ class GeminiClient:
         self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
         
         load_dotenv() # load if there is env file
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self.__api_key = api_key or os.getenv("GEMINI_API_KEY")
 
-        if not self.api_key:
+        if not self.__api_key:
             raise ValueError("API key was not provided or found in the 'GEMINI_API_KEY' environment variable.")
         
         #check data type before proceed further into connecting
         self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(self.api_key, str, "api_key")
+        self.__enforce_type(self.__api_key, str, "api_key")
         
         try:
-            genai.configure(api_key=self.api_key)
+            genai.configure(api_key=self.__api_key)
             print("Gemini API configured successfully.")
         except Exception as e:
             print(f"Error configuring Gemini API: {e}")
@@ -28,9 +28,9 @@ class GeminiClient:
 
         self._model_name = model_name
         try:
-            self.model = genai.GenerativeModel(self._model_name)
+            self._model = genai.GenerativeModel(self._model_name)
             print(f"Successfully initialized model: {self._model_name}") 
-            print(f"Using endpoint: {self.model.model_name}") 
+            print(f"Using endpoint: {self._model.model_name}") 
         except Exception as e:
             print(f"ERROR: Error initializing model {self._model_name}: {e}")
             raise
@@ -41,32 +41,30 @@ class GeminiClient:
     
     @property
     def model_name(self):
-        """Returns the name of the Gemini model being used."""
         return self._model_name
 
     @property
     def gemini_model(self):
-        """Returns the loaded Gemini GenerativeModel object."""
-        return self.model
+        return self._model
 
     @property
     def history(self):
-        """Returns the conversation history as a tuple."""
-        return tuple(self._history) # Return as tuple to prevent external modification
+        # Returns the conversation history as a tuple.
+        return tuple(self._history)
 
     @property
     def max_memory_length(self):
-        """Returns the maximum length of the conversation history."""
+        # Returns the maximum length of the conversation history.
         return self._max_length
 
     @property
     def word_prompt(self):
-        """Returns the word limit prompt."""
+        # Returns the word limit prompt.
         return self._word_prompt
 
     @max_memory_length.setter
     def max_memory_length(self, value):
-        """Sets the maximum length of the conversation history."""
+        # able to change the max_memory_length
         if isinstance(value, int) and value > 0:
             self._max_length = value
         else:
@@ -81,7 +79,7 @@ class GeminiClient:
             return None
         
         try:
-            response = self.model.generate_content(self._word_prompt + prompt)
+            response = self._model.generate_content(self._word_prompt + prompt)
 
             if response.parts:
                 answer = response.text

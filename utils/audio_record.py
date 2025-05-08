@@ -22,22 +22,22 @@ class WavRecorder:
     
     @property
     def channels(self):
-        """Returns the number of audio channels."""
+        # Returns the number of audio channels.
         return self._channels
 
     @property
     def rate(self):
-        """Returns the audio sample rate."""
+        # Returns the audio sample rate.
         return self._rate
 
     @property
     def chunk(self):
-        """Returns the audio chunk size."""
+        # Returns the audio chunk size.
         return self._chunk
 
     @property
     def format(self):
-        """Returns the audio format."""
+        # Returns the audio format.
         return self._format
        
     def _open_stream(self):
@@ -163,22 +163,22 @@ class MP3Recorder:
 
     @property
     def channels(self):
-        """Returns the number of audio channels."""
+        # Returns the number of audio channels.
         return self._channels
 
     @property
     def rate(self):
-        """Returns the audio sample rate."""
+        # Returns the audio sample rate.
         return self._rate
 
     @property
     def chunk(self):
-        """Returns the audio chunk size."""
+        # Returns the audio chunk size.
         return self._chunk
 
     @property
     def bitrate(self):
-        """Returns the audio bitrate."""
+        # Returns the audio bitrate.
         return self._bitrate
 
     def _open_stream(self):

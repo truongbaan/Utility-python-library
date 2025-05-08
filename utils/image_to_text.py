@@ -6,11 +6,23 @@ import torch # need pip install torch
 
 class ImageCaptioner:
     def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: str = None):
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
-        self.model = AutoModelForVision2Seq.from_pretrained(model_name).to(self.device)
-        self.model.eval()
+        self._device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
+        self._model = AutoModelForVision2Seq.from_pretrained(model_name).to(self._device)
+        self._model.eval()
         print("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
+    
+    @property
+    def device(self):
+        return self._device
+
+    @property
+    def processor(self):
+        return self._processor
+
+    @property
+    def model(self):
+        return self._model
 
     def write_caption(self, image_path: str, max_length: int = 100, num_beams: int = 3, early_stopping: bool = True) -> str:
         #check type
@@ -29,12 +41,12 @@ class ImageCaptioner:
         except FileNotFoundError:
             raise FileNotFoundError(f"Image not found: {image_path}")
 
-        inputs = self.processor(images=image, return_tensors="pt").to(self.device)
+        inputs = self._processor(images=image, return_tensors="pt").to(self._device)
         with torch.no_grad():
-            outputs = self.model.generate(**inputs, max_length=max_length, num_beams=num_beams, early_stopping=early_stopping)
+            outputs = self._model.generate(**inputs, max_length=max_length, num_beams=num_beams, early_stopping=early_stopping)
 
         # text return
-        return self.processor.decode(outputs[0], skip_special_tokens=True)
+        return self._processor.decode(outputs[0], skip_special_tokens=True)
 
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):

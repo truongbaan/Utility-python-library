@@ -3,8 +3,6 @@ import time
 import os
 import playsound # need pip install playsound==1.2.2 (the later version wouldn't work)
 
-""" Copy part """
-
 def gtts_speak(text: str, lang: str ='vi') -> str:
     temp_filename = str(round(time.time() * 10)) + ".mp3"
     # Get the absolute path to the directory where the script is running
@@ -20,8 +18,6 @@ def gtts_speak(text: str, lang: str ='vi') -> str:
         if os.path.exists(temp_ID_path): # delete mp3 file
             os.remove(temp_ID_path)
     return temp_ID_path # return full path 
-
-""" Copy part """
 
 #for those who need what language it supports and the code lang for it
 def gtts_print_supported_languages() -> None:

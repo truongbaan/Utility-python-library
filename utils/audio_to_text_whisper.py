@@ -44,17 +44,17 @@ class OpenAIWhisper:
 
     @property
     def sample_rate(self):
-        """Returns the sample rate used by the model."""
+        # Returns the sample rate used by the model.
         return self._sample_rate
 
     @property
     def model(self):
-        """Returns the loaded Whisper model."""
+        # Returns the loaded Whisper model.
         return self._model
 
     @property
     def device(self):
-        """Returns the device the model is loaded on."""
+        # Returns the device the model is loaded on.
         return self._device
     
     def _load_wav(self, path: str) -> np.ndarray:
