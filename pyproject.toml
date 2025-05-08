@@ -1,0 +1,43 @@
+[project]
+name = "freeai-utils"
+version = "0.1.0"
+description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations"
+authors = [
+    { name="truongbaan", email="truongbaan@gmail.com" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12.6"
+
+dependencies = [
+    "pyaudio",
+    "numpy",
+    "keyboard",
+    "lameenc",
+    "openai-whisper",
+    "soundfile",
+    "librosa",
+    "torch",  # also needed for PIL use in transformers
+    "google-generativeai",
+    "pyperclip",
+    "python-dotenv",
+    "googlesearch-python",
+    "requests",
+    "beautifulsoup4",
+    "readability-lxml",
+    "transformers",
+    "Pillow",
+    "langdetect",
+    "pyautogui",
+    "easyocr",
+    "gTTS",
+    "playsound==1.2.2",  # required specific version
+    "pyttsx3"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["freeai_utils"]
