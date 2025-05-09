@@ -1,9 +1,9 @@
 [project]
 name = "freeai-utils"
-version = "0.1.0"
+version = "0.1.1"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations"
 authors = [
-    { name="truongbaan", email="truongbaan@gmail.com" }
+    { name="truongbaan", email="truongbaansoftware@gmail.com" }
 ]
 readme = "README.md"
 license = { text = "MIT" }
