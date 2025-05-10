@@ -1,13 +1,13 @@
 [project]
 name = "freeai-utils"
-version = "0.1.1"
+version = "0.1.2"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
 ]
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.12.6"
+requires-python = ">=3.9.13"
 
 dependencies = [
     "pyaudio",
