@@ -4,9 +4,12 @@ import time
 import numpy as np # need pip install numpy
 import keyboard #need pip install keyboard
 from lameenc import Encoder #need pip install lameenc (this is use for MP3Recorder)
+import logging
 
 #Record with pyaudio
 #3 function: fixed-duration recording, toggle-controlled recording, and silence-based recording.
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 class WavRecorder:
     def __init__(self, channels=1, rate=44100, chunk=1024, fmt=pyaudio.paInt16):
@@ -18,7 +21,8 @@ class WavRecorder:
         self._frames = []
         self._stream = None
         self._recording = False
-        print("NOTE: WavRecorder supports only .wav output files.")
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info("NOTE: WavRecorder supports only .wav output files.")
     
     @property
     def channels(self):
@@ -51,13 +55,14 @@ class WavRecorder:
             self._stream = None
 
     def _save_wave(self, filename):
+        self.logger.debug(f"Tryint to save audio file as {filename}")
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self._channels)
         wf.setsampwidth(self._p.get_sample_size(self._format))
         wf.setframerate(self._rate)
         wf.writeframes(b''.join(self._frames))
         wf.close()
-        print(f"Audio saved as {filename}")
+        self.logger.info(f"Audio saved as {filename}")
 
     def __rms(self, data):
         #switch from audioop to this because python 3.13 wont support it anymore
@@ -70,13 +75,23 @@ class WavRecorder:
         
         # record audio for a fixed duration
         self._open_stream()
-        print(f"Recording for {duration} seconds...")
-        for _ in range(0, int(self._rate / self._chunk * duration)):
-            data = self._stream.read(self._chunk)
-            self._frames.append(data)
-        print("Fixed-time recording finished.")
-        self._close_stream()
-        self._save_wave(output_filename)
+        self.logger.info(f"Recording for {duration} seconds...")
+        
+        try:
+            for _ in range(0, int(self._rate / self._chunk * duration)):
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
+        except KeyboardInterrupt:
+            self.logger.critical("Recording stopped manually using CTRL + C .")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+        
+        finally:
+            self.logger.info("Fixed-time recording finished.")
+            self._close_stream()
+            self._save_wave(output_filename)
 
     def record_toggle(self, toggle_key : str ='`', output_filename : str ="toggle_record.wav") -> None:  # default toggle key: backtick
         #check type
@@ -86,21 +101,28 @@ class WavRecorder:
         #Start recording until toggle_key is pressed again.
         self._open_stream()
         self._recording = True
-        print(f"Recording... press '{toggle_key}' to stop.")
+        self.logger.info(f"Recording... press '{toggle_key}' to stop.")
 
         # Hotkey to toggle recording state
         keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
-
-        while self._recording:
-            data = self._stream.read(self._chunk)
-            self._frames.append(data)
-            # slight sleep to allow key event processing
-            time.sleep(0.01)
-
-        print("Toggle recording stopped.")
-        keyboard.remove_hotkey(toggle_key)
-        self._close_stream()
-        self._save_wave(output_filename)
+        try:
+            while self._recording:
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
+                # slight sleep to allow key event processing
+                time.sleep(0.01)
+        except KeyboardInterrupt:
+            self.logger.critical("Recording stopped manually using CTRL + C.")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+        
+        finally:    
+            self.logger.info("Toggle recording stopped.")
+            keyboard.remove_hotkey(toggle_key)
+            self._close_stream()
+            self._save_wave(output_filename)
 
     def record_silence(self, silence_threshold : int = 800, max_silence_seconds : int = 3, output_filename : str ="silence_record.wav") -> None: 
         #check type 
@@ -110,7 +132,7 @@ class WavRecorder:
         
         #Record until a period of silence longer than max_silence_seconds is detected.
         self._open_stream()
-        print("Recording... will stop after silence of", f"> {max_silence_seconds}s below threshold {silence_threshold}.")
+        self.logger.info("Recording... will stop after silence of", f"> {max_silence_seconds}s below threshold {silence_threshold}.")
         silence_start = None
 
         try:
@@ -124,15 +146,20 @@ class WavRecorder:
                     if silence_start is None:
                         silence_start = time.time()
                     elif time.time() - silence_start > max_silence_seconds:
-                        print("Silence detected. Stopping...")
+                        self.logger.info("Silence detected. Stopping...")
                         break
                 else:
                     silence_start = None
         except KeyboardInterrupt:
-            print("Recording stopped manually.")
-
-        self._close_stream()
-        self._save_wave(output_filename)
+            self.logger.critical("Recording stopped manually using CTRL + C.")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+        
+        finally:
+            self._close_stream()
+            self._save_wave(output_filename)
 
     def terminate(self):
         self._p.terminate()
@@ -159,7 +186,8 @@ class MP3Recorder:
         self._frames = []  # raw PCM frames
         self._stream = None
         self._recording = False
-        print("NOTE: MP3Recorder supports only .mp3 output files.")
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info("NOTE: MP3Recorder supports only .mp3 output files.")
 
     @property
     def channels(self):
@@ -199,6 +227,7 @@ class MP3Recorder:
 
     def _save_mp3(self, filename):
         # Encode raw PCM to MP3 and write
+        self.logger.debug(f"Tryint to save audio file as {filename}")
         with open(filename, 'wb') as f:
             for chunk in self._frames:
                 mp3_data = self.encoder.encode(chunk)
@@ -206,7 +235,7 @@ class MP3Recorder:
                     f.write(mp3_data)
             # flush encoder
             f.write(self.encoder.flush())
-        print(f"Audio saved as {filename}")
+        self.logger.info(f"Audio saved as {filename}")
 
     def __rms(self, data):
         samples = np.frombuffer(data, dtype=np.int16).astype(np.float64)
@@ -222,13 +251,23 @@ class MP3Recorder:
         self.__enforce_type(output_filename, str, "output_filename")
 
         self._open_stream()
-        print(f"Recording for {duration} seconds...")
-        for _ in range(int(self._rate / self._chunk * duration)):
-            data = self._stream.read(self._chunk)
-            self._frames.append(data)
-        print("Fixed-time recording finished.")
-        self._close_stream()
-        self._save_mp3(output_filename)
+        self.logger.info(f"Recording for {duration} seconds...")
+        
+        try:
+            for _ in range(int(self._rate / self._chunk * duration)):
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
+        except KeyboardInterrupt:
+            self.logger.critical("Recording stopped manually using CTRL + C.")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+                    
+        finally:        
+            self.logger.info("Fixed-time recording finished.")
+            self._close_stream()
+            self._save_mp3(output_filename)
 
     def record_toggle(self, toggle_key: str ='`', output_filename: str ="toggle_record.mp3") -> None:
         self.__enforce_type(toggle_key, str, "toggle_key")
@@ -236,18 +275,26 @@ class MP3Recorder:
 
         self._open_stream()
         self._recording = True
-        print(f"Recording... press '{toggle_key}' to stop.")
+        self.logger.info(f"Recording... press '{toggle_key}' to stop.")
         keyboard.add_hotkey(toggle_key, lambda: setattr(self, '_recording', False))
-
-        while self._recording:
-            data = self._stream.read(self._chunk)
-            self._frames.append(data)
-            time.sleep(0.01)
-
-        print("Toggle recording stopped.")
-        keyboard.remove_hotkey(toggle_key)
-        self._close_stream()
-        self._save_mp3(output_filename)
+        
+        try: 
+            while self._recording:
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
+                time.sleep(0.01)
+        except KeyboardInterrupt:
+            self.logger.critical("Recording stopped manually using CTRL + C.")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+            
+        finally:
+            self.logger.info("Toggle recording stopped.")
+            keyboard.remove_hotkey(toggle_key)
+            self._close_stream()
+            self._save_mp3(output_filename)
 
     def record_silence(self, silence_threshold: int = 800, max_silence_seconds: int = 3,
                        output_filename: str ="silence_record.mp3") -> None:
@@ -256,7 +303,7 @@ class MP3Recorder:
         self.__enforce_type(output_filename, str, "output_filename")
 
         self._open_stream()
-        print(f"Recording... will stop after >{max_silence_seconds}s below threshold {silence_threshold}.")
+        self.logger.info(f"Recording... will stop after >{max_silence_seconds}s below threshold {silence_threshold}.")
         silence_start = None
         try:
             while True:
@@ -267,27 +314,32 @@ class MP3Recorder:
                     if silence_start is None:
                         silence_start = time.time()
                     elif time.time() - silence_start > max_silence_seconds:
-                        print("Silence detected. Stopping...")
+                        self.logger.info("Silence detected. Stopping...")
                         break
                 else:
                     silence_start = None
         except KeyboardInterrupt:
-            print("Recording stopped manually.")
-
-        self._close_stream()
-        self._save_mp3(output_filename)
+            self.logger.critical("Recording stopped manually using CTRL + C.")
+            raise
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
+            raise
+            
+        finally:
+            self._close_stream()
+            self._save_mp3(output_filename)
 
     def terminate(self):
         self._p.terminate()
 
 #EXAMPLE
-def function():
+def _test_function():
     _rec = WavRecorder()
     _rec.record_toggle()
         
 if __name__ == "__main__":
     import multiprocessing
-    _p = multiprocessing.Process(target=function)
+    _p = multiprocessing.Process(target=_test_function)
     _p.start()
     # Simulate later termination, this would not provide you any audio output
     time.sleep(5)
