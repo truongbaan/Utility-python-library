@@ -4,7 +4,11 @@ import os
 import playsound # need pip install playsound==1.2.2 (the later version wouldn't work)
 from multiprocessing.managers import Namespace
 
-def gtts_speak(text: str, lang: str = 'vi', shared_name: Namespace = None) -> str:
+def gtts_speak(text: str = None, lang: str = 'vi', shared_name: Namespace = None) -> str:
+    if text is None:
+        raise ValueError("text could not be None, did you forget what to speak?")
+    elif isinstance(text, str):
+        raise TypeError("text must be str")
     temp_filename = str(round(time.time() * 10)) + ".mp3"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     temp_ID_path = os.path.join(script_dir, temp_filename)

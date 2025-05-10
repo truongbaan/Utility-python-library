@@ -2,6 +2,7 @@ from googlesearch import search #need pip install googlesearch-python
 import requests #need pip install requests
 from bs4 import BeautifulSoup # need pip install beautifulsoup4
 from readability import Document # need pip install readability-lxml
+import logging
 
 class GoogleSearcher:
     def __init__(self, user_agent: str = "Mozilla/5.0", num_results: int = 5, limit_word_per_url : int = 500):
@@ -11,21 +12,33 @@ class GoogleSearcher:
         self.user_agent = user_agent
         self.num_results = num_results
         self.limit_word = limit_word_per_url
-    
+        #for logging only this class rather
+        self.logger = logging.getLogger(self.__class__.__name__)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+        
     def _url_search(self, query) -> list:
         #return the first num_results url
+        self.logger.debug("Trying to return the list of urls")
         return list(search(query, num_results= self.num_results))
 
     def _fetch_html(self, url : str) -> str:
         headers = {"User-Agent": self.user_agent}  #mimic a real browser
         resp = requests.get(url, headers=headers)  # GET the page
         resp.raise_for_status()
+        self.logger.debug("Fetching html completed")
         return resp.text
 
     def _extract_with_readability(self, html : str) -> str:
         doc = Document(html)          # build readability DOM
         summary_html = doc.summary()  # HTML content
         # BeautifulSoup to get plain text
+        self.logger.debug("Trying to get the text from html")
         return BeautifulSoup(summary_html, "html.parser").get_text()
 
     def search(self, prompt : str = None) -> str:

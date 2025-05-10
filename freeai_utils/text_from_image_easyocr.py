@@ -103,7 +103,7 @@ if __name__ == "__main__":
     print(f"Extracted text: {_text}")
     
     #Extract text from the screen (fixed size capture)
-    _text = _extractor.get_text_from_screen( capture_region= (0,0,1920, 1080), image_name=55)
+    _text = _extractor.get_text_from_screen( capture_region= (0,0,1920, 1080), image_name="55.png")
     print(f"Extracted text: {_text}")
 
 #SUPPORTED LANG easyocr:

@@ -1,6 +1,9 @@
 from transformers import AutoProcessor, AutoModelForVision2Seq # need pip install transformers 
 from PIL import Image # need pip install torch
 import torch # need pip install torch
+import logging
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
@@ -10,7 +13,8 @@ class ImageCaptioner:
         self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
         self._model = AutoModelForVision2Seq.from_pretrained(model_name).to(self._device)
         self._model.eval()
-        print("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
     
     @property
     def device(self):

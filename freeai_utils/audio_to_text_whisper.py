@@ -4,14 +4,19 @@ import numpy as np # need pip install numpy
 import librosa #need pip install librosa 
 import torch # need pip install torch
 from typing import Dict, Any
+import logging
 
 # 3 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
 #                 get_translation -> return str (return the translation only, for people who doesnt care what language or anything else)
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
 class OpenAIWhisper:
     def __init__(self, model: str = "medium", sample_rate: int = 16000) -> None:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
+        self.logger = logging.getLogger(self.__class__.__name__)
         
         # model: Whisper model size ("tiny", "base", "small", "medium", "large")
         self._sample_rate = sample_rate
@@ -27,17 +32,17 @@ class OpenAIWhisper:
         last_err = None
         for dev in preferred_devices:
             try:
-                print(f"[OpenAIWhisper] Loading '{model}' model on {dev}...")
+                self.logger.info(f"Loading '{model}' model on {dev}...")
                 self._model = whisper.load_model(model, device=dev)
                 self._device = dev
-                print(f"[OpenAIWhisper] Model successfully loaded on {dev}.")
+                self.logger.info(f"Model successfully loaded on {dev}.")
                 break
             except RuntimeError as e:
                 last_err = e
-                print(f"[OpenAIWhisper] Failed to load on {dev}: {e}")
+                self.logger.error(f"Failed to load on {dev}: {e}")
             except Exception as e: 
                 last_err = e
-                print(f"[OpenAIWhisper] An unexpected error occurred while loading model on {dev}: {e}")
+                self.logger.warning(f"An unexpected error occurred while loading model on {dev}: {e}")
         
         if self._model is None: #check if nothing works, then raise error
             raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")
@@ -61,14 +66,14 @@ class OpenAIWhisper:
         try:
             audio, orig_sr = sf.read(path)
         except FileNotFoundError:
-            print(f"[OpenAIWhisper] Error: Audio file not found at {path}")
+            self.logger.error(f"Error: Audio file not found at {path}")
             raise
         except Exception as e:
-            print(f"[OpenAIWhisper] Error reading audio file {path}: {e}")
+            self.logger.error(f"Error reading audio file {path}: {e}")
             raise
 
         if audio.ndim > 1:
-            audio = np.mean(audio, axis=1) # Chuyển sang mono
+            audio = np.mean(audio, axis=1) # Change to mono
         
         if orig_sr != self._sample_rate:
             audio = librosa.resample(audio, orig_sr=orig_sr, target_sr=self._sample_rate)
@@ -90,14 +95,14 @@ class OpenAIWhisper:
             file_dir = os.path.dirname(os.path.abspath(__file__)) #get correct place
             audio_path = os.path.join(file_dir, audio_path)
             audio_data = self._load_wav(audio_path)
-            
+                
             # get the np.ndarray to the transcribe
-            print(f"[OpenAIWhisper] Transcribing audio from {audio_path} on {self._device}...")
+            self.logger.info(f"Transcribing audio from {audio_path} on {self._device}...")
             result = self._model.transcribe(audio_data, fp16=fp16 if self._device == "cuda" else False, **transcribe_kwargs)
-            print(f"[OpenAIWhisper] Transcription successful.")
+            self.logger.info(f"Transcription successful.")
             return result #return result
         except Exception as e:
-            print(f"[OpenAIWhisper] Transcription failed for {audio_path}: {e}")
+            self.logger.error(f"Transcription failed for {audio_path}: {e}")
             raise
     
     def get_translation(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
@@ -115,7 +120,7 @@ class OpenAIWhisper:
 # Example usage      
 if __name__ == "__main__":
     import os
-    FILENAME = "sample\\output_pyaudio.wav"
+    FILENAME = "output_pyaudio.wav"
 
     _transcriber = OpenAIWhisper()
     _output = _transcriber.transcribe(FILENAME)

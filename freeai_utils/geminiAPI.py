@@ -2,6 +2,10 @@ import google.generativeai as genai #need pip install google-generativeai
 import pyperclip #need pip install pyperclip
 from dotenv import load_dotenv #need pip install python-dotenv
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
 
 class GeminiClient:
     def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None, memories_length : int = 4, limit_word_per_respond : int = 150):
@@ -18,21 +22,21 @@ class GeminiClient:
         #check data type before proceed further into connecting
         self.__enforce_type(model_name, str, "model_name")
         self.__enforce_type(self.__api_key, str, "api_key")
-        
+        self.logger = logging.getLogger(self.__class__.__name__)
         try:
             genai.configure(api_key=self.__api_key)
-            print("Gemini API configured successfully.")
+            self.logger.info("Gemini API configured successfully.")
         except Exception as e:
-            print(f"Error configuring Gemini API: {e}")
+            self.logger.critical(f"Error configuring Gemini API: {e}")
             raise
 
         self._model_name = model_name
         try:
             self._model = genai.GenerativeModel(self._model_name)
-            print(f"Successfully initialized model: {self._model_name}") 
-            print(f"Using endpoint: {self._model.model_name}") 
+            self.logger.info(f"Successfully initialized model: {self._model_name}") 
+            self.logger.info(f"Using endpoint: {self._model.model_name}") 
         except Exception as e:
-            print(f"ERROR: Error initializing model {self._model_name}: {e}")
+            self.logger.critical(f"ERROR: Error initializing model {self._model_name}: {e}")
             raise
         
         self._history = []
@@ -75,7 +79,7 @@ class GeminiClient:
         self.__enforce_type(prompt, str, "prompt")
         
         if not prompt:
-            print("WARNING: Empty prompt provided, skipping API call.")
+            self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
             return None
         
         try:
@@ -83,10 +87,10 @@ class GeminiClient:
 
             if response.parts:
                 answer = response.text
-                print("INFO: Received response successfully.") # Replaced logging.info
+                self.logger.info("INFO: Received response successfully.") # Replaced logging.info
                 return answer
             else:
-                print("No response received. This could be due to safety filters or other reasons.") 
+                self.logger.info("No response received. This could be due to safety filters or other reasons.") 
                 return ""
 
         except Exception as e:
@@ -106,16 +110,16 @@ class GeminiClient:
                     print(f"  Description: {model.description}")
                     print("-" * 40)
         except Exception as e:
-            print(f"Error retrieving: {e}")
+            self.logger.error(f"Error retrieving: {e}")
    
     def ask_and_copy_to_clipboard(self, prompt : str) -> str:
         answer = self.ask(prompt)
         if answer:
             try:
                 pyperclip.copy(answer)
-                print("Copy to clipboard the answer")
+                self.logger.info("Copy to clipboard the answer")
             except Exception as e:
-                print("WARNING: CANT COPY TO CLIPBOARD")
+                self.logger.error(f"CANT COPY TO CLIPBOARD, {e}")
         return answer
 
     def ask_with_memories(self, prompt : str) -> str: # use if you want to store history to ask again (cap with memories_length)
