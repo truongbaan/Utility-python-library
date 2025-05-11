@@ -24,8 +24,8 @@ import freeai_utils
 
 rec_w = freeai_utils.WavRecorder()
 rec_w.record_fixed(3, output_filename="fixed_record.wav")  # record for 3 seconds
-rec_w.record_toggle(toggle_key='`', output_filename="toggle_record.wav")
-rec_w.record_silence(silence_threshold=800, max_silence_seconds=3, output_filename="silence_record.wav")
+rec_w.record_toggle(toggle_key='`', output_filename="toggle_record.wav") #record until press toggle_key
+rec_w.record_silence(silence_threshold=800, max_silence_seconds=3, output_filename="silence_record.wav") #record until your voice < silence+threshold more than max_silence_seconds seconds.
 ```
 
 ---
@@ -74,15 +74,15 @@ print(translation)
 ```python
 import freeai_utils
 
-client = freeai_utils.GeminiClient(api_key="your_api_key")
+client = freeai_utils.GeminiClient(api_key="your_api_key") # if you have .env file with a var GEMINI_API_KEY = "your_key", you could just do client = freeai_utils.GeminiClient() and it would get the key in .env
 client.list_models()
-answer = client.ask("What land animal do you think is the best?")
+answer = client.ask("What land animal do you think is the best?") #answer only (no memory add)
 print(answer)
 
-answer = client.ask_and_copy_to_clipboard("Could you write a hello world python script?")
-answer = client.ask_with_memories("My name is An")
+answer = client.ask_and_copy_to_clipboard("Could you write a hello world python script?") #answer with copy to clipboard (use CTRL+V to paste)
+answer = client.ask_with_memories("My name is An") #answer and add in memory
 print(answer)
-answer = client.ask_with_memories("Do you remember what we're talking about?")
+answer = client.ask_with_memories("Do you remember what we're talking about?") #answer with knowledge about the previous conversation
 print(answer)
 ```
 
@@ -124,14 +124,14 @@ print("Caption:", text)
 import freeai_utils
 
 extractor = freeai_utils.Text_Extractor_EasyOCR(language='en')
-text = extractor.get_text_from_screen()
+text = extractor.get_text_from_screen() #capture screen and do ocr
 print(text)
 
-extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
-text = extractor.get_text_from_screen(image_name="your_image.png")
+extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)#change setting for the region (screenshot)
+text = extractor.get_text_from_screen(image_name="your_image.png") #use the new setting for capturing, and make specific image_name
 print(text)
 
-text = extractor.get_text_from_screen(capture_region=(0,0,1920,1080), image_name="55.png")
+text = extractor.get_text_from_screen(capture_region=(0,0,1920,1080), image_name="55.png") #do a fixed capture_region size 
 print(text)
 ```
 
@@ -145,11 +145,12 @@ print(text)
 from freeai_utils import gtts_speak, Text_To_Speech_Pyttsx3
 
 # gTTS version
-gtts_speak("Xin chào người đẹp, em tên là gì thế", "vi")
-gtts_speak("Hello, how are you?", "en")
+gtts_speak(text = "Xin chào người đẹp, em tên là gì thế", lang = "vi")
+gtts_speak(text = "Hello, how are you?", lang = "en")
 
 # pyttsx3 version
 speaker = Text_To_Speech_Pyttsx3()
-speaker.speak("Hello there my friend")
-speaker.config_voice(rate=165, volume=0.8)
+speaker.speak("Hello there my friend") #speak with default voice
+speaker.config_voice(rate=165, volume=0.8, voice_index = 1)#modify voice setting
+speaker.speak("Hello there my friend") # speak with modified voice
 ```
