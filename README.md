@@ -4,11 +4,11 @@ A lightweight collection of Python utility functions that can be installed direc
 
 ## Features
 
-* **Audio recording**: Save recordings as `.wav` or `.mp3`
-* **Speech-to-text**: Convert audio to text using Whisper
-* **Text-to-speech**: Convert text into spoken audio
-* **Image captioning**: Generate descriptions for images
-* **OCR (Optical Character Recognition)**: Extract text from images using EasyOCR
+- **Audio**: record WAV/MP3 (fixed, toggle, silence-triggered)  
+- **Speech-to-Text**: OpenAI Whisper transcription & language detection   
+- **Web Search**: scrape & summarize Google results  
+- **Image**: caption generation & OCR (EasyOCR)  
+- **TTS**: text-to-speech via gTTS or pyttsx3
 * **Gemini API**: Interact with Google Cloud Gemini models via your API key
 
   * *Note: This works best with Google accounts that have no billing method added yet (completely free to use with limits).*
@@ -21,9 +21,15 @@ pip install freeai-utils
 
 > No need to install extra executables or clone large repositories — everything works out of the box with `pip`.
 
-## Guide
+---
 
-> This will be updated later :)
+## 📖 Full API Reference
+
+For a detailed list of all classes and methods, see [API.md](https://github.com/truongbaan/Utility-python-library/blob/main/API.md).
+
+## Acknowledgements & References
+
+See [THIRD_PARTY.md](https://github.com/truongbaan/Utility-python-library/blob/main/THIRD_PARTY.md) for a full list of third-party libraries and their licenses.
 
 ## Inspiration
 

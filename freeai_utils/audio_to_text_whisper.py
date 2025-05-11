@@ -5,6 +5,7 @@ import librosa #need pip install librosa
 import torch # need pip install torch
 from typing import Dict, Any
 import logging
+import os
 
 # 3 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
@@ -119,7 +120,7 @@ class OpenAIWhisper:
         
 # Example usage      
 if __name__ == "__main__":
-    import os
+    
     FILENAME = "output_pyaudio.wav"
 
     _transcriber = OpenAIWhisper()

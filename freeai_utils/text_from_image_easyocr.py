@@ -32,6 +32,9 @@ class Text_Extractor_EasyOCR:
         # This avoids repetitive specification of the same region when capturing multiple screenshots with the default area.
         
         if capture_region is not None: #if default, take base on config
+            if len(capture_region) != 4:
+                raise ValueError(f"capture_region must have size == 4")
+            
             __region = capture_region
             
         #check type of the input
