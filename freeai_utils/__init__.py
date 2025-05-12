@@ -7,6 +7,7 @@ from .image_to_text import ImageCaptioner
 from .text_from_image_easyocr import Text_Extractor_EasyOCR
 from .text_to_speech_gtts import gtts_print_supported_languages, gtts_speak
 from .text_to_speech_pyttsx3 import Text_To_Speech_Pyttsx3
+from .pdf_docx_reader import PDF_DOCX_Reader
 
 __all__ = [
     "WavRecorder", "MP3Recorder",
