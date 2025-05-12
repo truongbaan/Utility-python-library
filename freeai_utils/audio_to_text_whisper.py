@@ -102,9 +102,6 @@ class OpenAIWhisper:
         self.__enforce_type(fp16, bool, "fp16")
         
         try:
-            # load file
-            file_dir = os.path.dirname(os.path.abspath(__file__)) #get correct place
-            audio_path = os.path.join(file_dir, audio_path)
             audio_data = self._load_wav(audio_path)
                 
             # get the np.ndarray to the transcribe
