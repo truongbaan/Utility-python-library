@@ -1,7 +1,7 @@
 [project]
 name = "freeai-utils"
-version = "0.1.3"
-description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations"
+version = "0.2.0"
+description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
 ]
@@ -32,7 +32,11 @@ dependencies = [
     "easyocr",
     "gTTS",
     "playsound==1.2.2",  # required specific version
-    "pyttsx3"
+    "pyttsx3",
+    "pymupdf",
+    "pypdf",
+    "pdfplumber",
+    "python-docx"
 ]
 
 [build-system]

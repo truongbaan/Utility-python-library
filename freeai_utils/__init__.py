@@ -18,4 +18,5 @@ __all__ = [
     "Text_Extractor_EasyOCR",
     "gtts_print_supported_languages", "gtts_speak",
     "Text_To_Speech_Pyttsx3",
+    "PDF_DOCX_Reader",
 ]

@@ -12,6 +12,7 @@ Use the table below to navigate quickly to each feature section.
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
+| PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
 
 ---
 
@@ -153,4 +154,17 @@ speaker = Text_To_Speech_Pyttsx3()
 speaker.speak("Hello there my friend") #speak with default voice
 speaker.config_voice(rate=165, volume=0.8, voice_index = 1)#modify voice setting
 speaker.speak("Hello there my friend") # speak with modified voice
+```
+
+## PDF-DOCX-Reader
+
+** Return text and images from pdf or docx files. **
+
+```python
+from freeai_utils import PDF_DOCX_Reader
+
+reader = PDF_DOCX_Reader(start_page = 0) #init the class, support only pdf and docx
+print(reader.get_text_label("example.pdf")) #return str (text) base on the label
+print(reader.get_all_text("example.pdf")) #return str (text) in the file
+print(reader.extract_images("example.docx")) #return the number of images found in the file
 ```
