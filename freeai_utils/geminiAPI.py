@@ -3,12 +3,13 @@ import pyperclip #need pip install pyperclip
 from dotenv import load_dotenv #need pip install python-dotenv
 import os
 import logging
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
 class GeminiClient:
-    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : str = None, memories_length : int = 4, limit_word_per_respond : int = 150):
+    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
         self.__enforce_type(memories_length, int, "memories_length")
         self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")

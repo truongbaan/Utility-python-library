@@ -109,7 +109,7 @@ print(results)
 ```python
 import freeai_utils
 
-cap = freeai_utils.ImageCaptioner()
+cap = freeai_utils.ImageCaptioner(device = "cuda")
 text = cap.write_caption("your_image.png")
 print("Caption:", text)
 ```

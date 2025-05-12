@@ -6,6 +6,7 @@ import torch # need pip install torch
 from typing import Dict, Any
 import logging
 import os
+from typing import Optional
 
 # 3 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
@@ -14,7 +15,7 @@ import os
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 class OpenAIWhisper:
-    def __init__(self, model: str = "medium", sample_rate: int = 16000) -> None:
+    def __init__(self, model: str = "medium", sample_rate: int = 16000, device : Optional[str]  = None) -> None:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -24,11 +25,20 @@ class OpenAIWhisper:
         self._model = None 
         self._device = None 
         
-        # check GPU first, fall back to CPU if not work
+        #init the var to hold device available
         preferred_devices = []
-        if torch.cuda.is_available():
+        
+        #try input first
+        if device is not None:
+            preferred_devices.append(device)
+        
+        # try cuda second 
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
             preferred_devices.append("cuda")
-        preferred_devices.append("cpu")
+
+        # fall back to CPU if not already there
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
 
         last_err = None
         for dev in preferred_devices:
@@ -43,7 +53,7 @@ class OpenAIWhisper:
                 self.logger.error(f"Failed to load on {dev}: {e}")
             except Exception as e: 
                 last_err = e
-                self.logger.warning(f"An unexpected error occurred while loading model on {dev}: {e}")
+                self.logger.error(f"An unexpected error occurred while loading model on {dev}: {e}")
         
         if self._model is None: #check if nothing works, then raise error
             raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")

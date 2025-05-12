@@ -2,20 +2,56 @@ from transformers import AutoProcessor, AutoModelForVision2Seq # need pip instal
 from PIL import Image # need pip install torch
 import torch # need pip install torch
 import logging
-
+from typing import Optional
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
 class ImageCaptioner:
-    def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: str = None):
-        self._device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
-        self._model = AutoModelForVision2Seq.from_pretrained(model_name).to(self._device)
-        self._model.eval()
+    def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: Optional[str] = None):
+        #check input type
+        self.__enforce_type(model_name, str, "model_name")
+        
+        #logger 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
-    
+        
+        #init the var to hold device available
+        preferred_devices = []
+        
+        #try input first
+        if device is not None:
+            preferred_devices.append(device)
+        
+        # try cuda second 
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
+            preferred_devices.append("cuda")
+
+        # fall back to CPU if not already there
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
+
+        last_err = None
+        
+        for dev in preferred_devices:
+            try:
+                self.logger.info(f"Loading '{model_name}' model on {dev}.")
+                self._device = dev
+                self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
+                self._model = AutoModelForVision2Seq.from_pretrained(model_name).to(self._device)
+                self._model.eval()
+                self.logger.info(f"Successfully loaded on {dev}.")
+                break
+            except RuntimeError as e:
+                last_err = e
+                self.logger.error(f"Failed to load on {dev}: {e}")
+            except Exception as e: 
+                last_err = e
+                self.logger.error(f"An unexpected error occurred while loading model on {dev}: {e}")
+        
+        if self._model is None: #check if nothing works, then raise error
+            raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")
+            
     @property
     def device(self):
         return self._device
@@ -58,7 +94,7 @@ class ImageCaptioner:
 
 #Example
 if __name__ == "__main__":
-    _cap = ImageCaptioner()
-    _text = _cap.write_caption("img.png")
+    _cap = ImageCaptioner(device="cuda")
+    _text = _cap.write_caption("img.jpg")
     print("Caption:", _text)
 
