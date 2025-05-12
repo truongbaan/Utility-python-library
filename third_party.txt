@@ -1,0 +1,59 @@
+## 🚀 Dependencies
+
+The following Python packages are used by this project; their licenses are as shown (versions as of May 2025):
+
+pip license things here
+
+## 📦 Models
+
+| Model ID                                | License |
+| --------------------------------------- | ------- |
+| openai/whisper-small                    | MIT     |
+| namphungdn134/whisper-small-vi (fine-tune) | MIT     |
+| openai/whisper-medium                   | MIT     |
+| Salesforce/blip-image-captioning-large  |  BSD-3-Clause |
+
+---
+
+## 📚 Citation
+
+If you use this model in your research or application, please cite:  
+
+```bibtex
+@article{Whisper2021,
+  title={Whisper: A Multilingual Speech Recognition Model},
+  author={OpenAI},
+  year={2021},
+  journal={arXiv:2202.12064},
+  url={https://arxiv.org/abs/2202.12064}
+}
+
+@misc{namphung_whisper_small_vi,
+  title={Whisper Small Vi V1.1 – Vietnamese Fine-Tuned by Nam Phùng},
+  author={Nam Phùng},
+  organization={DUT},
+  year={2025},
+  url={https://huggingface.co/namphungdn134/whisper-small-vi}
+}
+
+@misc{https://doi.org/10.48550/arxiv.2201.12086,
+  doi = {10.48550/ARXIV.2201.12086},
+  url = {https://arxiv.org/abs/2201.12086},
+  author = {Li, Junnan and Li, Dongxu and Xiong, Caiming and Hoi, Steven},
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding and Generation},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+
+@misc{radford2022whisper,
+  doi = {10.48550/ARXIV.2212.04356},
+  url = {https://arxiv.org/abs/2212.04356},
+  author = {Radford, Alec and Kim, Jong Wook and Xu, Tao and Brockman, Greg and McLeavey, Christine and Sutskever, Ilya},
+  title = {Robust Speech Recognition via Large-Scale Weak Supervision},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+

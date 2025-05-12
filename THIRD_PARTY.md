@@ -1,3 +1,7 @@
+ ## 🚀 Dependencies
+
+The following Python packages are used by this project; their licenses are as shown (versions as of May 2025):
+ 
  Name                          Version      License                                                                        
  Jinja2                        3.1.6        BSD License                                                                    
  MarkupSafe                    3.0.2        BSD License                                                                    
