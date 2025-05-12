@@ -9,6 +9,7 @@ A lightweight collection of Python utility functions that can be installed direc
 - **Web Search**: scrape & summarize Google results  
 - **Image**: caption generation & OCR (EasyOCR)  
 - **TTS**: text-to-speech via gTTS or pyttsx3
+- **PDF-DOCX-Reader**: extract text and images from pdf and docx files
 * **Gemini API**: Interact with Google Cloud Gemini models via your API key
 
   * *Note: This works best with Google accounts that have no billing method added yet (completely free to use with limits).*
