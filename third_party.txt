@@ -12,7 +12,7 @@ pip license things here
 | namphungdn134/whisper-small-vi (fine-tune) | MIT     |
 | openai/whisper-medium                   | MIT     |
 | Salesforce/blip-image-captioning-large  |  BSD-3-Clause |
-
+| deepset/tinyroberta-squad2             | cc-by-4.0 |
 ---
 
 ## 📚 Citation
