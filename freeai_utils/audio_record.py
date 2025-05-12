@@ -132,7 +132,7 @@ class WavRecorder:
         
         #Record until a period of silence longer than max_silence_seconds is detected.
         self._open_stream()
-        self.logger.info("Recording... will stop after silence of", f"> {max_silence_seconds}s below threshold {silence_threshold}.")
+        self.logger.info(f"Recording... will stop after silence of > {max_silence_seconds}s below threshold {silence_threshold}.")
         silence_start = None
 
         try:
