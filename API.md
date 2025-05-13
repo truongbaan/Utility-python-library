@@ -7,6 +7,7 @@ Use the table below to navigate quickly to each feature section.
 | Audio Recording (WAV) | Record WAV audio via fixed, toggle, or silence modes | [WAV Recorder](#wav-recorder)           |
 | Audio Recording (MP3) | Record MP3 audio via fixed, toggle, or silence modes | [MP3 Recorder](#mp3-recorder)           |
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
+|                       |                                                      | [VN Whisper](#vn-whisper)               |
 | Gemini Client (LLM)   | Interact with Google Gemini using memory             | [GeminiClient](#geminiclient)           |
 | Web Search            | Grab information from Google                         | [Google Searcher](#google-searcher)     |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
@@ -64,6 +65,21 @@ print(lang_detect)
 
 translation = transcriber.get_translation("output_pyaudio.wav")
 print(translation)
+```
+
+---
+
+## VN Whisper
+
+**Transcribe audio files and detect language.**
+
+```python
+from freeai_utils.audio_to_text_vn import VN_Whisper
+
+vn_transcriber = VN_Whisper() #init the model
+text = vn_transcriber.transcribe_audio("your_audio.wav") #return str
+print(text)
+
 ```
 
 ---

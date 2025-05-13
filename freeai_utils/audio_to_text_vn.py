@@ -39,23 +39,18 @@ class VN_Whisper:
                 self.logger.error(f"Failed to load on {dev}: {e}")
             except Exception as e: 
                 self.logger.error(f"An unexpected error occurred while loading model on {dev}: {e}")
-                
-        #self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"Using device: {self._device}")
-        
-       
         
         # Suppress transformer-related warnings
         transformers_logging.set_verbosity_error()
                 
     def transcribe_audio(self, audio_path) -> str:
         # Load and preprocess audio
-        print(f"Loading audio from: {audio_path}")
+        self.logger.info(f"Loading audio from: {audio_path}")
         audio, sr = librosa.load(audio_path, sr=16000)
         input_features = self.processor(audio, sampling_rate=16000, return_tensors="pt").input_features.to(self._device)
 
         # Generate transcription
-        print("Generating transcription...")
+        self.logger.info("Generating transcription...")
         with torch.no_grad():
             predicted_ids = self.model.generate(input_features, num_beams=1, use_cache=True)
 
