@@ -1,4 +1,4 @@
-from .audio_record import WavRecorder, MP3Recorder
+from .audio_record import WavRecorder, MP3Recorder, check_wav_length_and_size, check_mp3_length_and_size
 from .audio_to_text_whisper import OpenAIWhisper
 from .clean_text_for_tts import clean_ai_text_for_tts
 from .geminiAPI import GeminiClient
@@ -10,7 +10,7 @@ from .text_to_speech_pyttsx3 import Text_To_Speech_Pyttsx3
 from .pdf_docx_reader import PDF_DOCX_Reader
 
 __all__ = [
-    "WavRecorder", "MP3Recorder",
+    "WavRecorder", "MP3Recorder","check_wav_length_and_size","check_mp3_length_and_size"
     "OpenAIWhisper",
     "clean_ai_text_for_tts",
     "GeminiClient",

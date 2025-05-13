@@ -5,6 +5,7 @@ import numpy as np # need pip install numpy
 import keyboard #need pip install keyboard
 from lameenc import Encoder #need pip install lameenc (this is use for MP3Recorder)
 import logging
+import os
 
 #Record with pyaudio
 #3 function: fixed-duration recording, toggle-controlled recording, and silence-based recording.
@@ -331,6 +332,73 @@ class MP3Recorder:
 
     def terminate(self):
         self._p.terminate()
+
+#will check later
+import logging
+from mutagen.mp3 import MP3
+def check_wav_length_and_size(file_path: str, period: float = 5.0) -> bool:
+    logger = logging.getLogger(__name__)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    try:
+        with wave.open(file_path, 'rb') as wf:
+            frame_rate = wf.getframerate()
+            num_frames = wf.getnframes()
+            duration = num_frames / float(frame_rate)
+
+        file_size_bytes = os.path.getsize(file_path)
+
+        if duration <= period:
+            logger.info("'%s' is less than or equal to %.2f seconds long (duration: %.2f seconds).", 
+                        file_path, period, duration)
+            logger.info("File size: %d bytes.", file_size_bytes)
+            return True
+        else:
+            logger.info("'%s' is %.2f seconds long, which exceeds %.2f seconds.", 
+                           file_path, duration, period)
+            return False
+    except wave.Error as e:
+        print(f"Error opening or reading WAV file '{file_path}': {e}")
+    except FileNotFoundError:
+        print(f"Error: File not found at '{file_path}'")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+def check_mp3_length_and_size(file_path: str, period: float = 5.0) -> bool:
+    """
+    Check if an MP3 file is shorter than or equal to the specified period (in seconds)
+    and log its duration and size.
+    Requires mutagen library.
+    """
+    logger = logging.getLogger(__name__)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    try:
+        audio = MP3(file_path)
+        duration = audio.info.length  # length in seconds
+        file_size_bytes = os.path.getsize(file_path)
+
+        if duration <= period:
+            logger.info("'%s' is less than or equal to %.2f seconds long (duration: %.2f seconds).", 
+                        file_path, period, duration)
+            logger.info("File size: %d bytes.", file_size_bytes)
+            return True
+        else:
+            logger.info("'%s' is %.2f seconds long, which exceeds %.2f seconds.", 
+                           file_path, duration, period)
+            return False
+
+    except Exception as e:
+        logger.exception("Error processing MP3 file '%s': %s", file_path, e)
+    return False
 
 #EXAMPLE
 def _test_function():
