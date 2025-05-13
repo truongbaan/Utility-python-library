@@ -337,7 +337,7 @@ class MP3Recorder:
 import logging
 from mutagen.mp3 import MP3
 def check_wav_length_and_size(file_path: str, period: float = 5.0) -> bool:
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("WAV Checker")
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -374,7 +374,7 @@ def check_mp3_length_and_size(file_path: str, period: float = 5.0) -> bool:
     and log its duration and size.
     Requires mutagen library.
     """
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("MP3 Checker")
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
