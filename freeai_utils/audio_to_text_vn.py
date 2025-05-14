@@ -31,7 +31,7 @@ class VN_Whisper:
                 self.logger.info(f"Loading '{model_id}' model on {dev}...")
                 # Load processor and model
                 self.processor = AutoProcessor.from_pretrained(model_id)
-                self.model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(dev)
+                self._model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(dev)
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 self._device = dev
                 break
@@ -40,9 +40,19 @@ class VN_Whisper:
             except Exception as e: 
                 self.logger.error(f"An unexpected error occurred while loading model on {dev}: {e}")
         
+        if self._model is None: #check if nothing works, then raise error
+            raise RuntimeError(f"Could not load model on any device")
         # Suppress transformer-related warnings
         transformers_logging.set_verbosity_error()
-                
+    
+    @property
+    def model(self):
+        return self._model  
+    
+    @property
+    def device(self):
+        return self._device
+              
     def transcribe_audio(self, audio_path) -> str:
         # Load and preprocess audio
         self.logger.info(f"Loading audio from: {audio_path}")
@@ -52,7 +62,7 @@ class VN_Whisper:
         # Generate transcription
         self.logger.info("Generating transcription...")
         with torch.no_grad():
-            predicted_ids = self.model.generate(input_features, num_beams=1, use_cache=True)
+            predicted_ids = self._model.generate(input_features, num_beams=1, use_cache=True)
 
         # Decode transcription
         transcription = self.processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]

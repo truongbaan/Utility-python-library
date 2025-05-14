@@ -333,17 +333,13 @@ class MP3Recorder:
     def terminate(self):
         self._p.terminate()
 
-#will check later
-import logging
-from mutagen.mp3 import MP3
-def check_wav_length_and_size(file_path: str, period: float = 5.0) -> bool:
+from mutagen.mp3 import MP3, MutagenError
+
+def check_wav_length_and_size(file_path: str, period: float = 5.0, allowed_logger : bool = True) -> bool:
     logger = logging.getLogger("WAV Checker")
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    if allowed_logger:
+        logger.setLevel(logging.INFO)
+    else: logger.setLevel(logging.ERROR)
     try:
         with wave.open(file_path, 'rb') as wf:
             frame_rate = wf.getframerate()
@@ -362,25 +358,20 @@ def check_wav_length_and_size(file_path: str, period: float = 5.0) -> bool:
                            file_path, duration, period)
             return False
     except wave.Error as e:
-        print(f"Error opening or reading WAV file '{file_path}': {e}")
+        logger.error(f"Error opening or reading WAV file '{file_path}': {e}")
+        raise
     except FileNotFoundError:
-        print(f"Error: File not found at '{file_path}'")
+        logger.error(f"Error: File not found at '{file_path}'")
+        raise
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
+        raise
 
-def check_mp3_length_and_size(file_path: str, period: float = 5.0) -> bool:
-    """
-    Check if an MP3 file is shorter than or equal to the specified period (in seconds)
-    and log its duration and size.
-    Requires mutagen library.
-    """
+def check_mp3_length_and_size(file_path: str, period: float = 5.0, allowed_logger : bool = True) -> bool:
     logger = logging.getLogger("MP3 Checker")
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    if allowed_logger:
+        logger.setLevel(logging.INFO)
+    else: logger.setLevel(logging.ERROR)
     try:
         audio = MP3(file_path)
         duration = audio.info.length  # length in seconds
@@ -395,10 +386,15 @@ def check_mp3_length_and_size(file_path: str, period: float = 5.0) -> bool:
             logger.info("'%s' is %.2f seconds long, which exceeds %.2f seconds.", 
                            file_path, duration, period)
             return False
-
+    except MutagenError as e:
+        logger.error("Mutagen error reading MP3 file '%s': %s", file_path, e)
+        raise
+    except FileNotFoundError:
+        logger.error(f"Error: File not found at '{file_path}'")
+        raise
     except Exception as e:
-        logger.exception("Error processing MP3 file '%s': %s", file_path, e)
-    return False
+        logger.error("Error processing MP3 file '%s': %s", file_path, e)
+        raise
 
 #EXAMPLE
 def _test_function():
