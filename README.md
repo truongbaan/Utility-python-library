@@ -1,6 +1,7 @@
 # freeai-utils
 
 A lightweight collection of Python utility functions that can be installed directly using `pip` — no external `.exe` downloads or complicated setups required. This library trades some accuracy for ease of implementation. It's designed for developers who prefer quick functionality over manual setup. Just call the functions — they’ll handle the rest.
+# Note: This project is currently private; it will be made public in a future release.
 
 ## Features
 
