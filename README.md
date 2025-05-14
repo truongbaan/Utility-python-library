@@ -37,4 +37,5 @@ See [THIRD_PARTY.md](https://github.com/truongbaan/Utility-python-library/blob/m
 This project was inspired by the GitHub repository:
 [awesome-python](https://github.com/vinta/awesome-python)
 
-# Note: This project is currently private; it will be made public in a future release.
+## Note: 
+This project is currently private; it will be made public in a future release.
