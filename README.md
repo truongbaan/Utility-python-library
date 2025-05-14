@@ -1,7 +1,6 @@
 # freeai-utils
 
 A lightweight collection of Python utility functions that can be installed directly using `pip` — no external `.exe` downloads or complicated setups required. This library trades some accuracy for ease of implementation. It's designed for developers who prefer quick functionality over manual setup. Just call the functions — they’ll handle the rest.
-# Note: This project is currently private; it will be made public in a future release.
 
 ## Features
 
@@ -37,3 +36,5 @@ See [THIRD_PARTY.md](https://github.com/truongbaan/Utility-python-library/blob/m
 
 This project was inspired by the GitHub repository:
 [awesome-python](https://github.com/vinta/awesome-python)
+
+# Note: This project is currently private; it will be made public in a future release.
