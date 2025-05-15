@@ -59,12 +59,12 @@ class DocumentFilter:
         
         #extract from docx
         for doc in docx_urls:
-            text = reader.get_text_label(doc)
+            text = reader.extract_ordered_text(doc)
             self._documents.append(Document(content=text))
             
         #extract from pdf
         for pdf in pdf_urls:
-            text = reader.get_text_label(pdf)
+            text = reader.extract_ordered_text(pdf)
             self._documents.append(Document(content=text))
     
     def __collect_file_paths(self, directory):

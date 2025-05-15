@@ -181,8 +181,8 @@ speaker.speak("Hello there my friend") # speak with modified voice
 from freeai_utils import PDF_DOCX_Reader
 
 reader = PDF_DOCX_Reader(start_page = 0) #init the class, support only pdf and docx
-print(reader.get_text_label("example.pdf")) #return str (text) base on the label
-print(reader.get_all_text("example.pdf")) #return str (text) in the file
+print(reader.extract_ordered_text("example.pdf")) #return str (text) base on the label
+print(reader.extract_all_text("example.pdf")) #return str (text) in the file
 print(reader.extract_images("example.docx")) #return the number of images found in the file
 ```
 

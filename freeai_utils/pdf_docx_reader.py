@@ -34,7 +34,7 @@ class PDF_DOCX_Reader:
         self.logger.setLevel(logging.INFO)
         self.logger.info(f"Initialize successfully")
 
-    def get_all_text(self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
+    def extract_all_text(self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
         # Extract all text into a single string.
         # Tries pypdf for PDF, Document for DOCX, and falls back to fitz for PDFs.
         
@@ -93,9 +93,9 @@ class PDF_DOCX_Reader:
                 self.logger.error(f"Fail to get text from file {file_path} with error {e}")
                 return ""
 
-    def get_text_label( self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
+    def extract_ordered_text( self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
         # Extract text maintaining layout using pdfplumber for PDFs,
-        # or fallback to fitz. DOCX behaves same as get_all_text.
+        # or fallback to fitz. DOCX behaves same as extract_all_text.
         
         #check type
         self.__enforce_type(first_page, (int, type(None)), "first_page")
@@ -108,9 +108,29 @@ class PDF_DOCX_Reader:
         fp = first_page if first_page is not None else self.first_page
         lp = last_page if last_page is not None else self.last_page
         
-        # DOCX same as get_all_text
+        # DOCX same as extract_all_text
         if ext == '.docx':
-            return self.get_all_text(file_path, fp, lp)
+            #adjust here the code please
+            try:
+                from docx.oxml.text.paragraph import CT_P
+                from docx.oxml.table import CT_Tbl
+                from docx.text.paragraph import Paragraph
+                from docx.table import Table
+                doc = Document(file_path)
+                parts = []
+                for child in doc.element.body.iterchildren():
+                    if isinstance(child, CT_P):
+                        para = Paragraph(child, doc)
+                        parts.append(para.text)
+                    elif isinstance(child, CT_Tbl):
+                        tbl = Table(child, doc)
+                        # turn each row into a tab‑joined line
+                        for row in tbl.rows:
+                            parts.append("\t".join(cell.text for cell in row.cells))
+                return "\n".join(parts)
+            except Exception:
+                self.logger.info("Fail to do extract_ordered_text for docx file, trying extract_all_text instead")
+                return self.extract_all_text(file_path, fp, lp)
         
         # PDF using pdfplumber
         text = []
@@ -127,7 +147,7 @@ class PDF_DOCX_Reader:
         except Exception:
             # fallback to fitz
             self.logger.info(f"Fail to use pdflumber, fallback to fitz to extract file")
-            return self.get_all_text(file_path, fp, lp)
+            return self.extract_all_text(file_path, fp, lp)
 
     def extract_images(self, file_path: str = None, folder_extract: str = "extracted_images", first_page: Optional[int] = None, last_page: Optional[int] = None) -> int:
         # Extract images from PDF using fitz (PyMuPDF).
@@ -200,4 +220,4 @@ class PDF_DOCX_Reader:
         
 if __name__ == "__main__":
     reader = PDF_DOCX_Reader()
-    print(reader.get_text_label("example.pdf"))
+    print(reader.extract_ordered_text("example.pdf"))
