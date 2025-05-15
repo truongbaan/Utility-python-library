@@ -9,6 +9,8 @@ try:
 except ImportError:
     Document = None
 
+logging.basicConfig(level=logging.CRITICAL, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
 class PDF_DOCX_Reader:
     def __init__(self, start_page: int = 0, last_page: Optional[int] = None) -> None:
         # Initialize with optional page range.

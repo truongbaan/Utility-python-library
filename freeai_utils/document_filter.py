@@ -14,13 +14,17 @@ class DocumentFilter:
         self.threshold = threshold
         self.max_per_doc = max_per_doc
         self.top_k = top_answer
-        self.documents: List[Document] = [] #init var to hold document
+        self._documents: List[Document] = [] #init var to hold document
         if path is None:
             path = os.path.dirname(os.path.abspath(__file__))
         self.__init_documents(path)
-        
+    
+    @property
+    def documents(self):
+        return self._documents
+       
     def search_document(self, prompt : str = None) -> List:
-        result = self.reader.run(query=prompt, documents=self.documents, top_k=self.top_k)
+        result = self.reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
 
         seen_texts = set()
         counts = Counter()
@@ -48,7 +52,7 @@ class DocumentFilter:
 
     def __init_documents(self, directory : str = ""):
         #get from here
-        self.documents.clear()
+        self._documents.clear()
         pdf_urls, docx_urls =self.__collect_file_paths(directory)
         
         reader = PDF_DOCX_Reader() #init reader
@@ -56,12 +60,12 @@ class DocumentFilter:
         #extract from docx
         for doc in docx_urls:
             text = reader.get_text_label(doc)
-            self.documents.append(Document(content=text))
+            self._documents.append(Document(content=text))
             
         #extract from pdf
         for pdf in pdf_urls:
             text = reader.get_text_label(pdf)
-            self.documents.append(Document(content=text))
+            self._documents.append(Document(content=text))
     
     def __collect_file_paths(self, directory):
         pdf_urls = []
@@ -80,8 +84,7 @@ class DocumentFilter:
     
 if __name__ == "__main__":
     filter = DocumentFilter(path = "your_folder")
-    list_ans : list = filter.search_document("Tetris")
-    for ans in list_ans:
+    for ans in filter.documents:
         print(ans)
     
     
