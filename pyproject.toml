@@ -37,7 +37,8 @@ dependencies = [
     "pypdf",
     "pdfplumber",
     "python-docx",
-    "mutagen"
+    "mutagen",
+    "haystack-ai"
 ]
 
 [project.urls]

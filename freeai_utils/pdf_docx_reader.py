@@ -106,8 +106,6 @@ class PDF_DOCX_Reader:
         fp = first_page if first_page is not None else self.first_page
         lp = last_page if last_page is not None else self.last_page
         
-        self.logger.info(f"Detect file type: {ext}")
-        
         # DOCX same as get_all_text
         if ext == '.docx':
             return self.get_all_text(file_path, fp, lp)

@@ -14,6 +14,7 @@ Use the table below to navigate quickly to each feature section.
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
 | PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
+| Document-Filter       |                                                      | [Document-Filter](#document-filter)     |
 
 ---
 
@@ -183,4 +184,16 @@ reader = PDF_DOCX_Reader(start_page = 0) #init the class, support only pdf and d
 print(reader.get_text_label("example.pdf")) #return str (text) base on the label
 print(reader.get_all_text("example.pdf")) #return str (text) in the file
 print(reader.extract_images("example.docx")) #return the number of images found in the file
+```
+
+## Document filter
+
+** Usage: **
+
+```python
+from freeai-utils import DocumentFilter
+filter = DocumentFilter(path = "your_folder")
+list_ans : list = filter.search_document("Tetris")
+for ans in list_ans:
+print(ans)
 ```
