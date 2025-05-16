@@ -74,17 +74,10 @@ class DocumentFilter:
         # Walk through all directories and files
         for root, _, files in os.walk(directory):
             for file in files:
-                file_path = os.path.join(root, file).replace('\\', '/')  # Normalize path
+                file_path = os.path.join(root, file).replace('\\', '/')  # normalize path
                 if file.lower().endswith('.pdf'):
                     pdf_urls.append(file_path)
                 elif file.lower().endswith('.docx'):
                     docx_urls.append(file_path)
 
         return pdf_urls, docx_urls
-    
-if __name__ == "__main__":
-    filter = DocumentFilter(path = "your_folder")
-    for ans in filter.documents:
-        print(ans)
-    
-    

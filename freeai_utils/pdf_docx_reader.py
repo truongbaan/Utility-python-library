@@ -9,7 +9,8 @@ try:
 except ImportError:
     Document = None
 
-logging.basicConfig(level=logging.CRITICAL, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.CRITICAL)
 
 class PDF_DOCX_Reader:
     def __init__(self, start_page: int = 0, last_page: Optional[int] = None) -> None:
@@ -226,8 +227,7 @@ class PDF_DOCX_Reader:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
         
 if __name__ == "__main__":
-    FILENAME = "c:\\Users\\ACER\\Documents\\GitHub\\Utility-python-library\\freeai_utils\\sample\\sample2.docx"
-    # print(os.path.abspath(__file__))
+    FILENAME = os.path.dirname(os.path.abspath(__file__)) + "\\sample\\sample.docx"
     reader = PDF_DOCX_Reader()
     print(repr(reader.extract_all_text(FILENAME)))
     print(repr(reader.extract_ordered_text(FILENAME)))

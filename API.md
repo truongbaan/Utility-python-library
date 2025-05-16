@@ -7,14 +7,14 @@ Use the table below to navigate quickly to each feature section.
 | Audio Recording (WAV) | Record WAV audio via fixed, toggle, or silence modes | [WAV Recorder](#wav-recorder)           |
 | Audio Recording (MP3) | Record MP3 audio via fixed, toggle, or silence modes | [MP3 Recorder](#mp3-recorder)           |
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
-|                       |                                                      | [VN Whisper](#vn-whisper)               |
+|                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
 | Gemini Client (LLM)   | Interact with Google Gemini using memory             | [GeminiClient](#geminiclient)           |
 | Web Search            | Grab information from Google                         | [Google Searcher](#google-searcher)     |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
 | PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
-| Document-Filter       |                                                      | [Document-Filter](#document-filter)     |
+| Document-Filter       | Filter documents using prompt                        | [Document-Filter](#document-filter)     |
 
 ---
 
@@ -191,9 +191,9 @@ print(reader.extract_images("example.docx")) #return the number of images found 
 ** Usage: **
 
 ```python
-from freeai-utils import DocumentFilter
+from freeai_utils import DocumentFilter
 filter = DocumentFilter(path = "your_folder")
 list_ans : list = filter.search_document("Tetris")
 for ans in list_ans:
-print(ans)
+    print(ans)
 ```
