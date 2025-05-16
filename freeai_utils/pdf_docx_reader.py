@@ -59,7 +59,14 @@ class PDF_DOCX_Reader:
             text = []
             try:
                 for para in doc.paragraphs:
-                    text.append(para.text)
+                    if para.text:
+                        text.append(para.text)
+
+                for table in doc.tables:
+                    for row in table.rows:
+                        for cell in row.cells:
+                            if cell.text:
+                                text.append(cell.text)
                 return '\n'.join(text)
             except Exception as e:
                 self.logger.error(f"Fail to get text from file {file_path} with error {e}")
@@ -129,7 +136,7 @@ class PDF_DOCX_Reader:
                             parts.append("\t".join(cell.text for cell in row.cells))
                 return "\n".join(parts)
             except Exception:
-                self.logger.info("Fail to do extract_ordered_text for docx file, trying extract_all_text instead")
+                self.logger.error("Fail to do extract_ordered_text for docx file, trying extract_all_text instead")
                 return self.extract_all_text(file_path, fp, lp)
         
         # PDF using pdfplumber
@@ -219,5 +226,8 @@ class PDF_DOCX_Reader:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
         
 if __name__ == "__main__":
+    FILENAME = "c:\\Users\\ACER\\Documents\\GitHub\\Utility-python-library\\freeai_utils\\sample\\sample2.docx"
+    # print(os.path.abspath(__file__))
     reader = PDF_DOCX_Reader()
-    print(reader.extract_ordered_text("example.pdf"))
+    print(repr(reader.extract_all_text(FILENAME)))
+    print(repr(reader.extract_ordered_text(FILENAME)))

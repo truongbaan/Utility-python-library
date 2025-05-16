@@ -3,7 +3,7 @@ from haystack import Document
 from haystack.components.readers import ExtractiveReader
 from typing import List, Optional
 import os
-from pdf_docx_reader import PDF_DOCX_Reader
+from .pdf_docx_reader import PDF_DOCX_Reader
 
 #smaller model: deepset/roberta-base-squad2
 
