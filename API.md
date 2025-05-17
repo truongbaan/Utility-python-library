@@ -142,14 +142,17 @@ print("Caption:", text)
 import freeai_utils
 
 extractor = freeai_utils.Text_Extractor_EasyOCR(language='en')
-text = extractor.get_text_from_screen() #capture screen and do ocr
+text = extractor.get_text_from_screenshot() #capture screen and do ocr
 print(text)
 
 extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)#change setting for the region (screenshot)
-text = extractor.get_text_from_screen(image_name="your_image.png") #use the new setting for capturing, and make specific image_name
+text = extractor.get_text_from_screenshot(image_name="your_image.png") #use the new setting for capturing, and make specific image_name
 print(text)
 
-text = extractor.get_text_from_screen(capture_region=(0,0,1920,1080), image_name="55.png") #do a fixed capture_region size 
+text = extractor.get_text_from_screenshot(capture_region=(0,0,1920,1080), image_name="55.png") #do a fixed capture_region size 
+print(text)
+
+text = extractor.get_text_from_image(image_path = "your_provided_image")
 print(text)
 ```
 
