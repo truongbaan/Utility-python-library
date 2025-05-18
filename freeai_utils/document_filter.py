@@ -4,27 +4,74 @@ from haystack.components.readers import ExtractiveReader
 from typing import List, Optional
 import os
 from .pdf_docx_reader import PDF_DOCX_Reader
+import logging
 
 #smaller model: deepset/roberta-base-squad2
-
 class DocumentFilter:
-    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4):
-        self.reader = ExtractiveReader(model=model_name)
-        self.reader.warm_up()
+    
+    __slots__ = ("_reader", "threshold", "max_per_doc", "top_k", "_documents", "_initialized", "logger")
+    
+    _initialized: bool
+    _reader: ExtractiveReader
+    threshold: float
+    max_per_doc: int
+    top_k: int
+    _documents: List[Document]
+    
+    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4) -> None:
+        #check type first
+        self.__enforce_type(threshold, float, "threshold")
+        self.__enforce_type(max_per_doc, int, "max_per_doc")
+        self.__enforce_type(top_answer, int, "top_answer")
+        
+        # init not lock
+        super().__setattr__("_initialized", False)
+        # set core reader
+        super().__setattr__("_reader", ExtractiveReader(model=model_name))
+        self._reader.warm_up()
+        # lock down, reader can't be modified
+        super().__setattr__("_initialized", True)
+    
         self.threshold = threshold
         self.max_per_doc = max_per_doc
         self.top_k = top_answer
         self._documents: List[Document] = [] #init var to hold document
         if path is None:
-            path = os.path.dirname(os.path.abspath(__file__))
-        self.__init_documents(path)
+            path = os.getcwd()
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The path '{path}' does not exist.")
+        
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.propagate = False  # Prevent propagation to the root logger
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+        
+        self.__init_documents(path) #init documents from the path
+        self.logger.info(f"Initialize successfully at path {path}")
+    
+    @property
+    def reader(self):
+        return self._reader
     
     @property
     def documents(self):
         return self._documents
        
+    def __setattr__(self, name, value):
+        # once initialized, prevent changing core internals
+        if getattr(self, "_initialized", False) and name in ("_reader"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
     def search_document(self, prompt : str = None) -> List:
-        result = self.reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
+        self.__enforce_type(prompt, str, "prompt") #check type before start
+        
+        result = self._reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
 
         seen_texts = set()
         counts = Counter()
@@ -81,3 +128,7 @@ class DocumentFilter:
                     docx_urls.append(file_path)
 
         return pdf_urls, docx_urls
+    
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
