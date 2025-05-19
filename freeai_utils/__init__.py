@@ -1,31 +1,62 @@
-from .audio_record import WavRecorder, MP3Recorder, check_wav_length_and_size, check_mp3_length_and_size
-from .audio_to_text_whisper import OpenAIWhisper
-from .audio_to_text_vn import VN_Whisper
-from .clean_text_for_tts import clean_ai_text_for_tts
-from .cleaner import __Cleaner
-from .document_filter import DocumentFilter
-from .geminiAPI import GeminiClient
-from .google_search import GoogleSearcher
-from .image_to_text import ImageCaptioner
-from .text_from_image_easyocr import Text_Extractor_EasyOCR
-from .text_to_speech_gtts import gtts_print_supported_languages, gtts_speak
-from .text_to_speech_pyttsx3 import Text_To_Speech_Pyttsx3
-from .pdf_docx_reader import PDF_DOCX_Reader
-from .wrapper import time_it
+# freeai_utils/__init__.py
+import importlib
+from typing import TYPE_CHECKING
 
-__all__ = [
-    "WavRecorder", "MP3Recorder","check_wav_length_and_size","check_mp3_length_and_size"
-    "OpenAIWhisper",
-    "VN_Whisper",
-    "clean_ai_text_for_tts",
-    "__Cleaner",
-    "DocumentFilter",
-    "GeminiClient",
-    "GoogleSearcher",
-    "ImageCaptioner",
-    "Text_Extractor_EasyOCR",
-    "gtts_print_supported_languages", "gtts_speak",
-    "Text_To_Speech_Pyttsx3",
-    "PDF_DOCX_Reader",
-    "time_it"
-]
+# all class/functions available
+_module_to_names = {
+    'audio_record': ['WavRecorder','MP3Recorder','check_wav_length_and_size','check_mp3_length_and_size'],
+    'audio_to_text_whisper': ['OpenAIWhisper'],
+    'audio_to_text_vn': ['VN_Whisper'],
+    'clean_text_for_tts': ['clean_ai_text_for_tts'],
+    'cleaner': ['__Cleaner'],
+    'document_filter': ['DocumentFilter'],
+    'geminiAPI': ['GeminiClient'],
+    'google_search': ['GoogleSearcher'],
+    'image_to_text': ['ImageCaptioner'],
+    'text_from_image_easyocr': ['Text_Extractor_EasyOCR'],
+    'text_to_speech_gtts': ['gtts_print_supported_languages', 'gtts_speak'],
+    'text_to_speech_pyttsx3': ['Text_To_Speech_Pyttsx3'],
+    'pdf_docx_reader': ['PDF_DOCX_Reader'],
+    'wrapper': ['time_it'],
+}
+
+# make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
+_lazy_mapping = {}
+for module_name, symbols in _module_to_names.items():
+    for symbol in symbols:
+        _lazy_mapping[symbol] = module_name
+
+# all class/functions available when do import freeai_utils
+__all__ = sorted(_lazy_mapping.keys())
+
+
+def __getattr__(name: str):
+    if name in _lazy_mapping:
+        # Import only the module that contains the requested symbol
+        module = importlib.import_module(f"{__name__}.{_lazy_mapping[name]}")
+        value = getattr(module, name)
+        globals()[name] = value  # Cache in namespace for future calls
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return __all__
+
+
+#for IDEs suggestions
+if TYPE_CHECKING:
+    from .audio_record             import WavRecorder, MP3Recorder, check_wav_length_and_size, check_mp3_length_and_size
+    from .audio_to_text_whisper    import OpenAIWhisper
+    from .audio_to_text_vn         import VN_Whisper
+    from .clean_text_for_tts       import clean_ai_text_for_tts
+    from .cleaner                  import __Cleaner
+    from .document_filter          import DocumentFilter
+    from .geminiAPI                import GeminiClient
+    from .google_search            import GoogleSearcher
+    from .image_to_text            import ImageCaptioner
+    from .text_from_image_easyocr  import Text_Extractor_EasyOCR
+    from .text_to_speech_gtts      import gtts_print_supported_languages, gtts_speak
+    from .text_to_speech_pyttsx3   import Text_To_Speech_Pyttsx3
+    from .pdf_docx_reader          import PDF_DOCX_Reader
+    from .wrapper                  import time_it
