@@ -1,4 +1,5 @@
 import os
+from typing import List, Tuple
 
 class __Cleaner: #this class first created is due to the gttS doesnt delete the .mp3 100% each time when interrupt in a multiprocessing 
     def __init__(self, directory : str | None = None):
@@ -13,8 +14,9 @@ class __Cleaner: #this class first created is due to the gttS doesnt delete the 
             raise FileNotFoundError(f"Your path doesn't exist")
         
     
-    def remove_all_files_end_with(self, ends_with : str = None) -> int: #return the amount of files just got removed
+    def remove_all_files_end_with(self, ends_with : str = None) -> Tuple[List[str], int]: #return the amount of files just got removed
         counter : int = 0
+        paths : List[str] = []
         
         if type(ends_with) is not str or (isinstance(ends_with, str) and not ends_with.startswith('.')) or len(ends_with) < 2:
             raise TypeError(f"The 'ends_with' argument must be a string representing a file extension (e.g., '.txt'). You provided: {ends_with!r}")
@@ -24,9 +26,10 @@ class __Cleaner: #this class first created is due to the gttS doesnt delete the 
                 file_path = os.path.join(root, file).replace('\\', '/')  # normalize path
                 if file.lower().endswith(ends_with):
                     counter += 1
+                    paths.append(file_path)
                     os.remove(file_path)
         
-        return counter            
+        return paths, counter            
         
 if __name__ == "__main__":
     cleaner = __Cleaner()

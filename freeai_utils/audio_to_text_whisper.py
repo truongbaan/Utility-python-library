@@ -5,7 +5,6 @@ import librosa #need pip install librosa
 import torch # need pip install torch
 from typing import Dict, Any
 import logging
-import os
 from typing import Optional
 
 # 3 function use: transcribe -> return Dict (return everything and you choose which to get)
