@@ -14,7 +14,8 @@ class GeminiClient:
         self.__enforce_type(memories_length, int, "memories_length")
         self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
         
-        load_dotenv() # load if there is env file
+        env_path = os.path.join(os.getcwd(), ".env")
+        load_dotenv(env_path) # load if there is env file
         self.__api_key = api_key or os.getenv("GEMINI_API_KEY")
 
         if not self.__api_key:
@@ -68,7 +69,7 @@ class GeminiClient:
         return self._word_prompt
 
     @max_memory_length.setter
-    def max_memory_length(self, value):
+    def max_memory_length(self, value) -> None:
         # able to change the max_memory_length
         if isinstance(value, int) and value > 0:
             self._max_length = value
@@ -134,7 +135,7 @@ class GeminiClient:
         self.__add_turn(prompt, answer)
         return answer
     
-    def _clear_history(self):
+    def _clear_history(self) -> None:
         if self._history:
             self._history.clear()
     
@@ -142,27 +143,10 @@ class GeminiClient:
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
-    def __add_turn(self, question, answer):
+    def __add_turn(self, question, answer) -> None:
         self.__enforce_type(question, str, "question")
         self.__enforce_type(answer, str, answer)
 
         while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
             self._history.pop(0)  # Remove the oldest turn
         self._history.append({"question": question, "answer": answer})
-    
-    
-if __name__ == "__main__":
-    _client = GeminiClient()
-    _client.list_models()
-    _answer = _client.ask("What land animal do you think is the best?")
-    print(_answer)
-    
-    _answer = _client.ask_with_memories("My name is An")
-    print(_answer)
-    _answer = _client.ask_with_memories("Do you remember what we're talking about?")
-    print(_answer)
-    
-    print(_client.max_memory_length)
-    _client.max_memory_length = 6
-    print(_client.max_memory_length)
-    

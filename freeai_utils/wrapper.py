@@ -1,8 +1,6 @@
 import time
 from functools import wraps
 
-""" Copy part """
-
 #  A decorator that measures and prints the execution time of a function.
 def time_it(func):
     @wraps(func) 
@@ -14,8 +12,6 @@ def time_it(func):
         print(f"Function '{func.__name__}' executed in {execution_time:.4f} seconds.")
         return result
     return wrapper
-
-""" Copy part """
 
 #how to use
 if __name__== "__main__":

@@ -6,7 +6,7 @@ import logging
 
 #other model_id: "namphungdn134/whisper-base-vi"
 class VN_Whisper:
-    def __init__(self, model_id="namphungdn134/whisper-small-vi", device=None) -> None:
+    def __init__(self, model_id="namphungdn134/whisper-small-vi", device : str | None = None) -> None:
         self._model = None 
         self._device = None 
         self.logger = logging.getLogger(self.__class__.__name__)

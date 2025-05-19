@@ -213,7 +213,7 @@ class PDF_DOCX_Reader:
         self.logger.info(f"Complete extracted images in file {file_path} to folder {folder_extract}")
         return count #return number of images found in the file
 
-    def __isSupported(self, file_path : str) -> None:
+    def __isSupported(self, file_path : str) -> str:
         if file_path:
             ext = os.path.splitext(file_path)[1].lower()
             if ext not in ['.pdf', '.docx']:
@@ -225,9 +225,3 @@ class PDF_DOCX_Reader:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-        
-if __name__ == "__main__":
-    FILENAME = os.path.dirname(os.path.abspath(__file__)) + "\\sample\\sample.docx"
-    reader = PDF_DOCX_Reader()
-    print(repr(reader.extract_all_text(FILENAME)))
-    print(repr(reader.extract_ordered_text(FILENAME)))

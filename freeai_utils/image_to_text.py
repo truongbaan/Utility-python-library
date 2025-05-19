@@ -21,6 +21,7 @@ class ImageCaptioner:
         
         #try input first
         if device is not None:
+            self.__enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 

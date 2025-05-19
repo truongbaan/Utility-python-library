@@ -297,8 +297,7 @@ class MP3Recorder:
             self._close_stream()
             self._save_mp3(output_filename)
 
-    def record_silence(self, silence_threshold: int = 800, max_silence_seconds: int = 3,
-                       output_filename: str ="silence_record.mp3") -> None:
+    def record_silence(self, silence_threshold: int = 800, max_silence_seconds: int = 3, output_filename: str ="silence_record.mp3") -> None:
         self.__enforce_type(silence_threshold, int, "silence_threshold")
         self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
         self.__enforce_type(output_filename, str, "output_filename")

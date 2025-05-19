@@ -43,7 +43,7 @@ This project was inspired by the GitHub repository:
 [awesome-python](https://github.com/vinta/awesome-python)
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/truongbaan/Utility-python-library/blob/main/LICENSE) file for details.
 
 ## Note: 
 This project is currently private; it will be made public in a future release.

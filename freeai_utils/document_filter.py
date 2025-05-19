@@ -97,7 +97,7 @@ class DocumentFilter:
         #contain text, score, and doc.id
         return filtered_answers #return list of document with ranking score that > threshold
 
-    def __init_documents(self, directory : str = ""):
+    def __init_documents(self, directory : str = "") -> None:
         #get from here
         self._documents.clear()
         pdf_urls, docx_urls =self.__collect_file_paths(directory)

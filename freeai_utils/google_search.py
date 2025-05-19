@@ -59,9 +59,3 @@ class GoogleSearcher:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-            
-
-if __name__ == "__main__":
-    _google = GoogleSearcher()
-    _answer = _google.search("What is the capital of Vietnam")
-    print(_answer)

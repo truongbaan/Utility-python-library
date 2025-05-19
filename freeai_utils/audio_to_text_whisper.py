@@ -30,6 +30,7 @@ class OpenAIWhisper:
         
         #try input first
         if device is not None:
+            self.__enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -117,7 +118,7 @@ class OpenAIWhisper:
         text = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["text"]
         return text
 
-    def get_lang_detect(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any):
+    def get_lang_detect(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
         language = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["language"]
         return language
     

@@ -1,5 +1,4 @@
 import pyttsx3 #need pip install pyttsx3
-import traceback
 
 class Text_To_Speech_Pyttsx3:
     def __init__(self, rate=170, volume=1.0, voice_index=0) -> None:
@@ -28,12 +27,3 @@ class Text_To_Speech_Pyttsx3:
 
     def stop(self) -> None:
         self._engine.stop()
-        
-if __name__ == "__main__":
-    _speaking = Text_To_Speech_Pyttsx3()
-    _speaking.speak("Hello there my friend")
-    _speaking.config_voice(165, 0.8) #the first number is for rate, second is the volume, and last is the voice_id
-    try:
-        _speaking.speak(56) #this would raise valueError, dont worry, the code is fine :)
-    except ValueError as e:
-        traceback.print_exc() 

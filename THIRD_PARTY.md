@@ -50,7 +50,6 @@ The following Python packages are used by this project; their licenses are as sh
  joblib                        1.5.0        BSD License                                                                            
  keyboard                      0.13.5       MIT License                                                                            
  lameenc                       1.8.1        GNU Lesser General Public License v3 (LGPLv3)                                          
- langdetect                    1.0.9        Apache Software License                                                                
  lazy_loader                   0.4          BSD License                                                                            
  librosa                       0.11.0       ISC License (ISCL)                                                                     
  llvmlite                      0.43.0       BSD                                                                                    

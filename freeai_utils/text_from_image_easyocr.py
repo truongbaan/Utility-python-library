@@ -100,24 +100,6 @@ class Text_Extractor_EasyOCR:
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
         
-# Example usage:
-if __name__ == "__main__":
-    _extractor = Text_Extractor_EasyOCR(language='en')
-    # Extract text from the screen
-    _text = _extractor.get_text_from_screenshot()
-    print(f"Extracted text: {_text}")
-    
-    # Set config for screen capture
-    _extractor.set_capture_region(crop_left=20, crop_right=5, crop_up=20, crop_down=5)
-
-    # Extract text from the screen (this one already config the screen capture size)
-    _text = _extractor.get_text_from_screenshot(image_name="your_image.png")
-    print(f"Extracted text: {_text}")
-    
-    #Extract text from the screen (fixed size capture)
-    _text = _extractor.get_text_from_screenshot( capture_region= (0,0,1920, 1080), image_name="55.png")
-    print(f"Extracted text: {_text}")
-
 #SUPPORTED LANG easyocr:
 # Abaza	abq
 # Adyghe	ady
