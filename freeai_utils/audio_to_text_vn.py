@@ -2,14 +2,15 @@ import torch
 import librosa
 from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
 from transformers import logging as transformers_logging
-import logging
+from typing import Union
+from freeai_utils.log_set_up import setup_logging
 
 #other model_id: "namphungdn134/whisper-base-vi"
 class VN_Whisper:
-    def __init__(self, model_id="namphungdn134/whisper-small-vi", device : str | None = None) -> None:
+    def __init__(self, model_id="namphungdn134/whisper-small-vi", device : Union[str, None] = None) -> None:
         self._model = None 
         self._device = None 
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = setup_logging(self.__class__.__name__)
         
         #init the var to hold device available
         preferred_devices = []

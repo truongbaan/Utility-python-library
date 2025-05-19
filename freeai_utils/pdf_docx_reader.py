@@ -4,13 +4,12 @@ from pypdf import PdfReader # need pip install pypdf
 import pdfplumber # need pip install pdfplumber
 from typing import Optional
 import logging
+logging.getLogger("pdfminer").setLevel(logging.ERROR) #stop the pdfminer from displaying logs that just info or debug
+from freeai_utils.log_set_up import setup_logging
 try:
     from docx import Document # need pip install python-docx
 except ImportError:
     Document = None
-
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.CRITICAL)
 
 class PDF_DOCX_Reader:
     def __init__(self, start_page: int = 0, last_page: Optional[int] = None) -> None:
@@ -24,15 +23,7 @@ class PDF_DOCX_Reader:
         self.first_page = start_page
         self.last_page = last_page
         #for logging only this class rather
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.propagate = False  # Prevent propagation to the root logger
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        ))
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+        self.logger = setup_logging(self.__class__.__name__)
         self.logger.info(f"Initialize successfully")
 
     def extract_all_text(self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:

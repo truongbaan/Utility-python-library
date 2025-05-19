@@ -1,10 +1,11 @@
 from collections import Counter
 from haystack import Document
 from haystack.components.readers import ExtractiveReader
+from haystack.utils.device import ComponentDevice
 from typing import List, Optional
 import os
 from .pdf_docx_reader import PDF_DOCX_Reader
-import logging
+from freeai_utils.log_set_up import setup_logging
 
 #smaller model: deepset/roberta-base-squad2
 class DocumentFilter:
@@ -18,17 +19,32 @@ class DocumentFilter:
     top_k: int
     _documents: List[Document]
     
-    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4) -> None:
+    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4, device: str = "cuda") -> None:
         #check type first
         self.__enforce_type(threshold, float, "threshold")
         self.__enforce_type(max_per_doc, int, "max_per_doc")
         self.__enforce_type(top_answer, int, "top_answer")
         
+        self.logger = setup_logging(self.__class__.__name__)
+        self.logger.propagate = False  # Prevent propagation to the root logger
+        
         # init not lock
         super().__setattr__("_initialized", False)
         # set core reader
-        super().__setattr__("_reader", ExtractiveReader(model=model_name))
-        self._reader.warm_up()
+        try:
+            device_obj = ComponentDevice.from_str(device)
+            super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
+            self._reader.warm_up()
+            self.logger.info(f"Successfully runs on {device}")
+        except Exception as e:
+            self.logger.error(f"Fail to run on {device}")
+            if device != "cpu":
+                self.logger.info("Trying on cpu instead")
+                cpu_device_obj = ComponentDevice.from_str("cpu")
+                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
+                self._reader.warm_up()
+                self.logger.info(f"Successfully runs on {device}")
+                
         # lock down, reader can't be modified
         super().__setattr__("_initialized", True)
     
@@ -40,16 +56,6 @@ class DocumentFilter:
             path = os.getcwd()
         if not os.path.exists(path):
             raise FileNotFoundError(f"The path '{path}' does not exist.")
-        
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.propagate = False  # Prevent propagation to the root logger
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        ))
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
         
         self.__init_documents(path) #init documents from the path
         self.logger.info(f"Initialize successfully at path {path}")

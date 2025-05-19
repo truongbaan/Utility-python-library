@@ -4,14 +4,25 @@
 import pyautogui # need pip install pyautogui (use to screenshot)
 import easyocr# need pip install easyocr (use to read text from image)
 import time
-from typing import Optional
+from typing import Optional, List, Union
+from freeai_utils.log_set_up import setup_logging
+import logging
 
 class Text_Extractor_EasyOCR:
-    def __init__(self, language : str ='en') -> None:
+    def __init__(self, language : Union[List[str], str, None] = None, prefer_device: str = 'cuda') -> None:
         #check type of the input
-        self.__enforce_type(language, str, "language")
+        if language is None:
+            language = ['vi', 'en']
+        self.__enforce_type(language, (str, list), "language")
+        self.__enforce_type(prefer_device, str, "prefer_device")
         
-        self._reader = easyocr.Reader([language])
+        if isinstance(language, str): #ensure language is a list
+            language = [language]
+
+        #set up logger
+        self.logger = setup_logging(self.__class__.__name__)
+        
+        self._reader = self._initialize_reader(language, prefer_device)
         self.screen_width, self.screen_height = pyautogui.size()
         self._capture_region = (0, 0, self.screen_width, self.screen_height) # default, capture fullscreen
 
@@ -24,6 +35,25 @@ class Text_Extractor_EasyOCR:
         if not isinstance(value, tuple) or len(value) != 4:
             raise ValueError("capture_region must be a tuple of size 4.")
         self._capture_region = value
+    
+    def _initialize_reader(self, language: List[str], prefer_device: str):
+        if prefer_device.lower() == 'cuda':
+            try:
+                reader = easyocr.Reader(language, gpu=True)
+                self.logger.info("EasyOCR initialized with CUDA.")
+                return reader
+            except Exception as e:
+                self.logger.error(f"CUDA not available or initialization failed: {e}")
+                self.logger.info("Falling back to CPU.")
+                reader = easyocr.Reader(language, gpu=False)
+                self.logger.info("Successfully initialized with CPU.")
+                return reader
+        elif prefer_device.lower() == 'cpu':
+            reader = easyocr.Reader(language, gpu=False)
+            self.logger.info("Successfully initialized with CPU.")
+            return reader
+        else:
+            raise ValueError(f"Invalid prefer_device value: '{prefer_device}'. Must be 'cuda' or 'cpu'.")
     
     #this function asks for an image_path and perform ocr on it
     def get_text_from_image(self, image_path : str = None) -> str:

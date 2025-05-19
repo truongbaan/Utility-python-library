@@ -4,20 +4,18 @@ import numpy as np # need pip install numpy
 import librosa #need pip install librosa 
 import torch # need pip install torch
 from typing import Dict, Any
-import logging
 from typing import Optional
+from freeai_utils.log_set_up import setup_logging
 
 # 3 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
 #                 get_translation -> return str (return the translation only, for people who doesnt care what language or anything else)
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
 class OpenAIWhisper:
     def __init__(self, model: str = "medium", sample_rate: int = 16000, device : Optional[str]  = None) -> None:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = setup_logging(self.__class__.__name__)
         
         # model: Whisper model size ("tiny", "base", "small", "medium", "large")
         self._sample_rate = sample_rate
@@ -124,26 +122,3 @@ class OpenAIWhisper:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-        
-# Example usage      
-if __name__ == "__main__":
-    
-    FILENAME = "output_pyaudio.wav"
-
-    _transcriber = OpenAIWhisper()
-    _output = _transcriber.transcribe(FILENAME)
-    
-    #usually, we only care about 2 thing, the transcribe and the language detect
-    print("Detected language:", _output["language"])
-    print("Transcript:", _output["text"])
-    
-    #everything in the output for anyone cares
-    print(_output)
-    
-    _language_dect =_transcriber.get_lang_detect(FILENAME)
-    print("Language used: ")
-    print(_language_dect)
-    
-    _text_translated = _transcriber.get_translation(FILENAME)
-    print("Text transcription only: ")
-    print(_text_translated)

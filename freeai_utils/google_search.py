@@ -2,8 +2,7 @@ from googlesearch import search #need pip install googlesearch-python
 import requests #need pip install requests
 from bs4 import BeautifulSoup # need pip install beautifulsoup4
 from readability import Document # need pip install readability-lxml
-import logging
-
+from freeai_utils.log_set_up import setup_logging
 class GoogleSearcher:
     def __init__(self, user_agent: str = "Mozilla/5.0", num_results: int = 5, limit_word_per_url : int = 500):
         self.__enforce_type(user_agent, str, "user_agent")
@@ -13,14 +12,7 @@ class GoogleSearcher:
         self.num_results = num_results
         self.limit_word = limit_word_per_url
         #for logging only this class rather
-        self.logger = logging.getLogger(self.__class__.__name__)
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        ))
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+        self.logger = setup_logging(self.__class__.__name__)
         
     def _url_search(self, query) -> list:
         #return the first num_results url

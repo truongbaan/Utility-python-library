@@ -4,9 +4,7 @@ from dotenv import load_dotenv #need pip install python-dotenv
 import os
 import logging
 from typing import Optional
-
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
+from freeai_utils.log_set_up import setup_logging
 
 class GeminiClient:
     def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
@@ -24,7 +22,10 @@ class GeminiClient:
         #check data type before proceed further into connecting
         self.__enforce_type(model_name, str, "model_name")
         self.__enforce_type(self.__api_key, str, "api_key")
-        self.logger = logging.getLogger(self.__class__.__name__)
+        
+        #logging
+        self.logger = setup_logging(self.__class__.__name__)
+        
         try:
             genai.configure(api_key=self.__api_key)
             self.logger.info("Gemini API configured successfully.")

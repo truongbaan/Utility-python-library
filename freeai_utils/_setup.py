@@ -1,5 +1,7 @@
 def install_default_model():
-    decision = input("Hi, this function will download all default models used by this library. This process can take a significant amount of time, so feel free to take a break. Would you like to proceed with the download? (Y/n): ")
+    decision = input("""This function will download all default models used by this library. 
+The process can take a significant amount of time, so feel free to take a break.
+Would you like to proceed with the download? (Y/n): """)
     if decision.lower() == "y":
         from .audio_to_text_vn import VN_Whisper
         from .audio_to_text_whisper import OpenAIWhisper

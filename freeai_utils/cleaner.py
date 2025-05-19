@@ -1,8 +1,8 @@
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 class __Cleaner: #this class first created is due to the gttS doesnt delete the .mp3 100% each time when interrupt in a multiprocessing 
-    def __init__(self, directory : str | None = None):
+    def __init__(self, directory : Union[str, None] = None):
         if directory is None:
             self._dir = os.path.dirname(os.path.abspath(__file__))
         else: self._dir = directory

@@ -3,7 +3,7 @@ from PIL import Image # need pip install torch
 import torch # need pip install torch
 import logging
 from typing import Optional
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+from freeai_utils.log_set_up import setup_logging
 
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
@@ -13,7 +13,7 @@ class ImageCaptioner:
         self.__enforce_type(model_name, str, "model_name")
         
         #logger 
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = setup_logging(self.__class__.__name__)
         self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
         
         #init the var to hold device available
