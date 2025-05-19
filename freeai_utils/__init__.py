@@ -9,6 +9,7 @@ _module_to_names = {
     'audio_to_text_vn': ['VN_Whisper'],
     'clean_text_for_tts': ['clean_ai_text_for_tts'],
     'cleaner': ['__Cleaner'],
+    'decider': ['DecisionMaker'],
     'document_filter': ['DocumentFilter'],
     'geminiAPI': ['GeminiClient'],
     'google_search': ['GoogleSearcher'],
@@ -60,3 +61,4 @@ if TYPE_CHECKING:
     from .text_to_speech_pyttsx3   import Text_To_Speech_Pyttsx3
     from .pdf_docx_reader          import PDF_DOCX_Reader
     from .wrapper                  import time_it
+    from .decider                  import DecisionMaker
