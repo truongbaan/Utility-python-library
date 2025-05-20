@@ -8,9 +8,20 @@ from freeai_utils.log_set_up import setup_logging
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
 class ImageCaptioner:
+    
+    __slots__ = ("_device", "_processor", "_model", "logger", "_initialized")
+    _device: str
+    _processor: AutoProcessor
+    _model: AutoModelForVision2Seq
+    logger: logging.Logger
+    _initialized: bool
+    
     def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: Optional[str] = None):
         #check input type
         self.__enforce_type(model_name, str, "model_name")
+        
+        #init
+        super().__setattr__("_initialized", False)
         
         #logger 
         self.logger = setup_logging(self.__class__.__name__)
@@ -53,6 +64,9 @@ class ImageCaptioner:
         if self._model is None: #check if nothing works, then raise error
             raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")
             
+        #stop
+        super().__setattr__("_initialized", True)
+        
     @property
     def device(self):
         return self._device
@@ -65,6 +79,12 @@ class ImageCaptioner:
     def model(self):
         return self._model
 
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_device", "_processor", "_model"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+        
     def write_caption(self, image_path: str, max_length: int = 100, num_beams: int = 3, early_stopping: bool = True) -> str:
         #check type
         self.__enforce_type(image_path, str, "image_path")
@@ -92,10 +112,3 @@ class ImageCaptioner:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-
-#Example
-if __name__ == "__main__":
-    _cap = ImageCaptioner(device="cuda")
-    _text = _cap.write_caption("img.jpg")
-    print("Caption:", _text)
-
