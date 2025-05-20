@@ -4,6 +4,8 @@ from transformers import T5TokenizerFast
 from freeai_utils.log_set_up import setup_logging
 
 class DecisionMaker:
+    __slots__ = ("_model_name", "_tokenizer", "_model", "_system_prompt", "_initialized", "generation_params","_device", "logger")
+     
     #a model to answer yes no question
     #this class should only answer in 2 ways only
     def __init__(self, sample_ques_ans : str = None, positive_ans = "YES", negative_ans = "NO", model_name : str = "google/flan-t5-base", preferred_device : str = "cuda") -> None:
@@ -14,13 +16,30 @@ class DecisionMaker:
         self.__enforce_type(model_name, str, "model_name")
         self.__enforce_type(preferred_device, str, "preferred_device")
         
-        self.model_name = model_name
+        # init not lock
+        super().__setattr__("_initialized", False)
+        
+        self._model_name = model_name
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info(f"Loading tokenizer and model: {model_name}...")
-        self.tokenizer = T5TokenizerFast.from_pretrained(model_name)
-        self.model = T5ForConditionalGeneration.from_pretrained(model_name)
+        self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
+        self._model = T5ForConditionalGeneration.from_pretrained(model_name)
+        self._system_prompt = None
+        self.construct_sys_prompt(sample_ques_ans=sample_ques_ans, positive_ans=positive_ans, negative_ans=negative_ans)
         
-        # Build prioritized device list
+        # Default generation parameters - tuned for a balance of accuracy and coherence
+        self.generation_params = {
+            "max_new_tokens": 100,              # allow up to ... tokens of new output
+            "min_length": 1,                   # at least 1 token output
+            "num_beams": 5,                    # beam-search 
+            "early_stopping": True,            # stop beams on EOS early
+            "repetition_penalty": 1.2,        
+            "length_penalty": 1.0,             
+            "no_repeat_ngram_size": 3,         # forbid repeating 3-grams
+            "num_return_sequences": 1          # return only the best sequence
+        }
+        
+        # devices choose
         candidates = []
         if preferred_device:
             candidates.append(preferred_device)
@@ -35,37 +54,22 @@ class DecisionMaker:
                 self.logger.info(f"Skipping {d}: no CUDA available.")
                 continue
             try:
-                # load on CPU then move
-                self.model = T5ForConditionalGeneration.from_pretrained(model_name)
-                self.model.to(d)
-                self.device = d
+                self._model = T5ForConditionalGeneration.from_pretrained(model_name)
+                self._model.to(d)
+                self._device = d
                 self.logger.info(f"Model successfully loaded on {d}.")
                 break
             except Exception as e:
                 self.logger.error(f"Failed to load on {d}: {e}")
                 last_err = e
         else:
-            raise RuntimeError(
-                f"Could not load model on any device {candidates}. Last error: {last_err}"
-            )
-
-        self.system_prompt = None
-        self.construct_sys_prompt(sample_ques_ans=sample_ques_ans, positive_ans=positive_ans, negative_ans=negative_ans)
+            raise RuntimeError(f"Could not load model on any device {candidates}. Last error: {last_err}")
         
-        # Default generation parameters - tuned for a balance of accuracy and coherence
-        self.generation_params = {
-            "max_new_tokens": 100,              # allow up to ... tokens of new output
-            "min_length": 1,                   # at least 1 token output
-            "num_beams": 5,                    # beam-search 
-            "early_stopping": True,            # stop beams on EOS early
-            "repetition_penalty": 1.2,        
-            "length_penalty": 1.0,             
-            "no_repeat_ngram_size": 3,         # forbid repeating 3-grams
-            "num_return_sequences": 1          # return only the best sequence
-        }
+        # init not lock
+        super().__setattr__("_initialized", True)
 
     def construct_sys_prompt(self, sample_ques_ans : str = None, positive_ans : str = None, negative_ans : str = None) -> None:
-        self.system_prompt = (
+        self._system_prompt = (
             "Analyze the following question and determine if an internet search is required to answer it. "
             f"Respond with '{positive_ans}' or '{negative_ans}'.\n\n"
             f"Example:\n{sample_ques_ans or '<no example provided>'}"
@@ -77,15 +81,21 @@ class DecisionMaker:
         
         if temp_prompt:
             prompt = f"{temp_prompt}\nQuestion: {user_question} ->"
-        else: prompt = f"{self.system_prompt}\nQuestion: {user_question} ->"
+        else: prompt = f"{self._system_prompt}\nQuestion: {user_question} ->"
         
-        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-        input_ids = input_ids.to(self.device)
+        input_ids = self._tokenizer(prompt, return_tensors="pt").input_ids
+        input_ids = input_ids.to(self._device)
 
-        output_ids = self.model.generate(input_ids, **self.generation_params)
-        decision = self.tokenizer.decode(output_ids[0], skip_special_tokens=True).strip().upper()
+        output_ids = self._model.generate(input_ids, **self.generation_params)
+        decision = self._tokenizer.decode(output_ids[0], skip_special_tokens=True).strip().upper()
         return decision
 
+    def __setattr__(self, name, value):
+        # once initialized, prevent changing core internals
+        if getattr(self, "_initialized", False) and name in ("_model_name", "_tokenizer", "_model", "_device"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
@@ -162,6 +172,5 @@ if __name__ == "__main__":
     decider = DecisionMaker(model_name=MODEL_NAME, positive_ans=positive_ans, negative_ans=negative_ans, sample_ques_ans=asample_ques_ans)
     decider._run_examples()
     print(decider.decide("What day is it?"))
-   
 
 
