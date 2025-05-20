@@ -2,10 +2,24 @@ import torch
 from transformers import T5ForConditionalGeneration
 from transformers import T5TokenizerFast
 from freeai_utils.log_set_up import setup_logging
+import logging
 
+#function to use: 
+# construct_sys_prompt
+# decide
+# _run_examples
 class DecisionMaker:
     __slots__ = ("_model_name", "_tokenizer", "_model", "_system_prompt", "_initialized", "generation_params","_device", "logger")
-     
+    
+    _model_name: str
+    _tokenizer: T5TokenizerFast
+    _model: T5ForConditionalGeneration
+    _system_prompt: str | None
+    _initialized: bool
+    generation_params: dict[str, int | float | bool]
+    _device: str
+    logger: logging.Logger
+    
     #a model to answer yes no question
     #this class should only answer in 2 ways only
     def __init__(self, sample_ques_ans : str = None, positive_ans = "YES", negative_ans = "NO", model_name : str = "google/flan-t5-base", preferred_device : str = "cuda") -> None:
@@ -90,6 +104,31 @@ class DecisionMaker:
         decision = self._tokenizer.decode(output_ids[0], skip_special_tokens=True).strip().upper()
         return decision
 
+    @property
+    def model_name(self):
+        return self.model_name
+    
+    @property
+    def tokenizer(self):
+        return self._tokenizer
+    
+    @property
+    def model(self):
+        return self._model_name
+    
+    @property
+    def system_prompt(self):
+        return self._system_prompt
+    
+    @system_prompt.setter
+    def system_prompt(self, prompt : str):
+        self.__enforce_type(prompt, str, "prompt")
+        self._system_prompt = prompt
+    
+    @property
+    def device(self):
+        return self._device
+    
     def __setattr__(self, name, value):
         # once initialized, prevent changing core internals
         if getattr(self, "_initialized", False) and name in ("_model_name", "_tokenizer", "_model", "_device"):
@@ -154,23 +193,3 @@ class DecisionMaker:
             decision = self.decide(q, sample_ques_ans)
             print(f"Question: {q}\nDecision: {decision}\n")
         print("*" * 100)
-
-if __name__ == "__main__":
-    # Instantiate and run examples
-     # New labels
-    positive_ans = "SEARCH_WEB"
-    negative_ans = "NO_SEARCH"
-
-    # Few‑shot examples for sample_ques_ans
-    asample_ques_ans = """
-    Question: Who painted the Mona Lisa? -> NO_SEARCH
-    Question: What is the current price of Ethereum? -> SEARCH_WEB
-    Question: How many moons does Jupiter have? -> NO_SEARCH
-    Question: What time is sunset in New York today? -> SEARCH_WEB
-    """
-    MODEL_NAME = "google/flan-t5-base"
-    decider = DecisionMaker(model_name=MODEL_NAME, positive_ans=positive_ans, negative_ans=negative_ans, sample_ques_ans=asample_ques_ans)
-    decider._run_examples()
-    print(decider.decide("What day is it?"))
-
-
