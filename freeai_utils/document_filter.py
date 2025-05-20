@@ -19,12 +19,12 @@ class DocumentFilter:
     top_k: int
     _documents: List[Document]
     
-    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4, device: str = "cuda") -> None:
+    def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4, device: str = "cuda", auto_init : bool = True) -> None:
         #check type first
         self.__enforce_type(threshold, float, "threshold")
         self.__enforce_type(max_per_doc, int, "max_per_doc")
         self.__enforce_type(top_answer, int, "top_answer")
-        
+        self.__enforce_type(auto_init, bool, "auto_init")
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.propagate = False  # Prevent propagation to the root logger
         
@@ -56,8 +56,8 @@ class DocumentFilter:
             path = os.getcwd()
         if not os.path.exists(path):
             raise FileNotFoundError(f"The path '{path}' does not exist.")
-        
-        self.__init_documents(path) #init documents from the path
+        if auto_init:
+            self.__init_documents(path) #init documents from the path
         self.logger.info(f"Initialize successfully at path {path}")
     
     @property

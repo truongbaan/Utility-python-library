@@ -12,7 +12,7 @@ Would you like to proceed with the download? (Y/n): """)
         vnwhisper = VN_Whisper()
         whisper = OpenAIWhisper()
         dec = DecisionMaker()
-        doc = DocumentFilter()
+        doc = DocumentFilter(auto_init=False)
         imgdes = ImageCaptioner()
         textocr = Text_Extractor_EasyOCR()
     else:
