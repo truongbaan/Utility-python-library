@@ -147,7 +147,8 @@ The following Python packages are used by this project; their licenses are as sh
 | namphungdn134/whisper-small-vi (fine-tune) | MIT     |
 | openai/whisper-medium                   | MIT     |
 | Salesforce/blip-image-captioning-large  |  BSD-3-Clause |
-| deepset/tinyroberta-squad2             | cc-by-4.0 |
+| deepset/tinyroberta-squad2              | cc-by-4.0 |
+| google/flan-t5-base                     | apache-2.0 |
 ---
 
 ## 📚 Citation
@@ -192,3 +193,13 @@ If you use this model in your research or application, please cite:
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
 
+@misc{https://doi.org/10.48550/arxiv.2210.11416,
+  doi = {10.48550/ARXIV.2210.11416},
+  url = {https://arxiv.org/abs/2210.11416},
+  author = {Chung, Hyung Won and Hou, Le and Longpre, Shayne and Zoph, Barret and Tay, Yi and Fedus, William and Li, Eric and Wang, Xuezhi and Dehghani, Mostafa and Brahma, Siddhartha and Webson, Albert and Gu, Shixiang Shane and Dai, Zhuyun and Suzgun, Mirac and Chen, Xinyun and Chowdhery, Aakanksha and Narang, Sharan and Mishra, Gaurav and Yu, Adams and Zhao, Vincent and Huang, Yanping and Dai, Andrew and Yu, Hongkun and Petrov, Slav and Chi, Ed H. and Dean, Jeff and Devlin, Jacob and Roberts, Adam and Zhou, Denny and Le, Quoc V. and Wei, Jason},
+  keywords = {Machine Learning (cs.LG), Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Scaling Instruction-Finetuned Language Models},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International}
+}

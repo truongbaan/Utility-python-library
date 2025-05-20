@@ -15,6 +15,7 @@ Use the table below to navigate quickly to each feature section.
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
 | PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
 | Document-Filter       | Filter documents using prompt                        | [Document-Filter](#document-filter)     |
+| DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)         |
 
 ---
 
@@ -191,12 +192,33 @@ print(reader.extract_images("example.docx")) #return the number of images found 
 
 ## Document filter
 
-** Usage: **
-
 ```python
 from freeai_utils import DocumentFilter
 filter = DocumentFilter(path = "your_folder")
 list_ans : list = filter.search_document("Tetris")
 for ans in list_ans:
     print(ans)
+```
+
+## Decision Maker
+
+```python
+
+from freeai_utils import DecisionMaker
+
+positive_ans = "SEARCH_WEB"
+negative_ans = "NO_SEARCH"
+
+# Few‑shot examples for sample_ques_ans
+asample_ques_ans = """
+Question: Who painted the Mona Lisa? -> NO_SEARCH
+Question: What is the current price of Ethereum? -> SEARCH_WEB
+Question: How many moons does Jupiter have? -> NO_SEARCH
+Question: What time is sunset in New York today? -> SEARCH_WEB
+"""
+
+#note: this only decide yes/no question type, it doesn't actually search or do anything else
+decider = DecisionMaker(positive_ans=positive_ans, negative_ans=negative_ans, sample_ques_ans=asample_ques_ans)
+decider._run_examples()
+print(decider.decide("What day is it?")) # -> SEARCH_WEB
 ```
