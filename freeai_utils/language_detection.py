@@ -46,7 +46,7 @@ class LocalTranslator: #not done
     def translate(self, prompt : str, src_lang : Union[str, None] = None, tgt_lang : str = None) -> str:
         self.__enforce_type(prompt, str, "prompt")
         self.__enforce_type(src_lang, (str, type(None)), "src_lang")
-        self.__enforce_type(tgt_lang, )
+        self.__enforce_type(tgt_lang, str, "tgt_lang")
         return self.model.translate(prompt, src_lang = src_lang, tgt_lang = tgt_lang)
         
     def __init_local_translator(self, num : int, device : str) -> None:
@@ -115,23 +115,47 @@ class _Class_Counter:
 
 class M2M100Translator:
     def __init__(self, model_name='facebook/m2m100_418M', device: str = None):
+        #check type
+        self.__enforce_type(model_name, str, "model_name")
+        
+        #init the var to hold device available
+        preferred_devices = []
+        
+        #try input first
+        if device is not None:
+            self.__enforce_type(device, str, "device")
+            preferred_devices.append(device)
+        
+        # try cuda second 
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
+            preferred_devices.append("cuda")
+
+        # fall back to CPU if not already there
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
+        
         # Load tokenizer and model
         self.tokenizer = M2M100Tokenizer.from_pretrained(model_name)
         self.model = M2M100ForConditionalGeneration.from_pretrained(model_name)
-
-        # Choose device as string exactly like your Whisper loader
-        if device is not None:
-            self.device = device
-        elif torch.cuda.is_available():
-            self.device = "cuda"
-        else:
-            self.device = "cpu"
-            
-        self.model.to(self.device)
-        self.model.eval()
         
+        last_err = None
+        for dev in preferred_devices:
+            try:
+                self.model.to(dev)
+                self.device = dev
+                self.model.eval()
+                break
+            except Exception as e:
+                last_err = e
+        else:
+            raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
 
     def translate(self, text: str, src_lang: Union[str, None] = None, tgt_lang: str = None, seed_num : int = 42) -> str:
+        self.__enforce_type(text, str, "text")
+        self.__enforce_type(src_lang, (str, None), "src_lang")
+        self.__enforce_type(tgt_lang, str, "tgt_lang")
+        self.__enforce_type(seed_num, int, "seed_num")
+        
         # 1) Determine source language
         if not src_lang:
             src_lang = detect(text)  # e.g. "vi", "fr", "de"
@@ -159,6 +183,12 @@ class M2M100Translator:
 
         # 5) Decode and return
         return self.tokenizer.decode(generated_tokens[0], skip_special_tokens=True)
+
+    def __enforce_type(self, value, expected_types, arg_name):
+        if not isinstance(value, expected_types):
+            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
+            expected_str = ", ".join(expected_names)
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
 
 if __name__ == "__main__":
     text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."

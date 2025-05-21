@@ -22,7 +22,9 @@ class ImageCaptioner:
         
         #init
         super().__setattr__("_initialized", False)
-        
+        self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
+        self._model = AutoModelForVision2Seq.from_pretrained(model_name)
+                
         #logger 
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
@@ -49,8 +51,7 @@ class ImageCaptioner:
             try:
                 self.logger.info(f"Loading '{model_name}' model on {dev}.")
                 self._device = dev
-                self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
-                self._model = AutoModelForVision2Seq.from_pretrained(model_name).to(self._device)
+                self._model.to(self._device)
                 self._model.eval()
                 self.logger.info(f"Successfully loaded on {dev}.")
                 break

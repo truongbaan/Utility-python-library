@@ -17,6 +17,8 @@ class VN_Whisper:
         self._model = None 
         self._device = None 
         self.logger = setup_logging(self.__class__.__name__)
+        self._processor = AutoProcessor.from_pretrained(model_id)
+        self._model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id)
         
         #init the var to hold device available
         preferred_devices = []
@@ -37,8 +39,7 @@ class VN_Whisper:
             try:
                 self.logger.info(f"Loading '{model_id}' model on {dev}...")
                 # Load processor and model
-                self._processor = AutoProcessor.from_pretrained(model_id)
-                self._model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(dev)
+                self._model.to(dev)
                 self._model.eval()
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 self._device = dev
