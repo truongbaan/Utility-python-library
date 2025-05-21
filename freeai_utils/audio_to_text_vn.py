@@ -39,6 +39,7 @@ class VN_Whisper:
                 # Load processor and model
                 self._processor = AutoProcessor.from_pretrained(model_id)
                 self._model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(dev)
+                self._model.eval()
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 self._device = dev
                 break

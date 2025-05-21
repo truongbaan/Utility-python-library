@@ -4,7 +4,7 @@ from haystack.components.readers import ExtractiveReader
 from haystack.utils.device import ComponentDevice
 from typing import List, Optional
 import os
-from .pdf_docx_reader import PDF_DOCX_Reader
+from pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
 
 #smaller model: deepset/roberta-base-squad2
@@ -34,6 +34,7 @@ class DocumentFilter:
         try:
             device_obj = ComponentDevice.from_str(device)
             super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
+            self._reader.model.eval()
             self._reader.warm_up()
             self.logger.info(f"Successfully runs on {device}")
         except Exception as e:

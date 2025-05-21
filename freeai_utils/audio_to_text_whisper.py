@@ -49,6 +49,7 @@ class OpenAIWhisper:
             try:
                 self.logger.info(f"Loading '{model}' model on {dev}...")
                 self._model = whisper.load_model(model, device=dev)
+                self._model.eval()
                 self._device = dev
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 break

@@ -38,7 +38,6 @@ class DecisionMaker:
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info(f"Loading tokenizer and model: {model_name}...")
         self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
-        self._model = T5ForConditionalGeneration.from_pretrained(model_name)
         self._system_prompt = None
         self.construct_sys_prompt(sample_ques_ans=sample_ques_ans, positive_ans=positive_ans, negative_ans=negative_ans)
         
@@ -71,6 +70,7 @@ class DecisionMaker:
             try:
                 self._model = T5ForConditionalGeneration.from_pretrained(model_name)
                 self._model.to(d)
+                self._model.eval()
                 self._device = d
                 self.logger.info(f"Model successfully loaded on {d}.")
                 break
