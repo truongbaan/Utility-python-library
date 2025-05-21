@@ -1,15 +1,22 @@
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    module=r"whisper\.transcribe",
+)
 import whisper #need pip install openai-whisper
-import soundfile as sf #need pip install souldfile
 import numpy as np # need pip install numpy
-import librosa #need pip install librosa 
 import torch # need pip install torch
-from typing import Dict, Any
+from typing import Dict, Any, List
 from typing import Optional
 from freeai_utils.log_set_up import setup_logging
+import ffmpeg #need pip install ffmpeg-python
+import imageio_ffmpeg as iioff #need pip install imageio-ffmpeg
 
-# 3 function use: transcribe -> return Dict (return everything and you choose which to get)
+# 4 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
-#                 get_translation -> return str (return the translation only, for people who doesnt care what language or anything else)
+#                 get_transcription -> return str (return the transcription only, for people who doesnt care what language or anything else)
+#                 get_time_transcription -> return a list of list containing 3 item each: start_time, end_time, and the text
 
 class OpenAIWhisper:
     
@@ -19,7 +26,7 @@ class OpenAIWhisper:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
         self.logger = setup_logging(self.__class__.__name__)
-        
+        self.logger.propagate = False 
         # init not lock
         super().__setattr__("_initialized", False)
         
@@ -68,36 +75,33 @@ class OpenAIWhisper:
         
     @property
     def sample_rate(self):
-        # Returns the sample rate used by the model.
         return self._sample_rate
 
     @property
     def model(self):
-        # Returns the loaded Whisper model.
         return self._model
 
     @property
     def device(self):
-        # Returns the device the model is loaded on.
         return self._device
-    
-    def _load_wav(self, path: str) -> np.ndarray:
-        try:
-            audio, orig_sr = sf.read(path)
-        except FileNotFoundError:
-            self.logger.error(f"Error: Audio file not found at {path}")
-            raise
-        except Exception as e:
-            self.logger.error(f"Error reading audio file {path}: {e}")
-            raise
 
-        if audio.ndim > 1:
-            audio = np.mean(audio, axis=1) # Change to mono
-        
-        if orig_sr != self._sample_rate:
-            audio = librosa.resample(audio, orig_sr=orig_sr, target_sr=self._sample_rate)
-        
-        return audio.astype(np.float32)
+    def _load_media(self, path: str) -> np.ndarray:
+        #Load ANY audio/video file via the private FFmpeg bundled by imageio-ffmpeg,
+        # get the path to the ffmpeg binary that imageio_ffmpeg downloaded
+        ffmpeg_exe = iioff.get_ffmpeg_exe()
+
+        out, _ = (ffmpeg.input(path).output(
+                'pipe:',
+                format='f32le',       # 32-bit float samples
+                ar=self._sample_rate, 
+                ac=1                  # mono
+                ).run(cmd=ffmpeg_exe, capture_stdout=True, capture_stderr=True)
+            )
+
+        # convert raw bytes to NumPy array
+        audio = np.frombuffer(out, dtype=np.float32).copy()
+        return audio
+
 
     def transcribe(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> Dict[str, Any]:
         # Transcribes audio from a file path.
@@ -110,7 +114,7 @@ class OpenAIWhisper:
         self.__enforce_type(fp16, bool, "fp16")
         
         try:
-            audio_data = self._load_wav(audio_path)
+            audio_data = self._load_media(audio_path)
                 
             # get the np.ndarray to the transcribe
             self.logger.info(f"Transcribing audio from {audio_path} on {self._device}...")
@@ -120,8 +124,17 @@ class OpenAIWhisper:
         except Exception as e:
             self.logger.error(f"Transcription failed for {audio_path}: {e}")
             raise
+
+    def get_time_transcription(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> List[List[Any]]:
+
+        result = self.transcribe(audio_path=audio_path, fp16=fp16 if self._device == "cuda" else False, **transcribe_kwargs)
+        segments = result.get("segments", [])
+        return [
+            [seg["start"], seg["end"], seg["text"]]
+            for seg in segments
+        ]
     
-    def get_translation(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
+    def get_transcription(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
         text = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["text"]
         return text
 

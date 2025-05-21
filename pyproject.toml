@@ -15,7 +15,8 @@ dependencies = [
     "keyboard",
     "lameenc",
     "openai-whisper",
-    "soundfile",
+    "ffmpeg-python",
+    "imageio-ffmpeg",
     "librosa",
     "torch",  # also needed for PIL use in transformers
     "google-generativeai",
