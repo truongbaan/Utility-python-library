@@ -10,6 +10,7 @@ class LangTranslator:
     def __init__(self, local_status : str = "backup", local_model_num : int = 1): #not done
         self.online_translator = Translator()
         self.local_translator = None
+        self.logger = setup_logging(self.__class__.__name__)
         if local_status not in ["active", "inactive", "backup"]:
             raise ValueError(f"local_status could only be \'active\', \'inactive\', \'backup\'. Current value: {local_status}")
         
@@ -17,7 +18,8 @@ class LangTranslator:
             self.local_translator = LocalTranslator(local_model_num)
         
         #local_status between active, inactive, backup where active will pioritize, inactive will unable it, backup will enable and use when online fail
-        pass
+        
+        self.logger.info(f"Initialized completed")
 
     def translate(self, text_to_translate, tgt_lang = 'en', src_lang = 'auto'): #not done
         return self.online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang).text
@@ -137,22 +139,25 @@ class M2M100Translator:
         # Load tokenizer and model
         self.tokenizer = M2M100Tokenizer.from_pretrained(model_name)
         self.model = M2M100ForConditionalGeneration.from_pretrained(model_name)
+        self.logger = setup_logging(self.__class__.__name__)
         
         last_err = None
         for dev in preferred_devices:
             try:
+                self.logger.info(f"Loading '{model_name}' model on {dev}...")
                 self.model.to(dev)
                 self.device = dev
                 self.model.eval()
+                self.logger.info(f"Model successfully loaded on {dev}.")
                 break
             except Exception as e:
                 last_err = e
         else:
             raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
-
+       
     def translate(self, text: str, src_lang: Union[str, None] = None, tgt_lang: str = None, seed_num : int = 42) -> str:
         self.__enforce_type(text, str, "text")
-        self.__enforce_type(src_lang, (str, None), "src_lang")
+        self.__enforce_type(src_lang, (str, type(None)), "src_lang")
         self.__enforce_type(tgt_lang, str, "tgt_lang")
         self.__enforce_type(seed_num, int, "seed_num")
         
