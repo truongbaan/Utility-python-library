@@ -3,6 +3,7 @@ from transformers import T5ForConditionalGeneration
 from transformers import T5TokenizerFast
 from freeai_utils.log_set_up import setup_logging
 import logging
+from typing import Union
 
 #function to use: 
 # construct_sys_prompt
@@ -14,9 +15,9 @@ class DecisionMaker:
     _model_name: str
     _tokenizer: T5TokenizerFast
     _model: T5ForConditionalGeneration
-    _system_prompt: str | None
+    _system_prompt: Union[str, None] # Or Optional[str]
     _initialized: bool
-    generation_params: dict[str, int | float | bool]
+    generation_params: dict[str, Union[int, float, bool]]
     _device: str
     logger: logging.Logger
     
