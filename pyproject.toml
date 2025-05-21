@@ -38,6 +38,8 @@ dependencies = [
     "python-docx",
     "mutagen",
     "haystack-ai"
+    "langdetect",
+    "googletrans==4.0.0rc1"
 ]
 
 [project.urls]
