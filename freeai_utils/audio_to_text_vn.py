@@ -7,7 +7,13 @@ from freeai_utils.log_set_up import setup_logging
 
 #other model_id: "namphungdn134/whisper-base-vi"
 class VN_Whisper:
+    
+    __slots__ = ("_model", "_initialized", "logger", "_device", "_processor")
+    
     def __init__(self, model_id="namphungdn134/whisper-small-vi", device : Union[str, None] = None) -> None:
+        # init not lock
+        super().__setattr__("_initialized", False)
+        
         self._model = None 
         self._device = None 
         self.logger = setup_logging(self.__class__.__name__)
@@ -31,7 +37,7 @@ class VN_Whisper:
             try:
                 self.logger.info(f"Loading '{model_id}' model on {dev}...")
                 # Load processor and model
-                self.processor = AutoProcessor.from_pretrained(model_id)
+                self._processor = AutoProcessor.from_pretrained(model_id)
                 self._model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(dev)
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 self._device = dev
@@ -45,7 +51,9 @@ class VN_Whisper:
             raise RuntimeError(f"Could not load model on any device")
         # Suppress transformer-related warnings
         transformers_logging.set_verbosity_error()
-    
+        # lock
+        super().__setattr__("_initialized", True)
+        
     @property
     def model(self):
         return self._model  
@@ -54,11 +62,15 @@ class VN_Whisper:
     def device(self):
         return self._device
               
+    @property
+    def processor(self):
+        return self._processor   
+              
     def transcribe_audio(self, audio_path) -> str:
         # Load and preprocess audio
         self.logger.info(f"Loading audio from: {audio_path}")
         audio, sr = librosa.load(audio_path, sr=16000)
-        input_features = self.processor(audio, sampling_rate=16000, return_tensors="pt").input_features.to(self._device)
+        input_features = self._processor(audio, sampling_rate=16000, return_tensors="pt").input_features.to(self._device)
 
         # Generate transcription
         self.logger.info("Generating transcription...")
@@ -66,7 +78,7 @@ class VN_Whisper:
             predicted_ids = self._model.generate(input_features, num_beams=1, use_cache=True)
 
         # Decode transcription
-        transcription = self.processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+        transcription = self._processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
         transcription = self.__verify(transcription)
         return transcription
 
@@ -77,3 +89,9 @@ class VN_Whisper:
         if prompt.strip() == "" or prompt.strip() == "thôi để con đo huyết áp trước cái" or len(prompt) < 10: 
             return ""
         else: return prompt
+        
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model", "_device", "_processor"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)

@@ -12,10 +12,16 @@ from freeai_utils.log_set_up import setup_logging
 #                 get_translation -> return str (return the translation only, for people who doesnt care what language or anything else)
 
 class OpenAIWhisper:
+    
+    __slots__ = ("_model", "_initialized", "logger", "_device", "_sample_rate")
+    
     def __init__(self, model: str = "medium", sample_rate: int = 16000, device : Optional[str]  = None) -> None:
         #check type
         self.__enforce_type(sample_rate, int, sample_rate)
         self.logger = setup_logging(self.__class__.__name__)
+        
+        # init not lock
+        super().__setattr__("_initialized", False)
         
         # model: Whisper model size ("tiny", "base", "small", "medium", "large")
         self._sample_rate = sample_rate
@@ -55,7 +61,10 @@ class OpenAIWhisper:
         
         if self._model is None: #check if nothing works, then raise error
             raise RuntimeError(f"Could not load model on any device. Last error:\n{last_err}")
-
+        
+        # lock
+        super().__setattr__("_initialized", True)
+        
     @property
     def sample_rate(self):
         # Returns the sample rate used by the model.
@@ -122,3 +131,9 @@ class OpenAIWhisper:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+    
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model", "_device"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)

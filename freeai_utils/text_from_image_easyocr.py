@@ -9,6 +9,15 @@ from freeai_utils.log_set_up import setup_logging
 import logging
 
 class Text_Extractor_EasyOCR:
+    
+    __slots__ = ("_reader", "_initialized", "logger", "_screen_width", "_screen_height", "_capture_region")
+    _reader: easyocr.Reader
+    _initialized: bool
+    logger: logging.Logger
+    _screen_height: int
+    _screen_width: int
+    _capture_region: tuple
+    
     def __init__(self, language : Union[List[str], str, None] = None, prefer_device: str = 'cuda') -> None:
         #check type of the input
         if language is None:
@@ -19,15 +28,21 @@ class Text_Extractor_EasyOCR:
         if isinstance(language, str): #ensure language is a list
             language = [language]
 
+        # init not lock
+        super().__setattr__("_initialized", False)
+        
         #set up logger
         self.logger = setup_logging(self.__class__.__name__)
         
         self._reader = self._initialize_reader(language, prefer_device)
-        self.screen_width, self.screen_height = pyautogui.size()
-        self._capture_region = (0, 0, self.screen_width, self.screen_height) # default, capture fullscreen
+        self._screen_width, self._screen_height = pyautogui.size()
+        self._capture_region = (0, 0, self._screen_width, self._screen_height) # default, capture fullscreen
 
+        # lock
+        super().__setattr__("_initialized", True)
+        
     @property
-    def capture_region(self) -> None:
+    def capture_region(self) -> tuple:
         return self._capture_region
     
     @capture_region.setter
@@ -35,6 +50,10 @@ class Text_Extractor_EasyOCR:
         if not isinstance(value, tuple) or len(value) != 4:
             raise ValueError("capture_region must be a tuple of size 4.")
         self._capture_region = value
+    
+    @property
+    def reader(self):
+        return self._reader
     
     def _initialize_reader(self, language: List[str], prefer_device: str):
         if prefer_device.lower() == 'cuda':
@@ -112,13 +131,13 @@ class Text_Extractor_EasyOCR:
         right_percentage_to_ignore = crop_right / 100
 
         # Height of region to capture
-        top_y = int(self.screen_height * top_percentage_to_ignore)
-        bottom_y = int(self.screen_height * (1 - bottom_percentage_to_ignore))
+        top_y = int(self._screen_height * top_percentage_to_ignore)
+        bottom_y = int(self._screen_height * (1 - bottom_percentage_to_ignore))
         capture_height = bottom_y - top_y
 
         # The width of the region to capture
-        left_x = int(self.screen_width * left_percentage_to_ignore)
-        right_x = int(self.screen_width * (1 - right_percentage_to_ignore))
+        left_x = int(self._screen_width * left_percentage_to_ignore)
+        right_x = int(self._screen_width * (1 - right_percentage_to_ignore))
         capture_width = right_x - left_x 
 
         self._capture_region = (left_x, top_y, capture_width, capture_height)
@@ -129,7 +148,13 @@ class Text_Extractor_EasyOCR:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-        
+    
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_reader", "_screen_width", "_screen_height"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+            
 #SUPPORTED LANG easyocr:
 # Abaza	abq
 # Adyghe	ady
