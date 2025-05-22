@@ -56,8 +56,7 @@ class LocalTranslator: #not done
             case 1:
                 self._model = M2M100Translator(device = device)
             case 2:
-                self._model = MBartTranslator(device = device)
-        pass    
+                self._model = MBartTranslator(device = device)    
 
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
@@ -193,6 +192,9 @@ class M2M100Translator:
         # 5) Decode and return
         return self._tokenizer.decode(generated_tokens[0], skip_special_tokens=True)
 
+    def detect_lang(self, text) -> str:
+        return detect(text)
+    
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
