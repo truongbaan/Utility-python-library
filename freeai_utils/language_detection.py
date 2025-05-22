@@ -113,11 +113,12 @@ class LocalTranslator:
         return self._model.detect_language(prompt)
         
     def __init_local_translator(self, num : int, device : str) -> None:
-        match num:
-            case 1:
-                self._model = M2M100Translator(device = device)
-            case 2:
-                self._model = MBartTranslator(device = device)    
+        if num == 1:
+            self._model = M2M100Translator(device = device)
+        elif num == 2:
+            self._model = MBartTranslator(device = device)   
+        else:
+            raise ValueError(f"Unknown model number: {num}")
 
     def __setattr__(self, name, value):
         # once initialized, block these core attributes
