@@ -7,24 +7,36 @@ import logging
 from freeai_utils.log_set_up import setup_logging
 
 class LangTranslator:
+    
     def __init__(self, local_status : str = "backup", local_model_num : int = 1): #not done
         self.online_translator = Translator()
         self.local_translator = None
+        self.local_status = None
         self.logger = setup_logging(self.__class__.__name__)
         if local_status not in ["active", "inactive", "backup"]:
             raise ValueError(f"local_status could only be \'active\', \'inactive\', \'backup\'. Current value: {local_status}")
         
         if local_status in ["active", "backup"]:
             self.local_translator = LocalTranslator(local_model_num)
-        
+            self.local_status = local_status
         #local_status between active, inactive, backup where active will pioritize, inactive will unable it, backup will enable and use when online fail
         
         self.logger.info(f"Initialized completed")
 
-    def translate(self, text_to_translate, tgt_lang = 'en', src_lang = 'auto'): #not done
-        return self.online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang).text
-    
-    def detect_language(self, prompt) -> Tuple[str, float]: #completed
+    def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str: #not done
+        if self.local_status == "active":
+            return self.local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
+        else:
+            try:
+                answer = self.online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang if src_lang else 'auto').text
+                return answer
+            except Exception as e:
+                self.logger.error(f"Fail to use online google translator")
+                if self.local_status == "backup":
+                    self.logger.info(f"\'backup\' mode, using {self.local_translator.logger.name} to translate")
+                    return self.local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
+            
+    def detect_language(self, prompt) -> Tuple[str, float]:
         detected_language = detect_langs(prompt)
 
         if detected_language:
@@ -44,6 +56,8 @@ class LocalTranslator: #not done
         
         self._model = None
         self.__init_local_translator(local_model_num, device)
+        self.logger = setup_logging(self.__class__.__name__)
+        self.logger.info(f"Initialized completed")
 
     def translate(self, prompt : str, src_lang : Union[str, None] = None, tgt_lang : str = None) -> str:
         self.__enforce_type(prompt, str, "prompt")
@@ -155,6 +169,7 @@ class M2M100Translator:
                 break
             except Exception as e:
                 last_err = e
+                self.logger.error(f"Fail to load {model_name} on {dev}. Reason: {e}")
         else:
             raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
        
@@ -240,6 +255,7 @@ class MBartTranslator:
                 break
             except Exception as e:
                 last_err = e
+                self.logger.error(f"Fail to load {model_name} on {dev}. Reason: {e}")
         else:
             raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
        
@@ -301,9 +317,10 @@ class MBartTranslator:
 if __name__ == "__main__":
     text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
     trans = LangTranslator()
-    local = LocalTranslator(local_model_num=1, device= "cpu")
     print(trans.detect_language(text3))
     print(trans.translate(text3))
+    
+    local = LocalTranslator(local_model_num=1, device= "cpu")
     print(local.translate(text3, tgt_lang="en"))
     
     mb = MBartTranslator()
@@ -312,3 +329,5 @@ if __name__ == "__main__":
     m1 = M2M100Translator()
     print(m1.translate(text3, tgt_lang='en'))
     
+    trans_local = LangTranslator(local_status="active", local_model_num=2)
+    print(trans_local.translate(text3))
