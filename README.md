@@ -15,6 +15,7 @@ The first time you use a feature that needs a model (like image captioning or Wh
 - **TTS**: text-to-speech via gTTS or pyttsx3
 - **PDF-DOCX-Reader**: extract text and images from pdf and docx files
 - **Document Filter**: extract and rank relevant content from documents using an extractive QA model (TinyRoBERTa by default)
+- **Translator**: Provides automatic language detection, translating content into your specified target language. (both online and local)
 * **Gemini API**: Interact with Google Cloud Gemini models via your API key
 
   * *Note: This works best with Google accounts that have no billing method added yet (completely free to use with limits).*
