@@ -8,33 +8,49 @@ from freeai_utils.log_set_up import setup_logging
 
 class LangTranslator:
     
+    __slots__ = ("_online_translator", "_local_translator", "local_status", "logger", "_initialized")
+    _online_translator: Translator
+    local_status: str
+    logger: logging.Logger
+    _initialized: bool
+
     def __init__(self, local_status : str = "backup", local_model_num : int = 1): #not done
-        self.online_translator = Translator()
-        self.local_translator = None
+        #check type before init
+        self.__enforce_type(local_status, str, "local_status")
+        self.__enforce_type(local_model_num, int, "local_model_num")
+        
+        #init
+        super().__setattr__("_initialized", False)
+        
+        self._online_translator = Translator()
+        self._local_translator = None
         self.local_status = None
         self.logger = setup_logging(self.__class__.__name__)
         if local_status not in ["active", "inactive", "backup"]:
             raise ValueError(f"local_status could only be \'active\', \'inactive\', \'backup\'. Current value: {local_status}")
         
         if local_status in ["active", "backup"]:
-            self.local_translator = LocalTranslator(local_model_num)
+            self._local_translator = LocalTranslator(local_model_num)
             self.local_status = local_status
         #local_status between active, inactive, backup where active will pioritize, inactive will unable it, backup will enable and use when online fail
+        
+          #init
+        super().__setattr__("_initialized", True)
         
         self.logger.info(f"Initialized completed")
 
     def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str: #not done
         if self.local_status == "active":
-            return self.local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
+            return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
         else:
             try:
-                answer = self.online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang if src_lang else 'auto').text
+                answer = self._online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang if src_lang else 'auto').text
                 return answer
             except Exception as e:
                 self.logger.error(f"Fail to use online google translator")
                 if self.local_status == "backup":
-                    self.logger.info(f"\'backup\' mode, using {self.local_translator.logger.name} to translate")
-                    return self.local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
+                    self.logger.info(f"\'backup\' mode, using {self._local_translator.logger.name} to translate")
+                    return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
             
     def detect_language(self, prompt) -> Tuple[str, float]:
         detected_language = detect_langs(prompt)
@@ -42,6 +58,18 @@ class LangTranslator:
         if detected_language:
             return detected_language[0].lang, detected_language[0].prob
         else: return "unknown", 0.0
+    
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_online_translator", "_local_translator"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
+    def __enforce_type(self, value, expected_types, arg_name):
+        if not isinstance(value, expected_types):
+            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
+            expected_str = ", ".join(expected_names)
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
 class LocalTranslator: #not done
     def __init__(self, local_model_num : int = 1, device : str = "cuda"):
@@ -136,6 +164,8 @@ class M2M100Translator:
     _tokenizer: M2M100Tokenizer
     _model: M2M100ForConditionalGeneration
     
+     #use for model that is m2m100 family
+    #other model: facebook/m2m100_1.2B
     def __init__(self, model_name='facebook/m2m100_418M', device: str = None):
         #check type
         self.__enforce_type(model_name, str, "model_name")
@@ -224,6 +254,7 @@ class MBartTranslator:
     _tokenizer: MBart50TokenizerFast
     _model: MBartForConditionalGeneration
     
+    #use for model that is mbart family
     def __init__(self, model_name="facebook/mbart-large-50-many-to-many-mmt", device=None):
         
         self.logger = setup_logging(self.__class__.__name__)
@@ -325,16 +356,16 @@ if __name__ == "__main__":
     
     local = LocalTranslator(local_model_num=1, device= "cpu")
     print(local.translate(text3, tgt_lang="en"))
-    print(local.detect_language(text3, tgt_lang="en"))
+    print(local.detect_language(text3))
     
     mb = MBartTranslator()
-    print(mb.detect_language(text3, tgt_lang="en"))
+    print(mb.detect_language(text3))
     print(mb.translate(text3, tgt_lang='en'))
     
     m1 = M2M100Translator()
-    print(m1.detect_language(text3, tgt_lang="en"))
+    print(m1.detect_language(text3))
     print(m1.translate(text3, tgt_lang='en'))
     
     trans_local = LangTranslator(local_status="active", local_model_num=2)
-    print(trans_local.detect_language(text3, tgt_lang="en"))
+    print(trans_local.detect_language(text3))
     print(trans_local.translate(text3))
