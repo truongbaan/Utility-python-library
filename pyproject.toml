@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.3.0"
+version = "0.3.1"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -15,8 +15,6 @@ dependencies = [
     "keyboard",
     "lameenc",
     "openai-whisper",
-    "ffmpeg-python",
-    "imageio-ffmpeg",
     "librosa",
     "torch",  # also needed for PIL use in transformers
     "google-generativeai",
@@ -40,7 +38,9 @@ dependencies = [
     "mutagen",
     "haystack-ai",
     "langdetect",
-    "googletrans==4.0.0rc1"
+    "translators",
+    "ffmpeg-python",
+    "imageio-ffmpeg"
 ]
 
 [project.urls]

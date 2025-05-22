@@ -1,6 +1,8 @@
 from langdetect import detect, detect_langs #need pip install langdetect
 from typing import Union, Tuple
-from googletrans import Translator # pip install googletrans==4.0.0rc1
+import os
+os.environ.setdefault("translators_default_region", "EN") #need to use offline
+import translators as ts
 import torch
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer, MBart50TokenizerFast, MBartForConditionalGeneration
 import logging 
@@ -8,8 +10,7 @@ from freeai_utils.log_set_up import setup_logging
 
 class LangTranslator:
     
-    __slots__ = ("_online_translator", "_local_translator", "local_status", "logger", "_initialized")
-    _online_translator: Translator
+    __slots__ = ("_local_translator", "local_status", "logger", "_initialized")
     local_status: str
     logger: logging.Logger
     _initialized: bool
@@ -22,7 +23,6 @@ class LangTranslator:
         #init
         super().__setattr__("_initialized", False)
         
-        self._online_translator = Translator()
         self._local_translator = None
         self.local_status = None
         self.logger = setup_logging(self.__class__.__name__)
@@ -38,10 +38,6 @@ class LangTranslator:
         super().__setattr__("_initialized", True)
         
         self.logger.info(f"Initialized completed")
-
-    @property
-    def online_translator(self):
-        return self._online_translator
     
     @property 
     def local_translator(self):
@@ -52,7 +48,7 @@ class LangTranslator:
             return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
         else:
             try:
-                answer = self._online_translator.translate(text_to_translate, dest=tgt_lang, src=src_lang if src_lang else 'auto').text
+                answer = ts.translate_text(text_to_translate, translator='google',from_language=src_lang if src_lang else 'auto', to_language=tgt_lang)
                 return answer
             except Exception as e:
                 self.logger.error(f"Fail to use online google translator")
