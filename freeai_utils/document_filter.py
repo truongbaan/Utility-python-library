@@ -4,7 +4,7 @@ from haystack.components.readers import ExtractiveReader
 from haystack.utils.device import ComponentDevice
 from typing import List, Optional
 import os
-from pdf_docx_reader import PDF_DOCX_Reader
+from .pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
 
 #smaller model: deepset/roberta-base-squad2
