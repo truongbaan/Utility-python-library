@@ -14,8 +14,12 @@ The following Python packages are used by this project; their licenses are as sh
  PyRect                        0.2.0        BSD License                                                                            
  PyScreeze                     1.0.1        MIT License                                                                            
  PyYAML                        6.0.2        MIT License                                                                            
+ accelerate                    1.7.0        Apache Software License                                                                
  annotated-types               0.7.0        MIT License                                                                            
+ anyio                         4.9.0        MIT License                                                                            
+ attrs                         25.3.0       UNKNOWN                                                                                
  audioread                     3.0.1        UNKNOWN                                                                                
+ backoff                       2.2.1        MIT License                                                                            
  beautifulsoup4                4.13.4       MIT License                                                                            
  cachetools                    5.5.2        MIT License                                                                            
  certifi                       2025.4.26    Mozilla Public License 2.0 (MPL 2.0)                                                   
@@ -24,32 +28,51 @@ The following Python packages are used by this project; their licenses are as sh
  charset-normalizer            3.4.2        MIT License                                                                            
  click                         8.1.8        BSD License                                                                            
  colorama                      0.4.6        BSD License                                                                            
- comtypes                      1.4.10       MIT License                                                                            
- cryptography                  44.0.3       Apache Software License; BSD License                                                   
+ comtypes                      1.4.11       MIT License                                                                            
+ cryptography                  45.0.2       Apache-2.0 OR BSD-3-Clause                                                             
  cssselect                     1.3.0        BSD License                                                                            
  decorator                     5.2.1        BSD License                                                                            
+ dill                          0.4.0        BSD License                                                                            
+ distro                        1.9.0        Apache Software License                                                                
  easyocr                       1.7.2        Apache License 2.0                                                                     
+ exceptiongroup                1.3.0        MIT License                                                                            
+ exejs                         0.0.4        Apache Software License                                                                
+ ffmpeg-python                 0.2.0        Apache Software License                                                                
  filelock                      3.18.0       The Unlicense (Unlicense)                                                              
- freeai-utils                  0.2.3        MIT                                                                                    
- fsspec                        2025.3.2     BSD License                                                                            
+ filetype                      1.2.0        MIT License                                                                            
+ freeai-utils                  0.3.4        MIT                                                                                    
+ fsspec                        2025.5.0     BSD License                                                                            
+ future                        1.0.0        MIT License                                                                            
  gTTS                          2.5.4        MIT License                                                                            
  google-ai-generativelanguage  0.6.15       Apache Software License                                                                
  google-api-core               2.25.0rc1    Apache Software License                                                                
  google-api-python-client      2.169.0      Apache Software License                                                                
- google-auth                   2.40.1       Apache Software License                                                                
+ google-auth                   2.40.2       Apache Software License                                                                
  google-auth-httplib2          0.2.0        Apache Software License                                                                
  google-generativeai           0.8.5        Apache Software License                                                                
  googleapis-common-protos      1.70.0       Apache Software License                                                                
  googlesearch-python           1.3.0        MIT License                                                                            
  grpcio                        1.71.0       Apache Software License                                                                
  grpcio-status                 1.71.0       Apache Software License                                                                
+ h11                           0.16.0       MIT License                                                                            
+ haystack-ai                   2.13.2       Apache Software License; Freely Distributable                                          
+ haystack-experimental         0.10.0       Apache Software License; Freely Distributable                                          
+ httpcore                      1.0.9        BSD License                                                                            
  httplib2                      0.22.0       MIT License                                                                            
- huggingface-hub               0.31.2       Apache Software License                                                                
+ httpx                         0.28.1       BSD License                                                                            
+ huggingface-hub               0.31.4       Apache Software License                                                                
  idna                          3.10         BSD License                                                                            
  imageio                       2.37.0       BSD License                                                                            
+ imageio-ffmpeg                0.6.0        BSD License                                                                            
+ jh2                           5.0.9        Apache Software License                                                                
+ jiter                         0.10.0       MIT License                                                                            
  joblib                        1.5.0        BSD License                                                                            
+ jsonschema                    4.23.0       MIT License                                                                            
+ jsonschema-specifications     2025.4.1     UNKNOWN                                                                                
  keyboard                      0.13.5       MIT License                                                                            
  lameenc                       1.8.1        GNU Lesser General Public License v3 (LGPLv3)                                          
+ langdetect                    1.0.9        Apache Software License                                                                
+ lazy_imports                  0.4.0        Apache Software License                                                                
  lazy_loader                   0.4          BSD License                                                                            
  librosa                       0.11.0       ISC License (ISCL)                                                                     
  llvmlite                      0.43.0       BSD                                                                                    
@@ -58,22 +81,30 @@ The following Python packages are used by this project; their licenses are as sh
  more-itertools                10.7.0       MIT License                                                                            
  mpmath                        1.3.0        BSD License                                                                            
  msgpack                       1.1.0        Apache Software License                                                                
+ multiprocess                  0.70.18      BSD License                                                                            
  mutagen                       1.47.0       GNU General Public License v2 or later (GPLv2+)                                        
  networkx                      3.2.1        BSD License                                                                            
  ninja                         1.11.1.4     Apache Software License; BSD License                                                   
+ niquests                      3.14.1       Apache Software License                                                                
  numba                         0.60.0       BSD License                                                                            
  numpy                         2.0.2        BSD License                                                                            
+ openai                        1.81.0       Apache Software License                                                                
  openai-whisper                20240930     MIT                                                                                    
  opencv-python-headless        4.11.0.86    Apache Software License                                                                
  packaging                     25.0         Apache Software License; BSD License                                                   
+ pathos                        0.3.4        BSD License                                                                            
  pdfminer.six                  20250327     UNKNOWN                                                                                
  pdfplumber                    0.11.6       MIT License                                                                            
  pillow                        11.2.1       UNKNOWN                                                                                
  platformdirs                  4.3.8        MIT License                                                                            
  playsound                     1.2.2        MIT License                                                                            
  pooch                         1.8.2        BSD License                                                                            
+ posthog                       4.0.1        MIT License                                                                            
+ pox                           0.3.6        BSD License                                                                            
+ ppft                          1.7.7        BSD License                                                                            
  proto-plus                    1.26.1       Apache Software License                                                                
  protobuf                      5.29.4       3-Clause BSD License                                                                   
+ psutil                        7.0.0        BSD License                                                                            
  pyasn1                        0.6.1        BSD License                                                                            
  pyasn1_modules                0.4.2        BSD License                                                                            
  pyclipper                     1.3.0.post6  MIT License                                                                            
@@ -86,25 +117,32 @@ The following Python packages are used by this project; their licenses are as sh
  pyperclip                     1.9.0        BSD License                                                                            
  pypiwin32                     223          UNKNOWN                                                                                
  python-bidi                   0.6.6        GNU Library or Lesser General Public License (LGPL)                                    
+ python-dateutil               2.9.0.post0  Apache Software License; BSD License                                                   
  python-docx                   1.1.2        MIT License                                                                            
  python-dotenv                 1.1.0        BSD License                                                                            
  pyttsx3                       2.98         Mozilla Public License 2.0 (MPL 2.0)                                                   
  pytweening                    1.2.0        MIT License                                                                            
  pywin32                       310          Python Software Foundation License                                                     
+ qh3                           1.5.1        BSD License                                                                            
  readability-lxml              0.8.4.1      Apache License 2.0                                                                     
+ referencing                   0.36.2       UNKNOWN                                                                                
  regex                         2024.11.6    Apache Software License                                                                
  requests                      2.32.3       Apache Software License                                                                
+ rpds-py                       0.25.1       MIT                                                                                    
  rsa                           4.9.1        Apache Software License                                                                
  safetensors                   0.5.3        Apache Software License                                                                
  scikit-image                  0.24.0       BSD License                                                                            
  scikit-learn                  1.6.1        BSD License                                                                            
  scipy                         1.13.1       BSD License                                                                            
+ sentencepiece                 0.2.0        Apache Software License                                                                
  shapely                       2.0.7        BSD License                                                                            
  six                           1.17.0       MIT License                                                                            
+ sniffio                       1.3.1        Apache Software License; MIT License                                                   
  soundfile                     0.13.1       BSD License                                                                            
  soupsieve                     2.7          MIT License                                                                            
  soxr                          0.5.0.post1  GNU Lesser General Public License v2 or later (LGPLv2+)                                
  sympy                         1.14.0       BSD License                                                                            
+ tenacity                      9.1.2        Apache Software License                                                                
  threadpoolctl                 3.6.0        BSD License                                                                            
  tifffile                      2024.8.30    BSD License                                                                            
  tiktoken                      0.9.0        MIT License                                                                            
@@ -133,11 +171,14 @@ The following Python packages are used by this project; their licenses are as sh
  torch                         2.7.0        BSD License                                                                            
  torchvision                   0.22.0       BSD                                                                                    
  tqdm                          4.67.1       MIT License; Mozilla Public License 2.0 (MPL 2.0)                                      
- transformers                  4.51.3       Apache Software License                                                                
- typing-inspection             0.4.0        MIT License                                                                            
+ transformers                  4.52.2       Apache Software License                                                                
+ translators                   5.9.9        GNU General Public License v3 (GPLv3)                                                  
+ typing-inspection             0.4.1        UNKNOWN                                                                                
  typing_extensions             4.13.2       UNKNOWN                                                                                
  uritemplate                   4.1.1        Apache Software License; BSD License                                                   
  urllib3                       2.4.0        UNKNOWN                                                                                
+ urllib3-future                2.12.922     MIT License                                                                            
+ wassima                       1.2.2        MIT License                                                                            
 
 ## 📦 Models
 
