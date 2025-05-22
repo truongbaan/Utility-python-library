@@ -107,7 +107,7 @@ class DecisionMaker:
 
     @property
     def model_name(self):
-        return self.model_name
+        return self._model_name
     
     @property
     def tokenizer(self):
