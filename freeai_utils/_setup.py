@@ -9,12 +9,15 @@ Would you like to proceed with the download? (Y/n): """)
         from .document_filter import DocumentFilter
         from .image_to_text import ImageCaptioner
         from .text_from_image_easyocr import Text_Extractor_EasyOCR
+        from .language_detection import MBartTranslator, M2M100Translator
         vnwhisper = VN_Whisper()
         whisper = OpenAIWhisper()
         dec = DecisionMaker()
         doc = DocumentFilter(auto_init=False)
         imgdes = ImageCaptioner()
         textocr = Text_Extractor_EasyOCR()
+        mbart = MBartTranslator()
+        m2m100 = M2M100Translator()
     else:
         print("Download cancelled.")
        

@@ -19,6 +19,7 @@ _module_to_names = {
     'text_to_speech_pyttsx3': ['Text_To_Speech_Pyttsx3'],
     'pdf_docx_reader': ['PDF_DOCX_Reader'],
     'wrapper': ['time_it'],
+    'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator']
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -62,3 +63,4 @@ if TYPE_CHECKING:
     from .pdf_docx_reader          import PDF_DOCX_Reader
     from .wrapper                  import time_it
     from .decider                  import DecisionMaker
+    from .language_detection       import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
