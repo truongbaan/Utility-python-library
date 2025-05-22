@@ -34,11 +34,19 @@ class LangTranslator:
             self.local_status = local_status
         #local_status between active, inactive, backup where active will pioritize, inactive will unable it, backup will enable and use when online fail
         
-          #init
+        #lock
         super().__setattr__("_initialized", True)
         
         self.logger.info(f"Initialized completed")
 
+    @property
+    def online_translator(self):
+        return self._online_translator
+    
+    @property 
+    def local_translator(self):
+        return self._local_translator
+    
     def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str: #not done
         if self.local_status == "active":
             return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
@@ -71,11 +79,17 @@ class LangTranslator:
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
-class LocalTranslator: #not done
+class LocalTranslator:
+    
+    __slots__ = ("_model", "logger", "_initialized")
+    
     def __init__(self, local_model_num : int = 1, device : str = "cuda"):
         #secure type first
         self.__enforce_type(local_model_num, int, "local_model_num")
         self.__enforce_type(device, str, "device")
+        
+        #init
+        super().__setattr__("_initialized", False)
         
         #auto counter for the number of models
         _amount_translator = _Class_Counter().get_count() - 3
@@ -85,7 +99,13 @@ class LocalTranslator: #not done
         self._model = None
         self.__init_local_translator(local_model_num, device)
         self.logger = setup_logging(self.__class__.__name__)
+        #lock
+        super().__setattr__("_initialized", True)
         self.logger.info(f"Initialized completed")
+
+    @property
+    def model(self):
+        return self._model
 
     def translate(self, prompt : str, src_lang : Union[str, None] = None, tgt_lang : str = None) -> str:
         self.__enforce_type(prompt, str, "prompt")
@@ -103,6 +123,12 @@ class LocalTranslator: #not done
             case 2:
                 self._model = MBartTranslator(device = device)    
 
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
@@ -166,7 +192,7 @@ class M2M100Translator:
     
      #use for model that is m2m100 family
     #other model: facebook/m2m100_1.2B
-    def __init__(self, model_name='facebook/m2m100_418M', device: str = None):
+    def __init__(self, model_name : str = 'facebook/m2m100_418M', device: Union[str, None] = None):
         #check type
         self.__enforce_type(model_name, str, "model_name")
         
@@ -196,7 +222,7 @@ class M2M100Translator:
             try:
                 self.logger.info(f"Loading '{model_name}' model on {dev}...")
                 self._model.to(dev)
-                self.device = dev
+                self._device = dev
                 self._model.eval()
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 break
@@ -221,13 +247,13 @@ class M2M100Translator:
 
         # 2) Tokenize
         encoded = self._tokenizer(text, return_tensors='pt', truncation=True, max_length=1000)
-        encoded = {k: v.to(self.device) for k, v in encoded.items()}
+        encoded = {k: v.to(self._device) for k, v in encoded.items()}
 
         # 3) Look up forced BOS token for target
         forced_bos_id = self._tokenizer.get_lang_id(tgt_lang)
 
         torch.manual_seed(seed_num)
-        if self.device == 'cuda':
+        if self._device == 'cuda':
             torch.cuda.manual_seed_all(seed_num)
         # 4) Generate under inference mode
         with torch.inference_mode():
@@ -255,10 +281,10 @@ class MBartTranslator:
     _model: MBartForConditionalGeneration
     
     #use for model that is mbart family
-    def __init__(self, model_name="facebook/mbart-large-50-many-to-many-mmt", device=None):
+    def __init__(self, model_name :str = "facebook/mbart-large-50-many-to-many-mmt", device : Union[str, None] = None):
         
         self.logger = setup_logging(self.__class__.__name__)
-        self.device = None
+        self._device = None
         #init the var to hold device available
         preferred_devices = []
         
@@ -283,7 +309,7 @@ class MBartTranslator:
             try:
                 self.logger.info(f"Loading '{model_name}' model on {dev}...")
                 self._model.to(dev)
-                self.device = dev
+                self._device = dev
                 self._model.eval()
                 self.logger.info(f"Model successfully loaded on {dev}.")
                 break
@@ -312,7 +338,7 @@ class MBartTranslator:
         forced_bos = self._tokenizer.lang_code_to_id[tgt_tag]
         
         # prepare inputs forced BOS
-        inputs = self._tokenizer(text, return_tensors="pt", truncation=True, max_length=1000).to(self.device)
+        inputs = self._tokenizer(text, return_tensors="pt", truncation=True, max_length=1000).to(self._device)
 
         # generate
         with torch.inference_mode():
@@ -347,7 +373,7 @@ class MBartTranslator:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-
+            
 if __name__ == "__main__":
     text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
     trans = LangTranslator()
