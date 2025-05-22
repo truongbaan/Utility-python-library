@@ -64,6 +64,9 @@ class LocalTranslator: #not done
         self.__enforce_type(src_lang, (str, type(None)), "src_lang")
         self.__enforce_type(tgt_lang, str, "tgt_lang")
         return self._model.translate(prompt, src_lang = src_lang, tgt_lang = tgt_lang)
+    
+    def detect_language(self, prompt) -> Tuple[str, float]:
+        return self._model.detect_language(prompt)
         
     def __init_local_translator(self, num : int, device : str) -> None:
         match num:
@@ -207,7 +210,7 @@ class M2M100Translator:
         # 5) Decode and return
         return self._tokenizer.decode(generated_tokens[0], skip_special_tokens=True)
 
-    def detect_lang(self, text) -> str:
+    def detect_language(self, text) -> str:
         return detect(text)
     
     def __enforce_type(self, value, expected_types, arg_name):
@@ -289,7 +292,7 @@ class MBartTranslator:
             )
         return self._tokenizer.decode(out[0], skip_special_tokens=True)
 
-    def detect_lang(self, text) -> str:
+    def detect_language(self, text) -> str:
         return detect(text)
     
     def supported_lang_id(self) -> None:
@@ -322,12 +325,16 @@ if __name__ == "__main__":
     
     local = LocalTranslator(local_model_num=1, device= "cpu")
     print(local.translate(text3, tgt_lang="en"))
+    print(local.detect_language(text3, tgt_lang="en"))
     
     mb = MBartTranslator()
+    print(mb.detect_language(text3, tgt_lang="en"))
     print(mb.translate(text3, tgt_lang='en'))
     
     m1 = M2M100Translator()
+    print(m1.detect_language(text3, tgt_lang="en"))
     print(m1.translate(text3, tgt_lang='en'))
     
     trans_local = LangTranslator(local_status="active", local_model_num=2)
+    print(trans_local.detect_language(text3, tgt_lang="en"))
     print(trans_local.translate(text3))

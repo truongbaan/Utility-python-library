@@ -38,7 +38,7 @@ dependencies = [
     "pdfplumber",
     "python-docx",
     "mutagen",
-    "haystack-ai"
+    "haystack-ai",
     "langdetect",
     "googletrans==4.0.0rc1"
 ]

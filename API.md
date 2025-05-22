@@ -15,7 +15,8 @@ Use the table below to navigate quickly to each feature section.
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
 | PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
 | Document-Filter       | Filter documents using prompt                        | [Document-Filter](#document-filter)     |
-| DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)         |
+| DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)        |
+| LangTranslator        | Translate and detect language                        | [LangTranslattor](#lang-translator)     |
 
 ---
 
@@ -221,4 +222,28 @@ Question: What time is sunset in New York today? -> SEARCH_WEB
 decider = DecisionMaker(positive_ans=positive_ans, negative_ans=negative_ans, sample_ques_ans=asample_ques_ans)
 decider._run_examples()
 print(decider.decide("What day is it?")) # -> SEARCH_WEB
+```
+
+## Lang Translator
+
+```python
+
+from freeai_utils import DecisionMaker
+
+text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
+trans = LangTranslator() #for online + offline translate
+print(trans.detect_language(text3))
+print(trans.translate(text3))
+
+local = LocalTranslator() #use offline model 
+print(local.translate(text3, tgt_lang="en"))
+
+mb = MBartTranslator() #specific model chosen
+print(mb.translate(text3, tgt_lang='en'))
+
+m1 = M2M100Translator()#specific model chosen
+print(m1.translate(text3, tgt_lang='en'))
+
+trans_local = LangTranslator(local_status="active", local_model_num=2)
+print(trans_local.translate(text3))
 ```
