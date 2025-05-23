@@ -11,6 +11,7 @@ from freeai_utils.log_set_up import setup_logging
 class LangTranslator:
     
     __slots__ = ("_local_translator", "local_status", "logger", "_initialized")
+    _local_translator: Union["LocalTranslator", None]
     local_status: str
     logger: logging.Logger
     _initialized: bool
@@ -78,6 +79,9 @@ class LangTranslator:
 class LocalTranslator:
     
     __slots__ = ("_model", "logger", "_initialized")
+    _model: Union["M2M100Translator", "MBartTranslator"]
+    logger: logging.Logger
+    _initialized: bool
     
     def __init__(self, local_model_num : int = 1, device : str = "cuda"):
         #secure type first
@@ -184,14 +188,22 @@ class _Class_Counter:
 
 class M2M100Translator:
     
+    __slots__ = ("_model", "_tokenizer", "_device", "logger", "_initialized")
+    
     _tokenizer: M2M100Tokenizer
     _model: M2M100ForConditionalGeneration
+    _device: str
+    _initialized: bool
+    logger: logging.Logger
     
-     #use for model that is m2m100 family
+    #use for model that is m2m100 family
     #other model: facebook/m2m100_1.2B
     def __init__(self, model_name : str = 'facebook/m2m100_418M', device: Union[str, None] = None):
         #check type
         self.__enforce_type(model_name, str, "model_name")
+        
+        #init
+        super().__setattr__("_initialized", False)
         
         #init the var to hold device available
         preferred_devices = []
@@ -228,6 +240,21 @@ class M2M100Translator:
                 self.logger.error(f"Fail to load {model_name} on {dev}. Reason: {e}")
         else:
             raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
+        
+        #lock
+        super().__setattr__("_initialized", True)
+    
+    @property
+    def model(self):
+        return self._model
+    
+    @property
+    def device(self):
+        return self._device
+    
+    @property
+    def tokenizer(self):
+        return self._tokenizer
        
     def translate(self, text: str, src_lang: Union[str, None] = None, tgt_lang: str = None, seed_num : int = 42) -> str:
         self.__enforce_type(text, str, "text")
@@ -272,13 +299,29 @@ class M2M100Translator:
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
 
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model", "_device", "_tokenizer"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
 class MBartTranslator:
+    
+    __slots__ = ("_model", "_tokenizer", "_device", "logger", "_initialized", "_iso_to_tag")
     
     _tokenizer: MBart50TokenizerFast
     _model: MBartForConditionalGeneration
+    _device: str
+    _initialized: bool
+    logger:logging.Logger
+    _iso_to_tag: dict
     
     #use for model that is mbart family
     def __init__(self, model_name :str = "facebook/mbart-large-50-many-to-many-mmt", device : Union[str, None] = None):
+        self.__enforce_type(model_name, str, "model_name")
+        
+        #init
+        super().__setattr__("_initialized", False)
         
         self.logger = setup_logging(self.__class__.__name__)
         self._device = None
@@ -315,11 +358,25 @@ class MBartTranslator:
                 self.logger.error(f"Fail to load {model_name} on {dev}. Reason: {e}")
         else:
             raise RuntimeError(f"Could not move model to any device {preferred_devices}. Last error: {last_err}")
-       
         
         # Build a quick map from plain ISO to MBART tag:
-        self.iso_to_tag = {iso.split("_")[0]: iso for iso in self._tokenizer.lang_code_to_id}
+        self._iso_to_tag = {iso.split("_")[0]: iso for iso in self._tokenizer.lang_code_to_id}
+        
+        #lock
+        super().__setattr__("_initialized", True)
 
+    @property
+    def model(self):
+        return self._model
+    
+    @property
+    def device(self):
+        return self._device
+    
+    @property
+    def tokenizer(self):
+        return self._tokenizer
+    
     def translate(self, text: str, src_lang : Union[str, None] = None, tgt_lang: str = None) -> str:
         if not src_lang:
             iso = detect(text)
@@ -351,7 +408,7 @@ class MBartTranslator:
     
     def supported_lang_id(self) -> None:
         print("*" * 100)
-        print("Supported Language ISO ID")
+        print("Supported Language ISO ID (If you wanna know, or just use those id like langdetect, it would still works :D )")
         print("*" * 100)
         print(self._tokenizer.lang_code_to_id.keys())
     
@@ -360,8 +417,8 @@ class MBartTranslator:
         if lang_code in self._tokenizer.lang_code_to_id:
             return lang_code
         # If it's an ISO code and mapped
-        if lang_code in self.iso_to_tag:
-            return self.iso_to_tag[lang_code]
+        if lang_code in self._iso_to_tag:
+            return self._iso_to_tag[lang_code]
         # If neither, raise error
         raise ValueError(f"Unknown language code or tag: '{lang_code}'")
 
@@ -370,7 +427,13 @@ class MBartTranslator:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-            
+    
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model", "_device", "_tokenizer", "_iso_to_tag"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
 if __name__ == "__main__":
     text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
     trans = LangTranslator()
@@ -384,11 +447,12 @@ if __name__ == "__main__":
     mb = MBartTranslator()
     print(mb.detect_language(text3))
     print(mb.translate(text3, tgt_lang='en'))
+    mb.supported_lang_id() #print support in ISO ID
     
     m1 = M2M100Translator()
     print(m1.detect_language(text3))
     print(m1.translate(text3, tgt_lang='en'))
-    
+        
     trans_local = LangTranslator(local_status="active", local_model_num=2)
     print(trans_local.detect_language(text3))
     print(trans_local.translate(text3))

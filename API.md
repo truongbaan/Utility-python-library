@@ -235,15 +235,15 @@ trans = LangTranslator() #for online + offline translate
 print(trans.detect_language(text3))
 print(trans.translate(text3))
 
-local = LocalTranslator() #use offline model 
-print(local.translate(text3, tgt_lang="en"))
+# local = LocalTranslator() #use offline model 
+# print(local.translate(text3, tgt_lang="en"))
 
-mb = MBartTranslator() #specific model chosen
-print(mb.translate(text3, tgt_lang='en'))
+# mb = MBartTranslator() #specific model chosen
+# print(mb.translate(text3, tgt_lang='en'))
 
-m1 = M2M100Translator()#specific model chosen
-print(m1.translate(text3, tgt_lang='en'))
+# m1 = M2M100Translator()#specific model chosen
+# print(m1.translate(text3, tgt_lang='en'))
 
-trans_local = LangTranslator(local_status="active", local_model_num=2)
-print(trans_local.translate(text3))
+# trans_local = LangTranslator(local_status="active", local_model_num=2) # prioritize local model, choose model number 2 (mbart) 
+# print(trans_local.translate(text3))
 ```
