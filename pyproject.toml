@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.3.4"
+version = "0.3.5"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -43,7 +43,8 @@ dependencies = [
     "imageio-ffmpeg",
     "accelerate",
     "sentencepiece",
-    "tiktoken"
+    "tiktoken",
+    "click"
 ]
 
 [project.urls]
@@ -60,4 +61,4 @@ packages = ["freeai_utils"]
 "*" = ["README.md", "API.md", "THIRD_PARTY.md"]
 
 [project.scripts]
-freeai-utils-setup = "freeai_utils._setup:install_default_model"
+freeai-utils = "freeai_utils.cli:main"
