@@ -1,5 +1,26 @@
 import gc
 
+def install_model(target):
+    if target is None or target == "A":
+        install_default_model()  # Installs all default models (excluding image generation)
+    elif target == "S":
+        print("Downloading default models for speech-to-text")
+        download_transcription()
+    elif target == "D":
+        print("Downloading default models for document processing")
+        download_document_related()
+    elif target == "I":
+        print("Downloading default models for OCR and image captioning")
+        download_image_related()
+    elif target == "T":
+        print("Downloading default models for translation")
+        download_translation()
+    elif target == "L":
+        print("Downloading default models for local LLMs")
+        download_LLM()
+    else:
+        print("No cmd found, please try again")
+        
 def install_default_model():
     decision = input(
         "This function will download all default models used by this library.\n"
@@ -49,6 +70,9 @@ def _download_and_purge(cls, *args, **kwargs):
     inst = cls(*args, **kwargs)
     del inst
     gc.collect()
+
+def download_LLM():
+    pass #not yet
 
 if __name__ == "__main__":
     install_default_model()
