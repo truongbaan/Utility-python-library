@@ -74,5 +74,12 @@ def _download_and_purge(cls, *args, **kwargs):
 def download_LLM():
     pass #not yet
 
+def download_image_creation_related():
+    from .image_creator import TurboImage
+    _download_and_purge(TurboImage)
+
+def _download_in_civitai():
+    pass
+
 if __name__ == "__main__":
     install_default_model()
