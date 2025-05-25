@@ -1,7 +1,7 @@
 import gc
 
 def install_model(target : str):
-    target =target.strip().upper() if target is not None else target
+    target =target.strip().upper() if target is str else target
     if target is None or target == "A" or target == "":
         install_default_model()  # Installs all default models (excluding image generation)
     elif target == "S":
