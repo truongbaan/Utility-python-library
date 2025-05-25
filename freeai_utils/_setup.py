@@ -1,7 +1,8 @@
 import gc
 
-def install_model(target):
-    if target is None or target == "A":
+def install_model(target : str):
+    target =target.strip().upper() if target is not None else target
+    if target is None or target == "A" or target == "":
         install_default_model()  # Installs all default models (excluding image generation)
     elif target == "S":
         print("Downloading default models for speech-to-text")
@@ -18,6 +19,13 @@ def install_model(target):
     elif target == "L":
         print("Downloading default models for local LLMs")
         download_LLM()
+    elif target == "ICF":
+        print("Downloading all models for image creating")
+        print("*" * 100)
+        print("Recommend to use AUTOMATA 1111 instead for better speed and UI")
+        print("*" * 100)
+        download_image_creation_related()
+        download_in_civitai()
     else:
         print("No cmd found, please try again")
         
@@ -75,10 +83,10 @@ def download_LLM():
     pass #not yet
 
 def download_image_creation_related():
-    from .image_creator import TurboImage
-    _download_and_purge(TurboImage)
+    from .image_creator import SDXL_TurboImage
+    _download_and_purge(SDXL_TurboImage)
 
-def _download_in_civitai():
+def download_in_civitai(): #this function is for downloading through website links (url) not from hugging face, these are used as support for image creating
     pass
 
 if __name__ == "__main__":

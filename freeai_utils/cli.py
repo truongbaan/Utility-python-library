@@ -11,9 +11,9 @@ def main(ctx):
         click.echo(ctx.get_help())
         sys.exit(1)
 
-@main.command()
+@main.command(help="Download default models for this library through hugging face ")
 @click.argument("target", required=False)
-def setup(target):
+def setup(target : str  = ""):
     install_model(target)
     
 if __name__ == "__main__":
