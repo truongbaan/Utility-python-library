@@ -37,8 +37,14 @@ class DecisionMaker:
         self._model_name = model_name
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info(f"Loading tokenizer and model: {model_name}...")
-        self._model = T5ForConditionalGeneration.from_pretrained(model_name)
-        self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
+        try:
+            self._model = T5ForConditionalGeneration.from_pretrained(model_name, local_files_only=True)
+            self._tokenizer = T5TokenizerFast.from_pretrained(model_name, local_files_only=True)
+        except:
+            self.logger.info(f"Detect local model not found, attemp to download {model_name}")
+            self._model = T5ForConditionalGeneration.from_pretrained(model_name)
+            self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
+            
         self._system_prompt = None
         self.construct_sys_prompt(sample_ques_ans=sample_ques_ans, positive_ans=positive_ans, negative_ans=negative_ans)
         

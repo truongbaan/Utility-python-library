@@ -14,7 +14,11 @@ class LocalLLM:
             device_map=self.device
         ).to(self.device)
         self.model.eval()
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+        except Exception:
+            self.logger.info(f"Decect model not found, attempt to download {model_name}")
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._history = []
         self._max_length = memories_length
         

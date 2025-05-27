@@ -22,8 +22,13 @@ class ImageCaptioner:
         
         #init
         super().__setattr__("_initialized", False)
-        self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
-        self._model = AutoModelForVision2Seq.from_pretrained(model_name)
+        try:
+            self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True, local_files_only = True)
+            self._model = AutoModelForVision2Seq.from_pretrained(model_name, local_files_only = True)
+        except Exception:
+            self.logger.info(f"Detect local model not found, attemp to download {model_name}")
+            self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
+            self._model = AutoModelForVision2Seq.from_pretrained(model_name)
                 
         #logger 
         self.logger = setup_logging(self.__class__.__name__)

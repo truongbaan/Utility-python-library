@@ -222,8 +222,14 @@ class M2M100Translator:
             preferred_devices.append("cpu")
         
         # Load tokenizer and model
-        self._tokenizer = M2M100Tokenizer.from_pretrained(model_name)
-        self._model = M2M100ForConditionalGeneration.from_pretrained(model_name)
+        try:
+            self._tokenizer = M2M100Tokenizer.from_pretrained(model_name,local_files_only=True)
+            self._model = M2M100ForConditionalGeneration.from_pretrained(model_name, local_files_only=True)
+        except Exception as e:
+            self.logger.info(f"Detect models not found, attempt to download {model_name}")
+            self._tokenizer = M2M100Tokenizer.from_pretrained(model_name)
+            self._model = M2M100ForConditionalGeneration.from_pretrained(model_name)
+            
         self.logger = setup_logging(self.__class__.__name__)
         
         last_err = None
@@ -340,9 +346,14 @@ class MBartTranslator:
         # fall back to CPU if not already there
         if "cpu" not in preferred_devices:
             preferred_devices.append("cpu")
-    
-        self._tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
-        self._model     = MBartForConditionalGeneration.from_pretrained(model_name)
+        
+        try:
+            self._tokenizer = MBart50TokenizerFast.from_pretrained(model_name, local_files_only=True)
+            self._model     = MBartForConditionalGeneration.from_pretrained(model_name, local_files_only=True)
+        except Exception as e:
+            self.logger.info(f"Detect local model not found, attemp to download {model_name}")
+            self._tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
+            self._model     = MBartForConditionalGeneration.from_pretrained(model_name)
         
         last_err = None
         for dev in preferred_devices:
