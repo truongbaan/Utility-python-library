@@ -23,7 +23,11 @@ def guide():
     print("*" * 100)
     print("setup: --A default models")
     print("       --S Speech To Text models")
-    print()
+    print("       --D Document related models")
+    print("       --I Image OCR related models")
+    print("       --T Translation models")
+    print("       --L Default LLM models")
+    print("       --ICF Image generator models")
 
 if __name__ == "__main__":
     main()

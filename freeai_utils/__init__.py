@@ -19,7 +19,8 @@ _module_to_names = {
     'text_to_speech_pyttsx3': ['Text_To_Speech_Pyttsx3'],
     'pdf_docx_reader': ['PDF_DOCX_Reader'],
     'wrapper': ['time_it'],
-    'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator']
+    'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator'],
+    'localLLM': ['LocalLLM']
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -31,7 +32,6 @@ for module_name, symbols in _module_to_names.items():
 # all class/functions available when do import freeai_utils
 __all__ = sorted(_lazy_mapping.keys())
 
-
 def __getattr__(name: str):
     if name in _lazy_mapping:
         # Import only the module that contains the requested symbol
@@ -41,10 +41,8 @@ def __getattr__(name: str):
         return value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
-
 def __dir__():
     return __all__
-
 
 #for IDEs suggestions
 if TYPE_CHECKING:
@@ -64,3 +62,4 @@ if TYPE_CHECKING:
     from .wrapper                  import time_it
     from .decider                  import DecisionMaker
     from .language_detection       import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
+    from .localLLM                 import LocalLLM

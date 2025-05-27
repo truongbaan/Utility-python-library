@@ -2,6 +2,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from freeai_utils.log_set_up import setup_logging
 import logging
 from typing import Union
+import torch
 
 #other model: Qwen/Qwen3-4B, or any models that is Qwen
 class LocalLLM:
@@ -11,7 +12,8 @@ class LocalLLM:
             model_name,
             torch_dtype="auto",
             device_map=self.device
-        )
+        ).to(self.device)
+        self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._history = []
         self._max_length = memories_length
@@ -24,14 +26,12 @@ class LocalLLM:
             enable_thinking=True
         )
         
-        model_inputs = self.tokenizer([text], return_tensors="pt")
-        if self.device is not None:
-            model_inputs = model_inputs.to(self.device)
-        
-        generated_ids = self.model.generate(
-            **model_inputs,
-            max_new_tokens=32768
-        )
+        model_inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
+        with torch.inference_mode():
+            generated_ids = self.model.generate(
+                **model_inputs,
+                max_new_tokens=32768
+            )
         output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
             
         try:
@@ -42,7 +42,7 @@ class LocalLLM:
         thinking_content = self.tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
         content = self.tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
 
-        return thinking_content, content
+        return content, thinking_content
         
     def ask_with_memories(self, prompt: str) -> tuple[str, str]:
         messages = []
@@ -57,9 +57,9 @@ class LocalLLM:
         line += prompt
         messages.append({"role": "user", "content": line})
 
-        thinking_content, content = self.ask(messages)
+        content, thinking_content = self.ask(messages)
         self.__add_turn(prompt, content)
-        return thinking_content, content
+        return content, thinking_content
         
     def _clear_history(self) -> None:
         if self._history:
@@ -80,5 +80,5 @@ class LocalLLM:
 if __name__ == "__main__":
     lm = LocalLLM(preferred_device="cpu")
     print(lm.ask([{"role": "user", "content": "Hi, how are you? When will you use thinking mode and when will not?"}]))
-    print(lm.ask_with_memories("Hi, my name is An, what is your favorite animal"))
-    print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?"))
+    print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
+    print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0])
