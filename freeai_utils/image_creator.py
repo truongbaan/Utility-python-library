@@ -37,6 +37,14 @@ class SDXL_TurboImage:
             img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
         print(f"Saved {len(images)} images.")
         
+        
+class SD15_Image:
+    def __init__(self, preferred_device ,support_model ,output_dir):
+        pass
+    
+    def generate_images(self,positive_prompt, negative_prompt,filename, width, height, steps, guidance_scale, number_of_images, seed) -> None:
+        pass
+    
 if __name__ == "__main__":
     imagegenerator = SDXL_TurboImage(device="cpu")
     imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")

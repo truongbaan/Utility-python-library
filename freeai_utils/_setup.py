@@ -80,13 +80,16 @@ def _download_and_purge(cls, *args, **kwargs):
     gc.collect()
 
 def download_LLM():
-    pass #not yet
+    from .localLLM import LocalLLM
+    _download_and_purge(LocalLLM)
 
 def download_image_creation_related():
-    from .image_creator import SDXL_TurboImage
+    from .image_creator import SDXL_TurboImage, SD15_Image
     _download_and_purge(SDXL_TurboImage)
+    _download_and_purge(SD15_Image)
+    #missing download support file from url
 
-def download_in_civitai(): #this function is for downloading through website links (url) not from hugging face, these are used as support for image creating
+def download_in_civitai(url, filename, download_dir): #this function is for downloading through website links (url) not from hugging face, these are used as support for image creating
     pass
 
 if __name__ == "__main__":
