@@ -1,9 +1,10 @@
 from collections import Counter
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
 from haystack import Document
 from haystack.components.readers import ExtractiveReader
 from haystack.utils.device import ComponentDevice
 from typing import List, Optional
-import os
 from .pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
 
@@ -32,20 +33,40 @@ class DocumentFilter:
         super().__setattr__("_initialized", False)
         # set core reader
         try:
-            device_obj = ComponentDevice.from_str(device)
-            super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
-            self._reader.model.eval()
-            self._reader.warm_up()
-            self.logger.info(f"Successfully runs on {device}")
+            try:
+                os.environ.pop("HF_HUB_OFFLINE", None)
+                device_obj = ComponentDevice.from_str(device)
+                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
+                self._reader.model.eval()
+                self._reader.warm_up()
+                self.logger.info(f"Successfully runs on {device}")
+            except:
+                self.logger.info(f"Fail online, moving offline")
+                os.environ["HF_HUB_OFFLINE"] = "1"
+                device_obj = ComponentDevice.from_str(device)
+                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
+                self._reader.model.eval()
+                self._reader.warm_up()
+                self.logger.info(f"Successfully runs on {device}")
         except Exception as e:
             self.logger.error(f"Fail to run on {device}")
             if device != "cpu":
-                self.logger.info("Trying on cpu instead")
-                cpu_device_obj = ComponentDevice.from_str("cpu")
-                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
-                self._reader.warm_up()
-                self.logger.info(f"Successfully runs on {device}")
-                
+                try:
+                    os.environ.pop("HF_HUB_OFFLINE", None)
+                    self.logger.info("Trying on cpu instead")
+                    cpu_device_obj = ComponentDevice.from_str("cpu")
+                    super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
+                    self._reader.warm_up()
+                    self.logger.info(f"Successfully runs on {device}")
+                except:
+                    self.logger.info(f"Fail online, moving offline")
+                    os.environ["HF_HUB_OFFLINE"] = "1"
+                    self.logger.info("Trying on cpu instead")
+                    cpu_device_obj = ComponentDevice.from_str("cpu")
+                    super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
+                    self._reader.warm_up()
+                    self.logger.info(f"Successfully runs on {device}")
+                    
         # lock down, reader can't be modified
         super().__setattr__("_initialized", True)
     
