@@ -39,7 +39,10 @@ class SDXL_TurboImage:
         
         
 class SD15_Image:
-    def __init__(self, preferred_device ,support_model ,output_dir):
+    def __init__(self, preferred_device ,support_model ,output_dir, model_path, scheduler):
+        #model path is to check whether get from lib or get from running folder
+        #support_model is for use or not
+        #schedule is for sample
         pass
     
     def generate_images(self,positive_prompt, negative_prompt,filename, width, height, steps, guidance_scale, number_of_images, seed) -> None:

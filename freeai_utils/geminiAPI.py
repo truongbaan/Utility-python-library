@@ -146,7 +146,7 @@ class GeminiClient:
     
     def __add_turn(self, question, answer) -> None:
         self.__enforce_type(question, str, "question")
-        self.__enforce_type(answer, str, answer)
+        self.__enforce_type(answer, str, "answer")
 
         while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
             self._history.pop(0)  # Remove the oldest turn

@@ -1,6 +1,10 @@
 import gc
+import os
 
 def install_model(target : str):
+    #use for download model from civitai
+    current_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
+    
     target =target.strip().upper() if target is str else target
     if target is None or target == "A" or target == "":
         install_default_model()  # Installs all default models (excluding image generation)
@@ -25,7 +29,7 @@ def install_model(target : str):
         print("Recommend to use AUTOMATA 1111 instead for better speed and UI")
         print("*" * 100)
         download_image_creation_related()
-        download_in_civitai()
+        download_from_civitai()
     else:
         print("No cmd found, please try again")
         
@@ -89,7 +93,7 @@ def download_image_creation_related():
     _download_and_purge(SD15_Image)
     #missing download support file from url
 
-def download_in_civitai(url, filename, download_dir): #this function is for downloading through website links (url) not from hugging face, these are used as support for image creating
+def download_from_civitai(url, filename, download_dir): #this function is for downloading through website links (url) not from hugging face, these are used as support for image creating
     pass
 
 if __name__ == "__main__":

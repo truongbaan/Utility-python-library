@@ -16,5 +16,14 @@ def main(ctx):
 def setup(target : str  = ""):
     install_model(target)
     
+@main.command(help="Detail guide on command line")
+def guide():
+    print("*" * 100)
+    print("HELP")
+    print("*" * 100)
+    print("setup: --A default models")
+    print("       --S Speech To Text models")
+    print()
+
 if __name__ == "__main__":
     main()
