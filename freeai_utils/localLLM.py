@@ -1,38 +1,109 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from freeai_utils.log_set_up import setup_logging
 import logging
-from typing import Union
 import torch
 
 #other model: Qwen/Qwen3-4B, or any models that is Qwen
 class LocalLLM:
+    __slots__ = ("_model", "_tokenizer", "_device", "logger", "_initialized", "_history", "_max_length")
+    
+    _model: AutoModelForCausalLM
+    _tokenizer: AutoTokenizer
+    _device: str
+    _logger: logging.Logger
+    _initialized: bool
+    _history: list
+    _max_length: int
+    
     def __init__(self, model_name: str = "Qwen/Qwen3-0.6B", preferred_device: str = "cuda", memories_length: int = 4):
-        self.device = preferred_device
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype="auto",
-            device_map=self.device
-        ).to(self.device)
-        self.model.eval()
+        #check type
+        self.__enforce_type(preferred_device, str, "preferred_device")
+        self.__enforce_type(model_name, str, "model_name")
+        self.__enforce_type(memories_length, int, "memories_length")
+        
+        #init
+        super().__setattr__("_initialized", False)
+        self.logger = setup_logging(self.__class__.__name__)
+        
+        preferred_devices = []
+        if preferred_device is not None:
+            self.__enforce_type(preferred_device, str, "device")
+            preferred_devices.append(preferred_device)
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
+            preferred_devices.append("cuda")
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
+        
+        #download if not founnd
         try:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+            self._tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
         except Exception:
             self.logger.info(f"Decect model not found, attempt to download {model_name}")
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
+        self._model = None
+        self._device = None
+        
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype="auto",   
+            low_cpu_mem_usage=True 
+        )
+        model.eval()
+
+        for dev in preferred_devices:
+            try:
+                self.logger.info(f"Loading '{model_name}' model on {dev}...")
+                model_on_dev = model.to(dev)
+                self._model = model_on_dev
+                self._device = dev
+                self.logger.info(f"Model successfully running on {dev}.")
+                break
+            except Exception as e:
+                self.logger.error(f"Failed to move model to {dev}: {e}")
+        
+        if self._model is None:
+            raise RuntimeError(f"Could not load model on any device: {preferred_devices}")
+    
         self._history = []
         self._max_length = memories_length
         
+        #lock
+        super().__setattr__("_initialized", True)
+    
+    @property
+    def model(self):
+        return self._model
+    
+    @property
+    def device(self):
+        return self._device
+    
+    @property
+    def tokenizer(self):
+        return self._tokenizer
+    
+    @property
+    def memories_length(self):
+        return self._max_length
+    
+    @memories_length.setter
+    def memories_length(self, value):
+        if not isinstance(value, int) or value < 0:
+            raise ValueError("memories_length must be a non-negative integer.")
+        self._max_length = value
+    
     def ask(self, messages: list[dict]):
-        text = self.tokenizer.apply_chat_template(
+        text = self._tokenizer.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
             enable_thinking=True
         )
         
-        model_inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
+        model_inputs = self._tokenizer([text], return_tensors="pt").to(self._device)
         with torch.inference_mode():
-            generated_ids = self.model.generate(
+            generated_ids = self._model.generate(
                 **model_inputs,
                 max_new_tokens=32768
             )
@@ -43,16 +114,13 @@ class LocalLLM:
         except ValueError:
             index = 0
     
-        thinking_content = self.tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
-        content = self.tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
+        thinking_content = self._tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
+        content = self._tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
 
         return content, thinking_content
         
     def ask_with_memories(self, prompt: str) -> tuple[str, str]:
         messages = []
-        # for turn in self._history:
-        #     messages.append({"role": "user", "content": turn["question"]})
-        #     messages.append({"role": "system", "content": turn["answer"]})
         line = "Here's our previous conversation:\n"
         if self._history:
             for turn in self._history:
@@ -81,8 +149,14 @@ class LocalLLM:
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
+    def __setattr__(self, name, value):
+        # once initialized, block these core attributes
+        if getattr(self, "_initialized", False) and name in ("_model", "_device", "_tokenizer"):
+            raise AttributeError(f"Cannot reassign '{name}' after initialization")
+        super().__setattr__(name, value)
+    
 if __name__ == "__main__":
-    lm = LocalLLM(preferred_device="cpu")
+    lm = LocalLLM()
     print(lm.ask([{"role": "user", "content": "Hi, how are you? When will you use thinking mode and when will not?"}]))
     print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
     print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0])
