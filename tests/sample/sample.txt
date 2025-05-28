@@ -1,8 +1,0 @@
-Hello, how are you? | Xin chào, bạn khỏe không?
-¿Cómo estás? | Bạn khỏe không?
-Bonjour, comment ça va ? | Xin chào, bạn khỏe không?
-Guten Tag, wie geht es Ihnen? | Chào buổi sáng/chiều, bạn có khỏe không?
-Ciao, come stai? | Chào, bạn khỏe không?
-Olá, como você está? | Xin chào, bạn có khỏe không?
-こんにちは、お元気ですか？ | Xin chào, bạn có khỏe không?
-안녕하세요, 잘 지내세요? | Xin chào, bạn có khỏe không? 
