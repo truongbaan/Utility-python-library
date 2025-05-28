@@ -7,6 +7,7 @@ from haystack.utils.device import ComponentDevice
 from typing import List, Optional
 from .pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
+import torch
 
 #smaller model: deepset/roberta-base-squad2
 class DocumentFilter:
@@ -32,41 +33,38 @@ class DocumentFilter:
         # init not lock
         super().__setattr__("_initialized", False)
         # set core reader
-        try:
-            try:
-                os.environ.pop("HF_HUB_OFFLINE", None)
-                device_obj = ComponentDevice.from_str(device)
-                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
-                self._reader.model.eval()
-                self._reader.warm_up()
-                self.logger.info(f"Successfully runs on {device}")
-            except:
-                self.logger.info(f"Fail online, moving offline")
-                os.environ["HF_HUB_OFFLINE"] = "1"
-                device_obj = ComponentDevice.from_str(device)
-                super().__setattr__("_reader", ExtractiveReader(model=model_name, device=device_obj))
-                self._reader.model.eval()
-                self._reader.warm_up()
-                self.logger.info(f"Successfully runs on {device}")
-        except Exception as e:
-            self.logger.error(f"Fail to run on {device}")
-            if device != "cpu":
-                try:
-                    os.environ.pop("HF_HUB_OFFLINE", None)
-                    self.logger.info("Trying on cpu instead")
-                    cpu_device_obj = ComponentDevice.from_str("cpu")
-                    super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
-                    self._reader.warm_up()
-                    self.logger.info(f"Successfully runs on {device}")
-                except:
-                    self.logger.info(f"Fail online, moving offline")
+        self._reader = None
+        
+        preferred_devices = []
+        if device is not None:
+            self.__enforce_type(device, str, "device")
+            preferred_devices.append(device)
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
+            preferred_devices.append("cuda")
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
+            
+        for dev in preferred_devices:
+            for offline in (True, False):
+                if offline:
                     os.environ["HF_HUB_OFFLINE"] = "1"
-                    self.logger.info("Trying on cpu instead")
-                    cpu_device_obj = ComponentDevice.from_str("cpu")
-                    super().__setattr__("_reader", ExtractiveReader(model=model_name, device=cpu_device_obj))
-                    self._reader.warm_up()
-                    self.logger.info(f"Successfully runs on {device}")
-                    
+                    mode = "offline"
+                else:
+                    os.environ.pop("HF_HUB_OFFLINE", None)
+                    mode = "online"
+                try:
+                    device_obj = ComponentDevice.from_str(dev)
+                    reader = ExtractiveReader(model=model_name, device=device_obj)
+                    reader.warm_up()
+                    self._reader = reader
+                    self.logger.info(f"Successfully runs on {dev} with mode {mode}")
+                    break
+                except Exception as e:
+                    self.logger.info(f"Failed to initialize on device='{dev}' in {mode} mode: {e}")
+        
+        if self._reader is None:
+            raise RuntimeError(f"Could not load model on any device.")
+        
         # lock down, reader can't be modified
         super().__setattr__("_initialized", True)
     
@@ -100,11 +98,11 @@ class DocumentFilter:
         self.__enforce_type(prompt, str, "prompt") #check type before start
         
         result = self._reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
-
+        
         seen_texts = set()
         counts = Counter()
         filtered_answers = []
-
+        
         for ans in result["answers"]:
             if ans.score < self.threshold:
                 continue
@@ -112,16 +110,16 @@ class DocumentFilter:
                 continue
             text = ans.document.content
             doc_id = ans.document.id
-
+        
             if counts[doc_id] >= self.max_per_doc:
                 continue
             if text in seen_texts:
                 continue
-
+                
             filtered_answers.append((text, ans.score, doc_id))
             seen_texts.add(text)
             counts[doc_id] += 1
-
+        
         #contain text, score, and doc.id
         return filtered_answers #return list of document with ranking score that > threshold
 
@@ -145,7 +143,7 @@ class DocumentFilter:
     def __collect_file_paths(self, directory):
         pdf_urls = []
         docx_urls = []
-
+    
         # Walk through all directories and files
         for root, _, files in os.walk(directory):
             for file in files:
@@ -154,7 +152,7 @@ class DocumentFilter:
                     pdf_urls.append(file_path)
                 elif file.lower().endswith('.docx'):
                     docx_urls.append(file_path)
-
+        
         return pdf_urls, docx_urls
     
     def __enforce_type(self, value, expected_type, arg_name):
