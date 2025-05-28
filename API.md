@@ -8,7 +8,7 @@ Use the table below to navigate quickly to each feature section.
 | Audio Recording (MP3) | Record MP3 audio via fixed, toggle, or silence modes | [MP3 Recorder](#mp3-recorder)           |
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
 |                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
-| Gemini Client (LLM)   | Interact with Google Gemini using memory             | [GeminiClient](#geminiclient)           |
+| Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiClient](#geminiclient)           |
 | Web Search            | Grab information from Google                         | [Google Searcher](#google-searcher)     |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
@@ -17,7 +17,7 @@ Use the table below to navigate quickly to each feature section.
 | Document-Filter       | Filter documents using prompt                        | [Document-Filter](#document-filter)     |
 | DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)        |
 | LangTranslator        | Translate and detect language                        | [LangTranslattor](#lang-translator)     |
-
+| LocalLLM              | Local LLM model (Qwen) to interact without API keys  | [LocalLLM](#local-llm)                  |
 ---
 
 ## WAV Recorder
@@ -66,7 +66,9 @@ print(output)  # full details
 lang_detect = transcriber.get_lang_detect("output_pyaudio.wav")
 print(lang_detect)
 
-translation = transcriber.get_translation("output_pyaudio.wav")
+translation = transcriber.get_transcription("output_pyaudio.wav")
+print(translation)
+translation = transcriber.get_time_transcription("output_pyaudio.wav") #get transcription with time, return list
 print(translation)
 ```
 
@@ -165,11 +167,12 @@ print(text)
 **Convert text to speech using gTTS or pyttsx3.**
 
 ```python
-from freeai_utils import gtts_speak, Text_To_Speech_Pyttsx3
+from freeai_utils import gtts_speak, Text_To_Speech_Pyttsx3, __Cleaner
 
 # gTTS version
 gtts_speak(text = "Xin chào người đẹp, em tên là gì thế", lang = "vi")
 gtts_speak(text = "Hello, how are you?", lang = "en")
+__Cleaner().remove_all_files_end_with(".mp3") #remove in case it didnt remove the file correctly
 
 # pyttsx3 version
 speaker = Text_To_Speech_Pyttsx3()
@@ -195,8 +198,8 @@ print(reader.extract_images("example.docx")) #return the number of images found 
 
 ```python
 from freeai_utils import DocumentFilter
-filter = DocumentFilter(path = "your_folder")
-list_ans : list = filter.search_document("Tetris")
+filter = DocumentFilter(path = "your_folder") #this will get all docx, pdf file in that folder and put them into documents
+list_ans : list = filter.search_document("your_keyword")
 for ans in list_ans:
     print(ans)
 ```
@@ -220,7 +223,7 @@ Question: What time is sunset in New York today? -> SEARCH_WEB
 
 #note: this only decide yes/no question type, it doesn't actually search or do anything else
 decider = DecisionMaker(positive_ans=positive_ans, negative_ans=negative_ans, sample_ques_ans=asample_ques_ans)
-decider._run_examples()
+# decider._run_examples()
 print(decider.decide("What day is it?")) # -> SEARCH_WEB
 ```
 
@@ -228,7 +231,7 @@ print(decider.decide("What day is it?")) # -> SEARCH_WEB
 
 ```python
 
-from freeai_utils import DecisionMaker
+from freeai_utils import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
 
 text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
 trans = LangTranslator() #for online + offline translate
@@ -246,4 +249,16 @@ print(trans.translate(text3))
 
 # trans_local = LangTranslator(local_status="active", local_model_num=2) # prioritize local model, choose model number 2 (mbart) 
 # print(trans_local.translate(text3))
+```
+
+## Local LLM
+
+```python
+from freeai_utils import LocalLLM
+
+lm = LocalLLM()
+print(lm.ask([{"role": "user", "content": "Hi, how are you? When will you use thinking mode and when will not?"}])) 
+print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
+print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0]) #[0] is index for answer, [1] is for thinking phase
+
 ```
