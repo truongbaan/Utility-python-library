@@ -163,18 +163,21 @@ class DecisionMaker:
             "Question: What is the definition of photosynthesis? -> NO_SEARCH_NEEDED\n"
             "Question: What is the price of Bitcoin right now? -> SEARCH_INTERNET\n"
             "Question: What is the history of the Eiffel Tower? -> NO_SEARCH_NEEDED\n"
+            "Question: What is the date today? -> SEARCH_INTERNET\n"
         )
 
-        print(f"FIELD [sample_ques_ans]:\n{sample_ques_ans}")
-        sample_ques_ans = (
-            "Analyze the following question and determine if an internet search is required to answer it. "
-            f"Respond with 'SEARCH_INTERNET' or 'NO_SEARCH_NEEDED'.\n\n"
-            "Examples:\n"
-            f"{sample_ques_ans}"
-        )
         positive_ans, negative_ans = "SEARCH_INTERNET", "NO_SEARCH_NEEDED"
         print(f"FIELD [positive_ans]: {positive_ans}\n")
         print(f"FIELD [positive_ans]: {negative_ans}\n")
+        
+        print(f"FIELD [sample_ques_ans]:\n{sample_ques_ans}")
+        sample_ques_ans = (
+            "Analyze the following question and determine if an internet search is required to answer it. "
+            f"Respond with '{positive_ans}' or '{negative_ans}'.\n\n"
+            "Examples:\n"
+            f"{sample_ques_ans}"
+        )
+        
         
         
         example_questions = [
@@ -200,3 +203,18 @@ class DecisionMaker:
             decision = self.decide(q, sample_ques_ans)
             print(f"Question: {q}\nDecision: {decision}\n")
         print("*" * 100)
+        
+    def config_default_internet_search(self) -> None:
+        sample_ques_ans = (
+            "Question: What is the weather like in London tomorrow? -> SEARCH_INTERNET\n"
+            "Question: What is the capital of France? -> NO_SEARCH_NEEDED\n"
+            "Question: What was the score of the latest football match between Real Madrid and Barcelona? -> SEARCH_INTERNET\n"
+            "Question: What is the chemical formula for water? -> NO_SEARCH_NEEDED\n"
+            "Question: Who is the current Prime Minister of Canada? -> SEARCH_INTERNET\n"
+            "Question: What is the definition of photosynthesis? -> NO_SEARCH_NEEDED\n"
+            "Question: What is the price of Bitcoin right now? -> SEARCH_INTERNET\n"
+            "Question: What is the history of the Eiffel Tower? -> NO_SEARCH_NEEDED\n"
+            "Question: What is the date today? -> SEARCH_INTERNET\n"
+        )
+        positive_ans, negative_ans = "SEARCH_INTERNET", "NO_SEARCH_NEEDED"
+        self.construct_sys_prompt(sample_ques_ans=sample_ques_ans, positive_ans=positive_ans, negative_ans=negative_ans)
