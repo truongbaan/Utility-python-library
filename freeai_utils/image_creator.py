@@ -108,13 +108,25 @@ class SDXL_TurboImage:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
 class SD15_Image:
-    def __init__(self, preferred_device ,support_model ,output_dir, model_path, scheduler):
+    def __init__(self, preferred_device : str = None ,support_model : str = None ,output_dir : str = "generated_image", model_path : str = None, scheduler : str = "default"):
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
         #schedule is for sample
         pass
     
-    def generate_images(self,positive_prompt, negative_prompt,filename, width, height, steps, guidance_scale, number_of_images, seed) -> None:
+    def generate_images(self,
+                        positive_prompt : str = None, 
+                        negative_prompt : str = None,
+                        filename : str = None, 
+                        width : int = 512, 
+                        height : int = 512, 
+                        steps : int = 24, 
+                        guidance_scale : float = 7.5, 
+                        number_of_images : int = 2, 
+                        seed : int = None) -> None:
+        pass
+    
+    def _help_config(self) -> None:
         pass
     
 if __name__ == "__main__":

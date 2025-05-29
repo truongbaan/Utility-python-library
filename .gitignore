@@ -176,3 +176,6 @@ cython_debug/
 #personal note
 note.txt
 .txt
+
+#safetensors file
+freeai_utils/downloaded_models
