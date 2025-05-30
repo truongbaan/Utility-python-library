@@ -95,8 +95,6 @@ def download_image_creation_related():
     #missing download support file from url
 
 def download_from_civitai():#download some popular models
-    print("This feature is under testing, let skip it for now :)")
-    return 
     #https://civitai.com/models/23521/anime-pastel-dream
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/28100?type=Model&format=SafeTensor&size=full&fp=fp16",
                         model_name="anime_pastal_dream",
@@ -238,7 +236,7 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
             while True:
                 user_choice = input(f"Could not verify full file size from server. Partial file '{final_filename}' found ({download_start_byte} bytes).\nDo you want to resume [R], or start [S] a new download from scratch? (R/S): ").strip().lower()
                 if user_choice == 'r':
-                    headers["Range"] = f"bytes={download_start_byte}"
+                    headers["Range"] = f"bytes={download_start_byte}-"
                     resume_possible = True
                     print(f"Attempting resume from byte {download_start_byte} for {final_filename} without full size check.")
                     break
@@ -296,9 +294,12 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
         print(f"Successfully downloaded {final_filename} to {download_dir}")
     
     except requests.exceptions.RequestException as e:
-        if e.response.status_code == 416:
+        status_code = getattr(e.response, 'status_code', None)
+        if status_code == 416:
             print("File already full, exiting...")
             return
+        
+        # Fallback for any other network/HTTP errors
         print(f"An HTTP or network error occurred during download: {e}")
         print("Please check your internet connection and the direct download URL.")
     except Exception as e:
