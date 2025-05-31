@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from freeai_utils.log_set_up import setup_logging
 
-class GeminiClient:
+class GeminiChatBot:
     def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
         self.__enforce_type(memories_length, int, "memories_length")
@@ -151,3 +151,8 @@ class GeminiClient:
         while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
             self._history.pop(0)  # Remove the oldest turn
         self._history.append({"question": question, "answer": answer})
+        
+
+class GeminiClient:
+    def __init__(self):
+        pass

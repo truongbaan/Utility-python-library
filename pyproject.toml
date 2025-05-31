@@ -17,7 +17,8 @@ dependencies = [
     "openai-whisper",
     "librosa",
     "torch",  # also needed for PIL use in transformers
-    "google-generativeai",
+    "google-generativeai", #this will remove since no longer support
+    "google-genai",
     "pyperclip",
     "python-dotenv",
     "googlesearch-python",

@@ -8,7 +8,8 @@ Use the table below to navigate quickly to each feature section.
 | Audio Recording (MP3) | Record MP3 audio via fixed, toggle, or silence modes | [MP3 Recorder](#mp3-recorder)           |
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
 |                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
-| Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiClient](#geminiclient)           |
+| Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiChatBot](#GeminiChatBot)         |
+|                       |                                                      | [GeminiClient](#GeminiClient)           |
 | Web Search            | Grab information from Google                         | [Web Scraper](#web-scraper)             |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
@@ -89,14 +90,14 @@ print(text)
 
 ---
 
-## GeminiClient
+## GeminiChatBot
 
 **Connect to Google Gemini with optional memory storage.**
 
 ```python
 import freeai_utils
 
-client = freeai_utils.GeminiClient(api_key="your_api_key") # if you have .env file with a var GEMINI_API_KEY = "your_key", you could just do client = freeai_utils.GeminiClient() and it would get the key in .env
+client = freeai_utils.GeminiChatBot(api_key="your_api_key") # if you have .env file with a var GEMINI_API_KEY = "your_key", you could just do client = freeai_utils.GeminiChatBot() and it would get the key in .env
 client.list_models()
 answer = client.ask("What land animal do you think is the best?") #answer only (no memory add)
 print(answer)
@@ -106,6 +107,17 @@ answer = client.ask_with_memories("My name is An") #answer and add in memory
 print(answer)
 answer = client.ask_with_memories("Do you remember what we're talking about?") #answer with knowledge about the previous conversation
 print(answer)
+```
+
+---
+## GeminiClient
+
+**Connect to Google Gemini with optional memory storage.**
+
+```python
+import freeai_utils
+
+#not implement
 ```
 
 ---
