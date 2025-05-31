@@ -12,7 +12,7 @@ _module_to_names = {
     'decider': ['DecisionMaker'],
     'document_filter': ['DocumentFilter'],
     'geminiAPI': ['GeminiClient'],
-    'google_search': ['GoogleSearcher'],
+    'google_search': ['WebScraper'],
     'image_to_text': ['ImageCaptioner'],
     'text_from_image_easyocr': ['Text_Extractor_EasyOCR'],
     'text_to_speech_gtts': ['gtts_print_supported_languages', 'gtts_speak'],
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from .cleaner                  import __Cleaner
     from .document_filter          import DocumentFilter
     from .geminiAPI                import GeminiClient
-    from .google_search            import GoogleSearcher
+    from .google_search            import WebScraper
     from .image_to_text            import ImageCaptioner
     from .text_from_image_easyocr  import Text_Extractor_EasyOCR
     from .text_to_speech_gtts      import gtts_print_supported_languages, gtts_speak

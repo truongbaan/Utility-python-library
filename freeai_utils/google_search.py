@@ -3,7 +3,7 @@ import requests #need pip install requests
 from bs4 import BeautifulSoup # need pip install beautifulsoup4
 from readability import Document # need pip install readability-lxml
 from freeai_utils.log_set_up import setup_logging
-class GoogleSearcher:
+class WebScraper:
     def __init__(self, user_agent: str = "Mozilla/5.0", num_results: int = 5, limit_word_per_url : int = 500):
         self.__enforce_type(user_agent, str, "user_agent")
         self.__enforce_type(num_results, int, "num_results")

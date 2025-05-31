@@ -12,7 +12,7 @@ The first time you use a feature that needs a model (like image captioning or Wh
 
 - **Audio**: record WAV/MP3 (fixed, toggle, silence-triggered)  
 - **Speech-to-Text**: OpenAI Whisper transcription & language detection   
-- **Web Search**: scrape & summarize Google results  
+- **Web Search**: scrape Google results  
 - **Image**: caption generation & OCR (EasyOCR)  
 - **TTS**: text-to-speech via gTTS or pyttsx3
 - **PDF-DOCX-Reader**: extract text and images from pdf and docx files

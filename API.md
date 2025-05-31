@@ -9,7 +9,7 @@ Use the table below to navigate quickly to each feature section.
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
 |                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
 | Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiClient](#geminiclient)           |
-| Web Search            | Grab information from Google                         | [Google Searcher](#google-searcher)     |
+| Web Search            | Grab information from Google                         | [Web Scraper](#web-scraper)             |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
@@ -110,14 +110,14 @@ print(answer)
 
 ---
 
-## Google Searcher
+## Web Scraper
 
 **Search Google and retrieve snippets.**
 
 ```python
 import freeai_utils
 
-google_search = freeai_utils.GoogleSearcher(num_results=5, limit_word_per_url=500)
+google_search = freeai_utils.WebScraper(num_results=5, limit_word_per_url=500)
 results = google_search.search("What is the capital of Vietnam?")
 print(results)
 ```
