@@ -9,7 +9,7 @@ Use the table below to navigate quickly to each feature section.
 | Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
 |                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
 | Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiChatBot](#GeminiChatBot)         |
-|                       |                                                      | [GeminiClient](#GeminiClient)           |
+|                       | Similar to GeminiChatBot, able to search and see img | [GeminiClient](#GeminiClient)           |
 | Web Search            | Grab information from Google                         | [Web Scraper](#web-scraper)             |
 | Image Captioning      | Generate captions for images                         | [Image Captioner](#image-captioner)     |
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
