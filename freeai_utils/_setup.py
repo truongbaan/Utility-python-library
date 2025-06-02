@@ -92,19 +92,12 @@ def download_image_creation_related():
     from .image_creator import SDXL_TurboImage, SD15_Image
     _download_and_purge(SDXL_TurboImage)
     _download_and_purge(SD15_Image)
-    #missing download support file from url
 
 def download_from_civitai():#download some popular models
     #https://civitai.com/models/23521/anime-pastel-dream
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/28100?type=Model&format=SafeTensor&size=full&fp=fp16",
                         model_name="anime_pastal_dream",
                         download_name="anime_pastal_dream"
-                        )
-
-    #https://civitai.com/models/7808?modelVersionId=9208
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/9208?type=Model&format=SafeTensor&size=full&fp=fp16",
-                        model_name="easynegative",
-                        download_name="easynegative"
                         )
 
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/108289?type=Model&format=SafeTensor&size=pruned&fp=fp16",
@@ -123,7 +116,25 @@ def download_from_civitai():#download some popular models
                         model_name="annylora_checkpoint",
                         download_name="annylora_checkpoint"
                         )
-
+    
+    #https://civitai.com/models/7808?modelVersionId=9208
+    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/9208?type=Model&format=SafeTensor&size=full&fp=fp16",
+                        model_name="easynegative",
+                        download_name="easynegative"
+                        )
+    
+    #https://civitai.com/models/56519/negativehand-negative-embedding
+    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/60938?type=Negative&format=Other",
+                        model_name="negative_hand",
+                        download_name="negative_hand"
+                        )
+    
+    #https://civitai.com/models/55700/badprompt-negative-embedding
+    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/60095?type=Negative&format=Other",
+                        model_name="bad_prompt",
+                        download_name="bad_prompt"
+                        )
+    
 #only support .safetensors and .pt
 def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None): #only support for '.safetensors' and '.pt'
     #model_name -> this to help know what model is being downloaded
