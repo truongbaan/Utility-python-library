@@ -7,6 +7,7 @@ from PIL import Image
 import logging
 from typing import Optional
 from freeai_utils.log_set_up import setup_logging
+from typing import Union
 
 class GeminiChatBot:
     
@@ -128,6 +129,12 @@ class GeminiChatBot:
         return answer
 
     def ask_with_memories(self, prompt : str) -> str: # use if you want to store history to ask again (cap with memories_length)
+        self.__enforce_type(prompt, str, "prompt") #check type
+        
+        if not prompt: #check if input
+            self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
+            return None
+        
         line = "Here's our previous conversation:\n"
         if self._history:
             for turn in self._history:
@@ -228,7 +235,7 @@ class GeminiClient:
     
     def ask(self, prompt : str = None, img_path : str = None) -> str:
         #not str, return...
-        self.__enforce_type(prompt, (str, list), "prompt")
+        self.__enforce_type(prompt, str, "prompt")
         self.__enforce_type(img_path, (str, type(None)), "img_path")
         
         if not prompt:
@@ -313,7 +320,7 @@ class GeminiClient:
             self._history.pop(0)  # Remove the oldest turn
         self._history.append({"question": question, "answer": answer})
     
-    def __prepare_prompt(self, prompt, img_path) -> list:
+    def __prepare_prompt(self, prompt : str, img_path : Union[str, None]) -> list:
         prompt_parts = [] # this is the actual prompt send to the model
         
         if img_path:
