@@ -117,7 +117,16 @@ print(answer)
 ```python
 import freeai_utils
 
-#not implement
+client = freeai_utils.GeminiClient(api_key="your_api_key") # if you have .env file with a var GEMINI_API_KEY = "your_key", you could just do client = freeai_utils.GeminiClient() and it would get the key in .env
+client.list_models()
+answer = client.ask("What land animal do you think is the best?") #answer only (no memory add)
+print(answer)
+
+answer = client.ask_and_copy_to_clipboard("Could you write a hello world python script?") #answer with copy to clipboard (use CTRL+V to paste)
+answer = client.ask_with_memories("My name is An, could you please describe this img?", img_path="your_img.png") #answer and add in memory
+print(answer)
+answer = client.ask_with_memories("Do you remember what we're talking about?") #answer with knowledge about the previous conversation
+print(answer)
 ```
 
 ---

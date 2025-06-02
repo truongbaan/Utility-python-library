@@ -11,7 +11,7 @@ _module_to_names = {
     'cleaner': ['__Cleaner'],
     'decider': ['DecisionMaker'],
     'document_filter': ['DocumentFilter'],
-    'geminiAPI': ['GeminiChatBot'],
+    'geminiAPI': ['GeminiChatBot', 'GeminiClient'],
     'google_search': ['WebScraper'],
     'image_to_text': ['ImageCaptioner'],
     'text_from_image_easyocr': ['Text_Extractor_EasyOCR'],
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from .clean_text_for_tts       import clean_ai_text_for_tts
     from .cleaner                  import __Cleaner
     from .document_filter          import DocumentFilter
-    from .geminiAPI                import GeminiChatBot
+    from .geminiAPI                import GeminiChatBot, GeminiClient
     from .google_search            import WebScraper
     from .image_to_text            import ImageCaptioner
     from .text_from_image_easyocr  import Text_Extractor_EasyOCR
