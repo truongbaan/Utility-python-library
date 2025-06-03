@@ -1,6 +1,8 @@
 import torch
-from diffusers import AutoPipelineForText2Image
+from diffusers import AutoPipelineForText2Image #for sdxl_turbo
 import os
+from diffusers import StableDiffusionPipeline #for sd1.5
+from transformers import CLIPTokenizer #for sd1.5
 from freeai_utils.log_set_up import setup_logging
 import logging
 
@@ -108,27 +110,99 @@ class SDXL_TurboImage:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
 class SD15_Image:
-    def __init__(self, preferred_device : str = None ,support_model : str = None ,output_dir : str = "generated_image", model_path : str = None, scheduler : str = "default"):
+    def __init__(self, preferred_device : str = None ,support_model : str = "meinapastel.safetensors" ,output_dir : str = "generated_image", model_path : str = None, scheduler : str = "default"):
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
         #schedule is for sample
-        pass
+        self.logger = setup_logging(self.__class__.__name__)
+        self.logger.info("Init...")
+        os.makedirs(output_dir, exist_ok=True)
+        self.output_dir = os.path.join(os.getcwd(), output_dir) #make valid output dir
+
+        if model_path is None:
+            model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
+        
+        if preferred_device == "cuda": #temp set to cuda, will modify later
+                torch_dtype = torch.float16
+        else: torch_dtype = torch.float32
+        self.device = preferred_device 
+        # --- Load tokenizer (we’ll still use the SD-v1.5 vocab) ---
+        self.tokenizer = CLIPTokenizer.from_pretrained(
+            "stable-diffusion-v1-5/stable-diffusion-v1-5",
+            subfolder="tokenizer"
+        )
+
+        path = os.path.join(model_path, support_model) #init the path to correct model
+        self.model = StableDiffusionPipeline.from_single_file(
+            path,
+            tokenizer=self.tokenizer,
+            torch_dtype=torch_dtype,
+            safety_checker=None,
+        )
+        self.model = self.model.to(preferred_device) #init model
+        self.model.enable_attention_slicing() #reduce size
+        
+        #schedule type
+        if scheduler == "Karras":
+            from diffusers import DPMSolverSinglestepScheduler
+            # build the DPM++ SDE Karras scheduler
+            sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
+                self.model.scheduler.config,
+                use_karras_sigmas=True,
+                lower_order_final = True
+            )
+            self.model.scheduler = sde_karras
+         
+        else: #default euler
+            from diffusers import EulerDiscreteScheduler
+            self.model.scheduler = EulerDiscreteScheduler.from_config(self.model.scheduler.config)
+            
+        #embeded support
+        embedding_paths = {
+            "easynegative": os.path.join(model_path, "easynegative.safetensors"),
+            "badprompt": os.path.join(model_path, "bad_prompt.pt"),
+            "negativehand": os.path.join(model_path, "negative_hand.pt")
+        }
+        
+        for token_name, epath in embedding_paths.items(): #load embeded path to model
+            self.model.load_textual_inversion(epath, token=token_name)
+            
+        self.logger.info("Successfully")
     
     def generate_images(self,
                         positive_prompt : str = None, 
-                        negative_prompt : str = None,
-                        filename : str = None, 
+                        negative_prompt : str = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4>",
+                        image_name : str = "generated_image", 
                         width : int = 512, 
                         height : int = 512, 
                         steps : int = 24, 
                         guidance_scale : float = 7.5, 
                         number_of_images : int = 2, 
-                        seed : int = None) -> None:
-        pass
+                        seed : int = 123456789) -> None:
+        
+        generator = torch.Generator(self.device).manual_seed(seed)
+        
+        with torch.inference_mode():
+            output = self.model(
+                prompt= positive_prompt,
+                negative_prompt=negative_prompt,
+                width=width,
+                height=height,
+                num_inference_steps= steps, 
+                guidance_scale= guidance_scale,
+                num_images_per_prompt= number_of_images,
+                generator=generator,
+            )
+            
+        for i, img in enumerate(output.images):
+            img.save(f"{self.output_dir}\\{image_name}{i}.png") #will add time later to not be overload
+            print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
         pass
     
 if __name__ == "__main__":
-    imagegenerator = SDXL_TurboImage(device="cpu")
-    imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
+    imagegenerator = SDXL_TurboImage(device="cuda")
+    img2 = SD15_Image(preferred_device="cpu")
+    img2.generate_images("A beautiful backgrounnd screen")
+    # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
