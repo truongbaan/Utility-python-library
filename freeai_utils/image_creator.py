@@ -110,6 +110,12 @@ class SDXL_TurboImage:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
 class SD15_Image:
+    
+    logger : logging.Logger
+    output_dir: str
+    _model : StableDiffusionPipeline
+    _tokenizer : CLIPTokenizer
+    
     def __init__(self, preferred_device : str = None ,support_model : str = "meinapastel.safetensors" ,output_dir : str = "generated_image", model_path : str = None, scheduler : str = "default"):
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
@@ -127,35 +133,35 @@ class SD15_Image:
         else: torch_dtype = torch.float32
         self.device = preferred_device 
         # --- Load tokenizer (we’ll still use the SD-v1.5 vocab) ---
-        self.tokenizer = CLIPTokenizer.from_pretrained(
+        self._tokenizer = CLIPTokenizer.from_pretrained(
             "stable-diffusion-v1-5/stable-diffusion-v1-5",
             subfolder="tokenizer"
         )
 
         path = os.path.join(model_path, support_model) #init the path to correct model
-        self.model = StableDiffusionPipeline.from_single_file(
+        self._model = StableDiffusionPipeline.from_single_file( #init model
             path,
-            tokenizer=self.tokenizer,
+            tokenizer=self._tokenizer,
             torch_dtype=torch_dtype,
             safety_checker=None,
-        )
-        self.model = self.model.to(preferred_device) #init model
-        self.model.enable_attention_slicing() #reduce size
+        ).to(preferred_device)
+        
+        self._model.enable_attention_slicing() #reduce size
         
         #schedule type
         if scheduler == "Karras":
             from diffusers import DPMSolverSinglestepScheduler
             # build the DPM++ SDE Karras scheduler
             sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
-                self.model.scheduler.config,
+                self._model.scheduler.config,
                 use_karras_sigmas=True,
                 lower_order_final = True
             )
-            self.model.scheduler = sde_karras
+            self._model.scheduler = sde_karras
          
         else: #default euler
             from diffusers import EulerDiscreteScheduler
-            self.model.scheduler = EulerDiscreteScheduler.from_config(self.model.scheduler.config)
+            self._model.scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config)
             
         #embeded support
         embedding_paths = {
@@ -165,7 +171,7 @@ class SD15_Image:
         }
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
-            self.model.load_textual_inversion(epath, token=token_name)
+            self._model.load_textual_inversion(epath, token=token_name)
             
         self.logger.info("Successfully")
     
@@ -183,7 +189,7 @@ class SD15_Image:
         generator = torch.Generator(self.device).manual_seed(seed)
         
         with torch.inference_mode():
-            output = self.model(
+            output = self._model(
                 prompt= positive_prompt,
                 negative_prompt=negative_prompt,
                 width=width,
