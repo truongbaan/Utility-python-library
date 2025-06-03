@@ -18,7 +18,6 @@ class SDXL_TurboImage:
     def __init__(self, model_name : str = "stabilityai/sdxl-turbo", device : str = None):
         #check type
         self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(device, str, "device")
         
         #init
         super().__setattr__("_initialized", False)
@@ -75,7 +74,7 @@ class SDXL_TurboImage:
                     steps : int = 2,
                     number_of_images : int = 2,
                     image_name : str = "generated_image",
-                    output_dir : str = "") -> None:
+                    output_dir : str = "generated_images") -> None:
         
         #check type
         self.__enforce_type(prompt, str, "prompt")
@@ -85,6 +84,9 @@ class SDXL_TurboImage:
         self.__enforce_type(image_name, str, "image_name")
         self.__enforce_type(output_dir, str, "output_dir")
         
+        #make the folder exists
+        os.makedirs(output_dir, exist_ok=True)
+        
         output = self._model(
             prompt=prompt,
             negative_prompt=negative_prompt,
@@ -93,7 +95,6 @@ class SDXL_TurboImage:
             num_images_per_prompt=number_of_images
         )
         images = output.images  # a list of PIL images
-        os.makedirs(output_dir, exist_ok=True)
         
         for i, img in enumerate(images):
             img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
@@ -112,26 +113,21 @@ class SDXL_TurboImage:
 class SD15_Image:
     
     logger : logging.Logger
-    output_dir: str
     _model : StableDiffusionPipeline
     _tokenizer : CLIPTokenizer
     
-    def __init__(self, preferred_device : str = None ,support_model : str = "meinapastel.safetensors" ,output_dir : str = "generated_image", model_path : str = None, scheduler : str = "default"):
+    def __init__(self, preferred_device : str = None ,support_model : str = "meinapastel.safetensors" , model_path : str = None, scheduler : str = "default"):
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
         #schedule is for sample
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info("Init...")
-        os.makedirs(output_dir, exist_ok=True)
-        self.output_dir = os.path.join(os.getcwd(), output_dir) #make valid output dir
-
+        self._device = None
+        self._model = None
+        
         if model_path is None:
             model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
         
-        if preferred_device == "cuda": #temp set to cuda, will modify later
-                torch_dtype = torch.float16
-        else: torch_dtype = torch.float32
-        self.device = preferred_device 
         # --- Load tokenizer (we’ll still use the SD-v1.5 vocab) ---
         self._tokenizer = CLIPTokenizer.from_pretrained(
             "stable-diffusion-v1-5/stable-diffusion-v1-5",
@@ -139,17 +135,40 @@ class SD15_Image:
         )
 
         path = os.path.join(model_path, support_model) #init the path to correct model
-        self._model = StableDiffusionPipeline.from_single_file( #init model
-            path,
-            tokenizer=self._tokenizer,
-            torch_dtype=torch_dtype,
-            safety_checker=None,
-        ).to(preferred_device)
         
-        self._model.enable_attention_slicing() #reduce size
+        preferred_devices = []
+
+        #try input first
+        if preferred_device is not None:
+            self.__enforce_type(preferred_device, str, "device")
+            preferred_devices.append(preferred_device)
         
+        # try cuda second 
+        if torch.cuda.is_available() and "cuda" not in preferred_devices:
+            preferred_devices.append("cuda")
+        
+        # fall back to CPU if not already there
+        if "cpu" not in preferred_devices:
+            preferred_devices.append("cpu")
+        
+        #iterate through to see which allow
+        for dev in preferred_devices:
+            try:
+                self._model = StableDiffusionPipeline.from_single_file( #init model
+                    path,
+                    tokenizer=self._tokenizer,
+                    torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
+                    safety_checker=None,
+                    mean_resizing = False,
+                ).to(dev)
+                self._device = dev
+                self._model.enable_attention_slicing() #reduce size
+                break
+            except Exception as e:
+                self.logger.error(f"Failed to load on {dev}: {e}")
+                
         #schedule type
-        if scheduler == "Karras":
+        if scheduler == "SDE Karras":
             from diffusers import DPMSolverSinglestepScheduler
             # build the DPM++ SDE Karras scheduler
             sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
@@ -179,14 +198,16 @@ class SD15_Image:
                         positive_prompt : str = None, 
                         negative_prompt : str = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4>",
                         image_name : str = "generated_image", 
+                        output_dir : str = "generated_images",
                         width : int = 512, 
                         height : int = 512, 
-                        steps : int = 24, 
-                        guidance_scale : float = 7.5, 
+                        steps : int = 30, 
+                        guidance_scale : float = 8, 
                         number_of_images : int = 2, 
                         seed : int = 123456789) -> None:
         
-        generator = torch.Generator(self.device).manual_seed(seed)
+        generator = torch.Generator(self._device).manual_seed(seed)
+        os.makedirs(output_dir, exist_ok=True) #make the dir exists
         
         with torch.inference_mode():
             output = self._model(
@@ -201,14 +222,30 @@ class SD15_Image:
             )
             
         for i, img in enumerate(output.images):
-            img.save(f"{self.output_dir}\\{image_name}{i}.png") #will add time later to not be overload
+            img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
             print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
-        pass
+        model_list = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
+        scheduler_list = ["default", "SDE Karras"]
+        print("*" * 40)
+        print("Including support_model: ")
+        for item in model_list:
+            print(item)
+        print("*" * 40)
+        print("Including scheduler: ")
+        for item in scheduler_list:
+            print(item)
+        print("*" * 40)
+        
+    
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
 if __name__ == "__main__":
     imagegenerator = SDXL_TurboImage(device="cuda")
     img2 = SD15_Image(preferred_device="cpu")
-    img2.generate_images("A beautiful backgrounnd screen")
+    img2._help_config()
+    # img2.generate_images("Create an image of an blue hair anime girl")
     # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
