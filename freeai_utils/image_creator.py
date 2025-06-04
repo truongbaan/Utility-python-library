@@ -6,6 +6,7 @@ from transformers import CLIPTokenizer #for sd1.5
 from freeai_utils.log_set_up import setup_logging
 import logging
 from typing import Union, Optional
+import random
 
 class SDXL_TurboImage:
     
@@ -108,6 +109,7 @@ class SDXL_TurboImage:
         
         for i, img in enumerate(images):
             img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
+            print(f"Save : {output_dir}\\{image_name}{i}.png")
         print(f"Saved {len(images)} images.")
 
     def __setattr__(self, name, value):
@@ -178,7 +180,7 @@ class SD15_Image:
             try:
                 self._model.load_textual_inversion(epath, token=token_name)
             except Exception:
-                self.logger.error(f"Fail to load {token_name} at {epath}.\n May be you wanna try 'freeai-utils setup ICE' to download the file?")
+                self.logger.error(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
                 raise
             
         self.logger.info("Successfully Initialized")
@@ -193,8 +195,14 @@ class SD15_Image:
                         steps : int = 30, 
                         guidance_scale : float = 8, 
                         number_of_images : int = 2, 
-                        seed : int = 123456789) -> None:
+                        clip_skip : int = 0,
+                        seed : int = -1) -> None:
         
+        #random seed generator
+        if seed == -1:
+            seed = random.randint(0, 2**32 - 1) 
+            print(f"Using random seed: {seed}")
+            
         generator = torch.Generator(self._device).manual_seed(seed)
         os.makedirs(output_dir, exist_ok=True) #make the dir exists
         try:
@@ -207,6 +215,7 @@ class SD15_Image:
                     num_inference_steps= steps, 
                     guidance_scale= guidance_scale,
                     num_images_per_prompt= number_of_images,
+                    clip_skip= clip_skip,
                     generator=generator,
                 )
         except RuntimeError:
@@ -221,7 +230,8 @@ class SD15_Image:
             
         for i, img in enumerate(output.images):
             img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
-            print(f"Saved {len(output.images)} images.")
+            print(f"Save : {output_dir}\\{image_name}{i}.png")
+        print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
         model_list = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
