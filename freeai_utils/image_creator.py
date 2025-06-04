@@ -87,14 +87,23 @@ class SDXL_TurboImage:
         
         #make the folder exists
         os.makedirs(output_dir, exist_ok=True)
+        try:
+            output = self._model(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                num_inference_steps=steps,
+                guidance_scale=0.0,
+                num_images_per_prompt=number_of_images
+            )
+        except RuntimeError:
+            raise RuntimeError(f"""Look like your computer can't handle the image generation. Please lower your 'steps' and 'number_of_images'.
+                                 Your current input for steps: {steps}
+                                 Your current input for images per generation: {number_of_images}
+                                 """)
+        except Exception as e:
+            self.logger.critical("Unknown error")
+            raise
         
-        output = self._model(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            num_inference_steps=steps,
-            guidance_scale=0.0,
-            num_images_per_prompt=number_of_images
-        )
         images = output.images  # a list of PIL images
         
         for i, img in enumerate(images):
@@ -170,6 +179,7 @@ class SD15_Image:
                 self._model.load_textual_inversion(epath, token=token_name)
             except Exception:
                 self.logger.error(f"Fail to load {token_name} at {epath}.\n May be you wanna try 'freeai-utils setup ICE' to download the file?")
+                raise
             
         self.logger.info("Successfully Initialized")
     
@@ -187,18 +197,27 @@ class SD15_Image:
         
         generator = torch.Generator(self._device).manual_seed(seed)
         os.makedirs(output_dir, exist_ok=True) #make the dir exists
-        
-        with torch.inference_mode():
-            output = self._model(
-                prompt= positive_prompt,
-                negative_prompt=negative_prompt,
-                width=width,
-                height=height,
-                num_inference_steps= steps, 
-                guidance_scale= guidance_scale,
-                num_images_per_prompt= number_of_images,
-                generator=generator,
-            )
+        try:
+            with torch.inference_mode():
+                output = self._model(
+                    prompt= positive_prompt,
+                    negative_prompt=negative_prompt,
+                    width=width,
+                    height=height,
+                    num_inference_steps= steps, 
+                    guidance_scale= guidance_scale,
+                    num_images_per_prompt= number_of_images,
+                    generator=generator,
+                )
+        except RuntimeError:
+            raise RuntimeError(f"""Look like your computer can't handle the image generation. Please lower your 'steps' or 'guidance_scale' or 'number_of_images'.
+                                 Your current input for steps: {steps}
+                                 Your current input for guidance_scale : {guidance_scale}
+                                 Your current input for images per generation: {number_of_images}
+                                 """)
+        except Exception as e:
+            self.logger.critical("Unknown error")
+            raise
             
         for i, img in enumerate(output.images):
             img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
@@ -277,7 +296,12 @@ class SD15_Image:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-    
+
+class SDXL10_Image:
+    def __init__(self):
+        print("nothing here yet :D")
+        pass
+
 if __name__ == "__main__":
     import gc
     # imagegenerator = SDXL_TurboImage(device="cuda")
