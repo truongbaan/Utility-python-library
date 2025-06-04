@@ -5,6 +5,7 @@ from diffusers import StableDiffusionPipeline #for sd1.5
 from transformers import CLIPTokenizer #for sd1.5
 from freeai_utils.log_set_up import setup_logging
 import logging
+from typing import Union, Optional
 
 class SDXL_TurboImage:
     
@@ -116,7 +117,7 @@ class SD15_Image:
     _model : StableDiffusionPipeline
     _tokenizer : CLIPTokenizer
     
-    def __init__(self, preferred_device : str = None ,support_model : str = "meinapastel.safetensors" , model_path : str = None, scheduler : str = "default"):
+    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default"):
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
         #schedule is for sample
@@ -127,14 +128,10 @@ class SD15_Image:
         
         if model_path is None:
             model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
-        
-        # --- Load tokenizer (we’ll still use the SD-v1.5 vocab) ---
-        self._tokenizer = CLIPTokenizer.from_pretrained(
-            "stable-diffusion-v1-5/stable-diffusion-v1-5",
-            subfolder="tokenizer"
-        )
-
-        path = os.path.join(model_path, support_model) #init the path to correct model
+        else:
+            self.__enforce_type(model_path, str, "model_path")
+            
+        path = os.path.join(model_path, support_model) #init the path to model
         
         preferred_devices = []
 
@@ -142,47 +139,26 @@ class SD15_Image:
         if preferred_device is not None:
             self.__enforce_type(preferred_device, str, "device")
             preferred_devices.append(preferred_device)
-        
         # try cuda second 
         if torch.cuda.is_available() and "cuda" not in preferred_devices:
             preferred_devices.append("cuda")
-        
         # fall back to CPU if not already there
         if "cpu" not in preferred_devices:
             preferred_devices.append("cpu")
         
-        #iterate through to see which allow
-        for dev in preferred_devices:
-            try:
-                self._model = StableDiffusionPipeline.from_single_file( #init model
-                    path,
-                    tokenizer=self._tokenizer,
-                    torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
-                    safety_checker=None,
-                    mean_resizing = False,
-                ).to(dev)
-                self._device = dev
-                self._model.enable_attention_slicing() #reduce size
-                break
-            except Exception as e:
-                self.logger.error(f"Failed to load on {dev}: {e}")
-                
-        #schedule type
-        if scheduler == "SDE Karras":
-            from diffusers import DPMSolverSinglestepScheduler
-            # build the DPM++ SDE Karras scheduler
-            sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
-                self._model.scheduler.config,
-                use_karras_sigmas=True,
-                lower_order_final = True
-            )
-            self._model.scheduler = sde_karras
-         
-        else: #default euler
-            from diffusers import EulerDiscreteScheduler
-            self._model.scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config)
-            
+        if support_model.strip() == "":
+            self.logger.info("No support_model specify, using default stable-diffusion-v1-5, skipping all other configures..")
+            self._default_setup(preferred_devices)
+        else:
+            self.logger.info("Custom setup for SD1.5")
+            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler)
         #embeded support
+        
+        if self._model is None:
+            raise RuntimeError(f"Could not load model on any device: {preferred_devices}")
+        else:
+            self.logger.info(f"Successfully loaded on {self._device}")
+        
         embedding_paths = {
             "easynegative": os.path.join(model_path, "easynegative.safetensors"),
             "badprompt": os.path.join(model_path, "bad_prompt.pt"),
@@ -190,9 +166,12 @@ class SD15_Image:
         }
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
-            self._model.load_textual_inversion(epath, token=token_name)
+            try:
+                self._model.load_textual_inversion(epath, token=token_name)
+            except Exception:
+                self.logger.error(f"Fail to load {token_name} at {epath}.\n May be you wanna try 'freeai-utils setup ICE' to download the file?")
             
-        self.logger.info("Successfully")
+        self.logger.info("Successfully Initialized")
     
     def generate_images(self,
                         positive_prompt : str = None, 
@@ -238,14 +217,75 @@ class SD15_Image:
             print(item)
         print("*" * 40)
         
+    def _default_setup(self, preferred_devices):
+        for dev in preferred_devices:
+            try:
+                self.logger.info(f"Loading on {dev}")
+                self._model = StableDiffusionPipeline.from_pretrained(
+                    "stable-diffusion-v1-5/stable-diffusion-v1-5",
+                    torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
+                ).to(dev)
+                self._device = dev
+                self._model.enable_attention_slicing() #reduce size
+                break
+            except Exception as e:
+                self.logger.error(f"Failed to load on {dev}: {e}")
+
+    def _custom_setup(self, preferred_devices, path, scheduler):
+        self.logger.info(f"Loading support model at {path}")
+        self.logger.info(f"Loading scheduler: {scheduler if scheduler != "default" else "Euler"}")
+        # Load tokenizer
+        self._tokenizer = CLIPTokenizer.from_pretrained(
+            "stable-diffusion-v1-5/stable-diffusion-v1-5",
+            subfolder="tokenizer"
+        )
+        #iterate through to see which allow
+        for dev in preferred_devices:
+            try:
+                self.logger.info(f"Loading on {dev}")
+                self._model = StableDiffusionPipeline.from_single_file( #init model
+                    path,
+                    tokenizer=self._tokenizer,
+                    torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
+                    safety_checker=None,
+                    mean_resizing = False,
+                ).to(dev)
+                self._device = dev
+                self._model.enable_attention_slicing() #reduce size
+                break
+            except Exception as e:
+                self.logger.error(f"Failed to load on {dev}: {e}")
+        
+        if self._model is None:
+            raise RuntimeError(f"Could not load model on any device: {preferred_devices}") #raise before config scheduler
+        
+        #schedule type
+        if scheduler == "SDE Karras":
+            from diffusers import DPMSolverSinglestepScheduler
+            # build the DPM++ SDE Karras scheduler
+            sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
+                self._model.scheduler.config,
+                use_karras_sigmas=True,
+                lower_order_final = True
+            )
+            self._model.scheduler = sde_karras
+         
+        else: #default euler
+            from diffusers import EulerDiscreteScheduler
+            self._model.scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config)
     
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
 if __name__ == "__main__":
-    imagegenerator = SDXL_TurboImage(device="cuda")
-    img2 = SD15_Image(preferred_device="cpu")
-    img2._help_config()
-    # img2.generate_images("Create an image of an blue hair anime girl")
+    import gc
+    # imagegenerator = SDXL_TurboImage(device="cuda")
+    img2 = SD15_Image()
+    img2.generate_images("Create an image of an blue hair anime girl", number_of_images=1)
+    img2 = None
+    gc.collect()
+    img3 = SD15_Image(support_model="annylora_checkpoint.safetensors", scheduler="SDE Karras")
+    # img2._help_config()
+    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2)
     # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
