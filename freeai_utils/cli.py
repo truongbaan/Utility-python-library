@@ -17,7 +17,7 @@ def setup(target : str  = ""):
     install_model(target)
     
 @main.command(help="Detail guide on command line")
-def guide():
+def help():
     print("*" * 100)
     print("HELP")
     print("*" * 100)
@@ -30,6 +30,7 @@ def guide():
     print("   T   Translation models          →  freeai-utils setup T")
     print("   L   Default LLM models          →  freeai-utils setup L")
     print("   ICF Image generator models      →  freeai-utils setup ICF")
+    print("   ICE Embeded for Image generator models      →  freeai-utils setup ICE")
     print("*" * 100)
 
 if __name__ == "__main__":

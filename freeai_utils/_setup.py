@@ -31,6 +31,10 @@ def install_model(target : str):
         print("*" * 100)
         download_image_creation_related()
         download_from_civitai()
+    elif target == "ICE":
+        print("*" * 100)
+        print("Downloading all embeded files for image creating")
+        print("*" * 100)
     else:
         print("No cmd found, please try again")
         
@@ -116,7 +120,9 @@ def download_from_civitai():#download some popular models
                         model_name="annylora_checkpoint",
                         download_name="annylora_checkpoint"
                         )
+    download_embeded_citivai()
     
+def download_embeded_citivai():
     #https://civitai.com/models/7808?modelVersionId=9208
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/9208?type=Model&format=SafeTensor&size=full&fp=fp16",
                         model_name="easynegative",
@@ -134,7 +140,7 @@ def download_from_civitai():#download some popular models
                         model_name="bad_prompt",
                         download_name="bad_prompt"
                         )
-    
+
 #only support .safetensors and .pt
 def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None): #only support for '.safetensors' and '.pt'
     #model_name -> this to help know what model is being downloaded
