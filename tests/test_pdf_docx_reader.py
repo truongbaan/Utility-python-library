@@ -2,7 +2,7 @@ import pytest
 import os
 from freeai_utils.pdf_docx_reader import PDF_DOCX_Reader 
 
-path = os.path.dirname(os.path.abspath(__file__)) + "\\sample"
+path =  os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample")
 
 @pytest.fixture
 def reader():

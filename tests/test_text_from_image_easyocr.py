@@ -2,7 +2,7 @@ import pytest
 import os
 from freeai_utils.text_from_image_easyocr import Text_Extractor_EasyOCR 
 
-path = os.path.dirname(os.path.abspath(__file__)) + "\\sample"
+path =  os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample")
 
 @pytest.fixture
 def reader():
