@@ -177,16 +177,17 @@ class SD15_Image:
         embedding_paths = {
             "easynegative": os.path.join(model_path, "easynegative.safetensors"),
             "badprompt": os.path.join(model_path, "bad_prompt.pt"),
-            "negativehand": os.path.join(model_path, "negative_hand.pt")
+            "negativehand": os.path.join(model_path, "negative_hand.pt"),
         }
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
             try:
                 self._model.load_textual_inversion(epath, token=token_name)
             except Exception:
-                self.logger.error(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+                self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
                 raise
-            
+        
+        self._model_path = model_path
         self.logger.info("Successfully Initialized")
     
     @property
@@ -197,9 +198,13 @@ class SD15_Image:
     def model(self):
         return self._model
     
+    @property
+    def model_path(self):
+        return self._model_path
+    
     def generate_images(self,
                         positive_prompt : str = None, 
-                        negative_prompt : str = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4>",
+                        negative_prompt : str = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4> (hands:1.2)",
                         image_name : str = "generated_image", 
                         output_dir : str = "generated_images",
                         width : int = 512, 
@@ -208,6 +213,7 @@ class SD15_Image:
                         guidance_scale : float = 8, 
                         number_of_images : int = 2, 
                         clip_skip : int = 0,
+                        extra_detail : Union[int, float, None] = None,
                         seed : int = -1) -> None:
         #check type before proceed
         self.__enforce_type(positive_prompt, str, "positive_prompt")
@@ -221,6 +227,16 @@ class SD15_Image:
         self.__enforce_type(number_of_images, int, "number_of_images")
         self.__enforce_type(clip_skip, int, "clip_skip")
         self.__enforce_type(seed, int, "seed")
+        self.__enforce_type(extra_detail, (int, float, type(None)), "extra_detail") #lora support 
+        
+        if extra_detail is not None :
+            if (extra_detail > 2 or extra_detail < -2):
+                raise ValueError(f"extra_detail value can only be in range -2 to 2. Current setting: {extra_detail}")
+            try:
+                self._model.load_lora_weights(self._model_path, weight_name="add_detail.safetensors")
+            except Exception:
+                self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+                raise
          
         #random seed generator
         if seed == -1:
@@ -232,7 +248,7 @@ class SD15_Image:
         try:
             with torch.inference_mode():
                 output = self._model(
-                    prompt= positive_prompt,
+                    prompt= positive_prompt if extra_detail is None else f"<lora:add_detail:{extra_detail}>, {positive_prompt}",
                     negative_prompt=negative_prompt,
                     width=width,
                     height=height,
@@ -346,11 +362,11 @@ class SDXL10_Image:
 if __name__ == "__main__":
     import gc
     # imagegenerator = SDXL_TurboImage(device="cuda")
-    img2 = SD15_Image()
-    img2.generate_images("Create an image of an blue hair anime girl", number_of_images=1)
-    img2 = None
-    gc.collect()
+    # img2 = SD15_Image()
+    # img2.generate_images("Create an image of an blue hair anime girl", number_of_images=1)
+    # img2 = None
+    # gc.collect()
     img3 = SD15_Image(support_model="annylora_checkpoint.safetensors", scheduler="SDE Karras")
     # img2._help_config()
-    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2)
+    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000)
     # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
