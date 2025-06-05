@@ -108,8 +108,9 @@ class SDXL_TurboImage:
         images = output.images  # a list of PIL images
         
         for i, img in enumerate(images):
-            img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
-            print(f"Save : {output_dir}\\{image_name}{i}.png")
+            file_path = os.path.join(output_dir, f"{image_name}{i}.png")
+            img.save(file_path) #will add time later to not be overload
+            print(f"Save : {file_path}")
         print(f"Saved {len(images)} images.")
 
     def __setattr__(self, name, value):
@@ -129,6 +130,9 @@ class SD15_Image:
     _tokenizer : CLIPTokenizer
     
     def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default"):
+        #check type before start
+        self.__enforce_type(support_model, str, "support_model")
+        
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
         #schedule is for sample
@@ -185,6 +189,14 @@ class SD15_Image:
             
         self.logger.info("Successfully Initialized")
     
+    @property
+    def device(self):
+        return self._device
+    
+    @property
+    def model(self):
+        return self._model
+    
     def generate_images(self,
                         positive_prompt : str = None, 
                         negative_prompt : str = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4>",
@@ -197,7 +209,19 @@ class SD15_Image:
                         number_of_images : int = 2, 
                         clip_skip : int = 0,
                         seed : int = -1) -> None:
-        
+        #check type before proceed
+        self.__enforce_type(positive_prompt, str, "positive_prompt")
+        self.__enforce_type(negative_prompt, str, "negative_prompt")
+        self.__enforce_type(image_name, str, "image_name")
+        self.__enforce_type(output_dir, str, "output_dir")
+        self.__enforce_type(width, int, "width")
+        self.__enforce_type(height, int, "height")
+        self.__enforce_type(steps, int, "steps")
+        self.__enforce_type(guidance_scale, (int, float), "guidance_scale")
+        self.__enforce_type(number_of_images, int, "number_of_images")
+        self.__enforce_type(clip_skip, int, "clip_skip")
+        self.__enforce_type(seed, int, "seed")
+         
         #random seed generator
         if seed == -1:
             seed = random.randint(0, 2**32 - 1) 
@@ -229,8 +253,9 @@ class SD15_Image:
             raise
             
         for i, img in enumerate(output.images):
-            img.save(f"{output_dir}\\{image_name}{i}.png") #will add time later to not be overload
-            print(f"Save : {output_dir}\\{image_name}{i}.png")
+            file_path = os.path.join(output_dir, f"{image_name}{i}.png")
+            img.save(file_path) #will add time later to not be overload
+            print(f"Save : {file_path}")
         print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
@@ -246,7 +271,7 @@ class SD15_Image:
             print(item)
         print("*" * 40)
         
-    def _default_setup(self, preferred_devices):
+    def _default_setup(self, preferred_devices) -> None:
         for dev in preferred_devices:
             try:
                 self.logger.info(f"Loading on {dev}")
@@ -260,9 +285,8 @@ class SD15_Image:
             except Exception as e:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
-    def _custom_setup(self, preferred_devices, path, scheduler):
+    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str) -> None:
         self.logger.info(f"Loading support model at {path}")
-        self.logger.info(f"Loading scheduler: {scheduler if scheduler != "default" else "Euler"}")
         # Load tokenizer
         self._tokenizer = CLIPTokenizer.from_pretrained(
             "stable-diffusion-v1-5/stable-diffusion-v1-5",
@@ -287,7 +311,11 @@ class SD15_Image:
         
         if self._model is None:
             raise RuntimeError(f"Could not load model on any device: {preferred_devices}") #raise before config scheduler
+        self._custom_scheduler(scheduler = scheduler)
         
+    def _custom_scheduler(self, scheduler : str) -> None:
+        self.__enforce_type(scheduler, str, "scheduler")
+        self.logger.info(f"Loading scheduler: {scheduler if scheduler != "default" else "Euler"}")
         #schedule type
         if scheduler == "SDE Karras":
             from diffusers import DPMSolverSinglestepScheduler
@@ -300,12 +328,15 @@ class SD15_Image:
             self._model.scheduler = sde_karras
          
         else: #default euler
+            self.logger.info(f"Using default: Euler")
             from diffusers import EulerDiscreteScheduler
             self._model.scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config)
     
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+    def __enforce_type(self, value, expected_types, arg_name):
+        if not isinstance(value, expected_types):
+            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
+            expected_str = ", ".join(expected_names)
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
 
 class SDXL10_Image:
     def __init__(self):
