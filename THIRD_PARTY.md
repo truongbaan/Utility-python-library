@@ -197,6 +197,7 @@ The following Python packages are used by this project; their licenses are as sh
 | facebook/mbart-large-50-many-to-many-mmt| MIT     |
 | Qwen/Qwen3-0.6B                         | apache-2.0 |
 | stabilityai/sdxl-turbo                  | sai-nc-community |
+| stable-diffusion-v1-5/stable-diffusion-v1-5 | creativeml-openrail-m |
 ---
 
 ## 📚 Citation
@@ -268,5 +269,14 @@ If you use this model in your research or application, please cite:
     eprint={2008.00401},
     archivePrefix={arXiv},
     primaryClass={cs.CL}
+}
+
+@InProceedings{Rombach_2022_CVPR,
+    author    = {Rombach, Robin and Blattmann, Andreas and Lorenz, Dominik and Esser, Patrick and Ommer, Bj\"orn},
+    title     = {High-Resolution Image Synthesis With Latent Diffusion Models},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2022},
+    pages     = {10684-10695}
 }
 
