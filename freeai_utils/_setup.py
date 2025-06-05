@@ -35,6 +35,7 @@ def install_model(target : str):
         print("*" * 100)
         print("Downloading all embeded files for image creating")
         print("*" * 100)
+        download_embeded_citivai()
     else:
         print("No cmd found, please try again")
         
@@ -139,6 +140,12 @@ def download_embeded_citivai():
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/60095?type=Negative&format=Other",
                         model_name="bad_prompt",
                         download_name="bad_prompt"
+                        )
+    
+    #https://civitai.com/models/58390/detail-tweaker-lora-lora
+    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/62833?type=Model&format=SafeTensor",
+                        model_name="add_detail",
+                        download_name="add_detail"
                         )
 
 #testing
@@ -357,4 +364,5 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
 
 if __name__ == "__main__":
     # download_from_civitai()
-    _download_sdxl10_citivai()
+    # _download_sdxl10_citivai()
+    download_embeded_citivai()
