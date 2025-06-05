@@ -20,7 +20,8 @@ _module_to_names = {
     'pdf_docx_reader': ['PDF_DOCX_Reader'],
     'wrapper': ['time_it'],
     'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator'],
-    'localLLM': ['LocalLLM']
+    'localLLM': ['LocalLLM'],
+    'image_creator': ['SDXL_TurboImage', 'SD15_Image']
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -63,3 +64,4 @@ if TYPE_CHECKING:
     from .decider                  import DecisionMaker
     from .language_detection       import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
     from .localLLM                 import LocalLLM
+    from .image_creator            import SDXL_TurboImage, SD15_Image
