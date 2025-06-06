@@ -187,7 +187,12 @@ class SD15_Image:
                 self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
                 raise
         
-        self._model_path = model_path
+        try: # load loar file to the model
+            self._model.load_lora_weights(model_path, weight_name="add_detail.safetensors", adapter_name="add_detail")
+        except Exception:
+            self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+            raise
+        
         self.logger.info("Successfully Initialized")
     
     @property
@@ -197,10 +202,6 @@ class SD15_Image:
     @property
     def model(self):
         return self._model
-    
-    @property
-    def model_path(self):
-        return self._model_path
     
     def generate_images(self,
                         positive_prompt : str = None, 
@@ -214,7 +215,8 @@ class SD15_Image:
                         number_of_images : int = 2, 
                         clip_skip : int = 0,
                         extra_detail : Union[int, float, None] = None,
-                        seed : int = -1) -> None:
+                        seed : int = -1,
+                        **optional_kwargs) -> None:
         #check type before proceed
         self.__enforce_type(positive_prompt, str, "positive_prompt")
         self.__enforce_type(negative_prompt, str, "negative_prompt")
@@ -232,11 +234,9 @@ class SD15_Image:
         if extra_detail is not None :
             if (extra_detail > 2 or extra_detail < -2):
                 raise ValueError(f"extra_detail value can only be in range -2 to 2. Current setting: {extra_detail}")
-            try:
-                self._model.load_lora_weights(self._model_path, weight_name="add_detail.safetensors")
-            except Exception:
-                self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
-                raise
+            self._model.enable_lora()
+            self._model.set_adapters("add_detail", adapter_weights=extra_detail)
+        else: self._model.disable_lora()
          
         #random seed generator
         if seed == -1:
@@ -248,7 +248,7 @@ class SD15_Image:
         try:
             with torch.inference_mode():
                 output = self._model(
-                    prompt= positive_prompt if extra_detail is None else f"<lora:add_detail:{extra_detail}>, {positive_prompt}",
+                    prompt= positive_prompt,
                     negative_prompt=negative_prompt,
                     width=width,
                     height=height,
@@ -257,6 +257,7 @@ class SD15_Image:
                     num_images_per_prompt= number_of_images,
                     clip_skip= clip_skip,
                     generator=generator,
+                    **optional_kwargs
                 )
         except RuntimeError:
             raise RuntimeError(f"""Look like your computer can't handle the image generation. Please lower your 'steps' or 'guidance_scale' or 'number_of_images'.
@@ -368,5 +369,7 @@ if __name__ == "__main__":
     # gc.collect()
     img3 = SD15_Image(support_model="annylora_checkpoint.safetensors", scheduler="SDE Karras")
     # img2._help_config()
-    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000)
+    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="fn")
+    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, image_name="sn")
+    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="tn")
     # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
