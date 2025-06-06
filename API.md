@@ -19,6 +19,7 @@ Use the table below to navigate quickly to each feature section.
 | DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)        |
 | LangTranslator        | Translate and detect language                        | [LangTranslattor](#lang-translator)     |
 | LocalLLM              | Local LLM model (Qwen) to interact without API keys  | [LocalLLM](#local-llm)                  |
+| ImageGenerator        | Use stable-diffusion to generate image               | [ImageGenerator](#image-generator)      |
 ---
 
 ## WAV Recorder
@@ -77,7 +78,7 @@ print(translation)
 
 ## VN Whisper
 
-**Transcribe audio files and detect language.**
+**Transcribe audio files and detect language (VN only).**
 
 ```python
 from freeai_utils.audio_to_text_vn import VN_Whisper
@@ -204,7 +205,7 @@ speaker.speak("Hello there my friend") # speak with modified voice
 
 ## PDF-DOCX-Reader
 
-** Return text and images from pdf or docx files. **
+**Return text and images from pdf or docx files.**
 
 ```python
 from freeai_utils import PDF_DOCX_Reader
@@ -217,6 +218,8 @@ print(reader.extract_images("example.docx")) #return the number of images found 
 
 ## Document filter
 
+**Use an LLM or local model to evaluate and rank each document against the prompt**
+
 ```python
 from freeai_utils import DocumentFilter
 filter = DocumentFilter(path = "your_folder") #this will get all docx, pdf file in that folder and put them into documents
@@ -227,8 +230,9 @@ for ans in list_ans:
 
 ## Decision Maker
 
-```python
+**Return answers yes/no questions based on a provided prompt and context. Best for simple affirmative or negative response**
 
+```python
 from freeai_utils import DecisionMaker
 
 positive_ans = "SEARCH_WEB"
@@ -250,29 +254,41 @@ print(decider.decide("What day is it?")) # -> SEARCH_WEB
 
 ## Lang Translator
 
-```python
+**Provides both online and offline translation and language detection.**
 
-from freeai_utils import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
+- **Online type: attempt to use an online API, but you can force it to use a local model by setting local_status="active" and choosing a model number**
+
+```python
+from freeai_utils import LangTranslator
 
 text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
 trans = LangTranslator() #for online + offline translate
 print(trans.detect_language(text3))
 print(trans.translate(text3))
 
-# local = LocalTranslator() #use offline model 
-# print(local.translate(text3, tgt_lang="en"))
+# trans_local = LangTranslator(local_status="active", local_model_num=2) # force local model, choose model number 2 (mbart) 
+# print(trans_local.translate(text3))
+```
+
+- **Offline type:**
+
+```python
+from freeai_utils import LocalTranslator, MBartTranslator, M2M100Translator
+
+text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
+local = LocalTranslator() #use offline model 
+print(local.translate(text3, tgt_lang="en"))
 
 # mb = MBartTranslator() #specific model chosen
 # print(mb.translate(text3, tgt_lang='en'))
 
 # m1 = M2M100Translator()#specific model chosen
 # print(m1.translate(text3, tgt_lang='en'))
-
-# trans_local = LangTranslator(local_status="active", local_model_num=2) # prioritize local model, choose model number 2 (mbart) 
-# print(trans_local.translate(text3))
 ```
 
 ## Local LLM
+
+**Interact with a locally hosted Qwen LLM model without requiring external API keys.**
 
 ```python
 from freeai_utils import LocalLLM
@@ -281,5 +297,18 @@ lm = LocalLLM()
 print(lm.ask([{"role": "user", "content": "Hi, how are you? When will you use thinking mode and when will not?"}])) 
 print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
 print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0]) #[0] is index for answer, [1] is for thinking phase
+```
 
+## Image Generator
+
+**SDXL_TurboImage**: uses the SDXL Turbo model to generate images, prioritizing speed over visual fidelity. Ideal for rapid prototyping or real time generation.
+```python 
+from freeai_utils import SDXL_TurboImage
+
+imgGenerator = SDXL_TurboImage()
+imgGenerator.generate_images(prompt = "your_design", 
+                    steps = 2,
+                    number_of_images = 2,
+                    image_name = "generated_image",
+                    output_dir = "generated_images")
 ```
