@@ -26,6 +26,17 @@ The first time you use a feature that needs a model (like image captioning or Wh
 
 ## Installation
 
+Before installing `freeai-utils`, you need to install PyTorch manually based on your system and desired configuration (CPU or CUDA).
+
+### 🔧 Prerequisite: Install PyTorch
+
+Visit the official PyTorch installation guide:
+
+👉 [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally)
+
+Choose your system (OS, package manager, Python version, CUDA version), and copy the appropriate install command.
+
+### 📦 Install `freeai-utils`
 ```bash
 pip install freeai-utils
 ```
@@ -34,7 +45,7 @@ pip install freeai-utils
 
 ---
 
-## Models download 
+## 📝Models download 
 ```bash
 freeai-utils setup
 ```
@@ -45,16 +56,21 @@ freeai-utils setup A
 
 >This will help downloads default models for most functional classes (excluding image generation).
 
-For image generation models:
+For 🎨 **image generation** models:
 ```bash
 freeai-utils setup ICF
 ```
 
 For more detailed control over which models to download:
 ```bash
-freeai-utils guide
+freeai-utils help
 ```
 >This will displays a list of setup options for specific model types. You can also trigger downloads programmatically by instantiating the relevant class.
+
+### 🚀 Optional GPU Performance Boost
+
+For GPU users, if you want to take advantage of faster attention using `xformers`, install it separately (remember to choose it base on your system and your cuda version):
+https://github.com/facebookresearch/xformers
 
 ## 📖 Full API Reference
 
