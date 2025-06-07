@@ -1,5 +1,7 @@
 import torch
 from diffusers import AutoPipelineForText2Image #for sdxl_turbo
+from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker #safety check
+from transformers import CLIPFeatureExtractor #for safety check
 import os
 from diffusers import StableDiffusionPipeline #for sd1.5
 from transformers import CLIPTokenizer #for sd1.5
@@ -129,9 +131,10 @@ class SD15_Image:
     _model : StableDiffusionPipeline
     _tokenizer : CLIPTokenizer
     
-    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default"):
+    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False):
         #check type before start
         self.__enforce_type(support_model, str, "support_model")
+        self.__enforce_type(safety, bool, "safety")
         
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
@@ -142,11 +145,12 @@ class SD15_Image:
         self._model = None
         
         if model_path is None:
-            model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
+            self._model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
         else:
             self.__enforce_type(model_path, str, "model_path")
+            self._model_path = model_path
             
-        path = os.path.join(model_path, support_model) #init the path to model
+        path = os.path.join(self._model_path, support_model) #init the path to model
         
         preferred_devices = []
 
@@ -166,34 +170,13 @@ class SD15_Image:
             self._default_setup(preferred_devices)
         else:
             self.logger.info("Custom setup for SD1.5")
-            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler)
+            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler, safety=safety)
         #embeded support
         
         if self._model is None:
             raise RuntimeError(f"Could not load model on any device: {preferred_devices}")
         else:
             self.logger.info(f"Successfully loaded on {self._device}")
-        
-        embedding_paths = {
-            "easynegative": os.path.join(model_path, "easynegative.safetensors"),
-            "badprompt": os.path.join(model_path, "bad_prompt.pt"),
-            "negativehand": os.path.join(model_path, "negative_hand.pt"),
-        }
-        
-        for token_name, epath in embedding_paths.items(): #load embeded path to model
-            try:
-                self._model.load_textual_inversion(epath, token=token_name)
-            except Exception:
-                self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
-                raise
-        
-        try: # load loar file to the model
-            self._model.load_lora_weights(model_path, weight_name="add_detail.safetensors", adapter_name="add_detail")
-        except Exception:
-            self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
-            raise
-        
-        self.logger.info("Successfully Initialized")
     
     @property
     def device(self):
@@ -261,9 +244,11 @@ class SD15_Image:
                 )
         except RuntimeError:
             raise RuntimeError(f"""Look like your computer can't handle the image generation. Please lower your 'steps' or 'guidance_scale' or 'number_of_images'.
+                                If that didn't work, please use another 'device'.
                                  Your current input for steps: {steps}
                                  Your current input for guidance_scale : {guidance_scale}
                                  Your current input for images per generation: {number_of_images}
+                                 Your current device: {self.device}
                                  """)
         except Exception as e:
             self.logger.critical("Unknown error")
@@ -276,16 +261,28 @@ class SD15_Image:
         print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
-        model_list = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
-        scheduler_list = ["default", "SDE Karras"]
+        model_list = [
+            {"name": "anime_pastal_dream.safetensors", "description": "Anime: Dreamy aesthetic with soft, pastel colors."},
+            {"name": "meinapastel.safetensors", "description": "Anime: 2D illustrations with good lighting, shadows, and vibrant colors."},
+            {"name": "reality.safetensors", "description": "Realistic: Photorealistic images."},
+            {"name": "annylora_checkpoint.safetensors", "description": "Just a style..."},
+        ]
+        scheduler_list = [
+            {"name": "default", "description": "Euler (deterministic): General purpose, good for realistic and anime, consistent results."},
+            {"name": "SDE Karras", "description": "DPM++ SDE Karras (stochastic single-step): good for diversity, requires even steps."},
+            {"name": "DPM++ 2M Karras", "description": "DPM++ 2M Karras (deterministic multi-step): High quality, excellent for fast generation, very popular."},
+            {"name": "Euler A", "description": "Euler Ancestral (stochastic): Good for exploration, diverse outputs, more artistic feel."},
+        ]
+        
         print("*" * 40)
-        print("Including support_model: ")
-        for item in model_list:
-            print(item)
+        print("Including support_model:\n")
+        for option in model_list:
+            print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
-        print("Including scheduler: ")
-        for item in scheduler_list:
-            print(item)
+        
+        print("Including supported schedulers:\n")
+        for option in scheduler_list:
+            print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
         
     def _default_setup(self, preferred_devices) -> None:
@@ -298,17 +295,32 @@ class SD15_Image:
                 ).to(dev)
                 self._device = dev
                 self._model.enable_attention_slicing() #reduce size
+                self._load_default_embed_and_lora()
                 break
+            except FileNotFoundError:
+                raise
             except Exception as e:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
-    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str) -> None:
+    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool) -> None:
         self.logger.info(f"Loading support model at {path}")
         # Load tokenizer
         self._tokenizer = CLIPTokenizer.from_pretrained(
             "stable-diffusion-v1-5/stable-diffusion-v1-5",
             subfolder="tokenizer"
         )
+        
+        if safety:#disable nsfw 
+            safety_checker = StableDiffusionSafetyChecker.from_pretrained(
+                "CompVis/stable-diffusion-safety-checker"
+            )
+            feature_extractor = CLIPFeatureExtractor.from_pretrained(
+                "openai/clip-vit-base-patch32"
+            )
+        else:
+            safety_checker = None
+            feature_extractor = None
+                 
         #iterate through to see which allow
         for dev in preferred_devices:
             try:
@@ -316,38 +328,104 @@ class SD15_Image:
                 self._model = StableDiffusionPipeline.from_single_file( #init model
                     path,
                     tokenizer=self._tokenizer,
+                    safety_checker     = safety_checker,
+                    feature_extractor  = feature_extractor,
                     torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
-                    safety_checker=None,
                     mean_resizing = False,
                 ).to(dev)
                 self._device = dev
                 self._model.enable_attention_slicing() #reduce size
+                self._load_default_embed_and_lora()
+                
                 break
+            except FileNotFoundError: 
+                raise
             except Exception as e:
                 self.logger.error(f"Failed to load on {dev}: {e}")
         
         if self._model is None:
             raise RuntimeError(f"Could not load model on any device: {preferred_devices}") #raise before config scheduler
+        #safety check
         self._custom_scheduler(scheduler = scheduler)
+        self.logger.info("Initalized completed")
         
     def _custom_scheduler(self, scheduler : str) -> None:
         self.__enforce_type(scheduler, str, "scheduler")
+        scheduler = scheduler.strip()
         self.logger.info(f"Loading scheduler: {scheduler if scheduler != "default" else "Euler"}")
         #schedule type
+        new_scheduler = None
         if scheduler == "SDE Karras":
             from diffusers import DPMSolverSinglestepScheduler
             # build the DPM++ SDE Karras scheduler
-            sde_karras = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
+            new_scheduler  = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
                 self._model.scheduler.config,
                 use_karras_sigmas=True,
-                lower_order_final = True
             )
-            self._model.scheduler = sde_karras
-         
+            
+        elif scheduler == "DPM++ 2M Karras":
+            from diffusers import DPMSolverMultistepScheduler
+            new_scheduler  = DPMSolverMultistepScheduler.from_config( 
+                self._model.scheduler.config,
+                use_karras_sigmas=True,
+                solver_order=2,
+                algorithm_type="dpmsolver++",
+                lower_order_final=True 
+            ) 
+            
+        elif scheduler == "Euler A":
+            from diffusers import EulerAncestralDiscreteScheduler
+            new_scheduler  = EulerAncestralDiscreteScheduler.from_config(self._model.scheduler.config, use_karras_sigmas=True,
+                lower_order_final = True)
+            
         else: #default euler
+            if scheduler != "default": self.logger.info("The given scheduler name is not supported. Redirecting to default Euler.")
             self.logger.info(f"Using default: Euler")
             from diffusers import EulerDiscreteScheduler
-            self._model.scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config)
+            new_scheduler = EulerDiscreteScheduler.from_config(self._model.scheduler.config, use_karras_sigmas=True,
+                lower_order_final = True)
+        
+        if new_scheduler is None:
+            raise RuntimeError(f"Fail to modify to new_scheduler")
+        self._model.scheduler = new_scheduler #set scheduler
+        
+    def _load_default_embed_and_lora(self) -> None:
+        embedding_paths = {
+            "easynegative": os.path.join(self._model_path, "easynegative.safetensors"),
+            "badprompt": os.path.join(self._model_path, "bad_prompt.pt"),
+            "negativehand": os.path.join(self._model_path, "negative_hand.pt"),
+        }
+        
+        for token_name, epath in embedding_paths.items(): #load embeded path to model
+            try:
+                self._model.load_textual_inversion(epath, token=token_name)
+            except FileNotFoundError:
+                self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+                raise
+            except Exception as e:
+                raise Exception(e)
+        
+        try: # load loar file to the model
+            self._model.load_lora_weights(self._model_path, weight_name="add_detail.safetensors", adapter_name="add_detail")
+        except FileNotFoundError:
+            self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+            raise
+        except Exception as e:
+                raise Exception(e)
+    
+    def enable_safety(self) -> None:
+        safety_checker = StableDiffusionSafetyChecker.from_pretrained(
+            "CompVis/stable-diffusion-safety-checker"
+        )
+        feature_extractor = CLIPFeatureExtractor.from_pretrained(
+            "openai/clip-vit-base-patch32"
+        )
+        self._model.safety_checker = safety_checker
+        self._model.feature_extractor = feature_extractor
+        
+    def disable_safety(self) -> None:
+        self._model.safety_checker = None
+        self._model.feature_extractor = None
     
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
@@ -361,15 +439,28 @@ class SDXL10_Image:
         pass
 
 if __name__ == "__main__":
-    import gc
     # imagegenerator = SDXL_TurboImage(device="cuda")
-    # img2 = SD15_Image()
-    # img2.generate_images("Create an image of an blue hair anime girl", number_of_images=1)
-    # img2 = None
-    # gc.collect()
-    img3 = SD15_Image(support_model="annylora_checkpoint.safetensors", scheduler="SDE Karras")
-    # img2._help_config()
-    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="fn")
-    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, image_name="sn")
-    img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="tn")
+    import gc, time
+    prompt = "dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
+    models = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
+    schedulers = ["default", "SDE Karras", "DPM++ 2M Karras", "Euler A"]
+    model = "meinapastel.safetensors"
+    sc = "Euler A"
+    imgGen = SD15_Image(support_model=model, scheduler=sc)
+    imgGen.generate_images(prompt, seed=5000, image_name=f"nosafe")
+    imgGen.enable_safety()
+    imgGen.generate_images(prompt, seed=5000, image_name=f"save")
+    # for model in models:
+    #     for sc in schedulers:
+    #         imgGen = SD15_Image(support_model=model, scheduler=sc)
+    #         imgGen.generate_images(prompt, seed=5000, image_name=f"{model.split('.')[0]}_{sc}")
+    #         imgGen.generate_images(prompt, seed=5000, image_name=f"{model.split('.')[0]}_{sc}_extra", extra_detail=1)
+    #         imgGen = None
+    #         gc.collect()
+    #         time.sleep(1)
+    # img3._help_config()
+    
+    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="fn")
+    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, image_name="sn")
+    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="tn")
     # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
