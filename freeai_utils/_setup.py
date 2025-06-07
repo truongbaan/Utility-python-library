@@ -96,7 +96,7 @@ def download_LLM():
 def download_image_creation_related():
     from .image_creator import SDXL_TurboImage, SD15_Image
     _download_and_purge(SDXL_TurboImage)
-    _download_and_purge(SD15_Image)
+    _download_and_purge(SD15_Image, safety=True)
 
 def download_from_civitai():#download some popular models
     #https://civitai.com/models/23521/anime-pastel-dream
