@@ -105,6 +105,7 @@ def download_from_civitai():#download some popular models
                         download_name="anime_pastal_dream"
                         )
 
+    #https://civitai.com/models/11866/meinapastel
     _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/108289?type=Model&format=SafeTensor&size=pruned&fp=fp16",
                         model_name="meinapastel",
                         download_name="meinapastel"
