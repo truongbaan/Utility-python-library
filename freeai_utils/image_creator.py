@@ -1,7 +1,7 @@
 import torch
 from diffusers import AutoPipelineForText2Image #for sdxl_turbo
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker #safety check
-from transformers import CLIPFeatureExtractor #for safety check
+from transformers import CLIPImageProcessor #for safety check
 import os
 from diffusers import StableDiffusionPipeline #for sd1.5
 from transformers import CLIPTokenizer #for sd1.5
@@ -131,14 +131,15 @@ class SD15_Image:
     _model : StableDiffusionPipeline
     _tokenizer : CLIPTokenizer
     
-    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False):
+    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False, reduce_memory : bool = False):
         #check type before start
         self.__enforce_type(support_model, str, "support_model")
         self.__enforce_type(safety, bool, "safety")
+        self.__enforce_type(reduce_memory, bool, "reduce_memory")
         
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
-        #schedule is for sample
+        #reduce_memory for enable slicing
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.info("Init...")
         self._device = None
@@ -167,10 +168,10 @@ class SD15_Image:
         
         if support_model.strip() == "":
             self.logger.info("No support_model specify, using default stable-diffusion-v1-5, skipping all other configures..")
-            self._default_setup(preferred_devices)
+            self._default_setup(preferred_devices, reduce_memory=reduce_memory)
         else:
             self.logger.info("Custom setup for SD1.5")
-            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler, safety=safety)
+            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler, safety=safety, reduce_memory=reduce_memory)
         #embeded support
         
         if self._model is None:
@@ -285,7 +286,7 @@ class SD15_Image:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
         
-    def _default_setup(self, preferred_devices) -> None:
+    def _default_setup(self, preferred_devices : str, reduce_memory : bool) -> None:
         for dev in preferred_devices:
             try:
                 self.logger.info(f"Loading on {dev}")
@@ -294,7 +295,9 @@ class SD15_Image:
                     torch_dtype=torch.float32 if dev == "cpu" else torch.float16,
                 ).to(dev)
                 self._device = dev
-                self._model.enable_attention_slicing() #reduce size
+                if reduce_memory:
+                    self.logger.info("Enable attention slicing, reduce memory usage")
+                    self._model.enable_attention_slicing()
                 self._load_default_embed_and_lora()
                 break
             except FileNotFoundError:
@@ -302,7 +305,7 @@ class SD15_Image:
             except Exception as e:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
-    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool) -> None:
+    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool, reduce_memory : bool) -> None:
         self.logger.info(f"Loading support model at {path}")
         # Load tokenizer
         self._tokenizer = CLIPTokenizer.from_pretrained(
@@ -314,12 +317,13 @@ class SD15_Image:
             safety_checker = StableDiffusionSafetyChecker.from_pretrained(
                 "CompVis/stable-diffusion-safety-checker"
             )
-            feature_extractor = CLIPFeatureExtractor.from_pretrained(
+            feature_extractor = CLIPImageProcessor.from_pretrained(
                 "openai/clip-vit-base-patch32"
             )
         else:
             safety_checker = None
             feature_extractor = None
+            self.logger.warning("Safety is not enabled. I recommend starting with 'safety=True' and then deactivating it if not needed, as this will preload the necessary components.")
                  
         #iterate through to see which allow
         for dev in preferred_devices:
@@ -334,7 +338,9 @@ class SD15_Image:
                     mean_resizing = False,
                 ).to(dev)
                 self._device = dev
-                self._model.enable_attention_slicing() #reduce size
+                if reduce_memory:
+                    self.logger.info("Enable attention slicing, reduce memory usage")
+                    self._model.enable_attention_slicing() #reduce size
                 self._load_default_embed_and_lora()
                 
                 break
@@ -398,7 +404,7 @@ class SD15_Image:
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
             try:
-                self._model.load_textual_inversion(epath, token=token_name)
+                self._model.load_textual_inversion(epath, token=token_name, local_files_only =True)
             except FileNotFoundError:
                 self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
                 raise
@@ -416,8 +422,8 @@ class SD15_Image:
     def enable_safety(self) -> None:
         safety_checker = StableDiffusionSafetyChecker.from_pretrained(
             "CompVis/stable-diffusion-safety-checker"
-        )
-        feature_extractor = CLIPFeatureExtractor.from_pretrained(
+        ).to(self._device)
+        feature_extractor = CLIPImageProcessor.from_pretrained(
             "openai/clip-vit-base-patch32"
         )
         self._model.safety_checker = safety_checker
@@ -441,12 +447,12 @@ class SDXL10_Image:
 if __name__ == "__main__":
     # imagegenerator = SDXL_TurboImage(device="cuda")
     import gc, time
-    prompt = "dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
+    prompt = "sexy, dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
     models = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
     schedulers = ["default", "SDE Karras", "DPM++ 2M Karras", "Euler A"]
     model = "meinapastel.safetensors"
     sc = "Euler A"
-    imgGen = SD15_Image(support_model=model, scheduler=sc)
+    imgGen = SD15_Image(support_model=model, scheduler=sc, reduce_memory=True, preferred_device="cuda")
     imgGen.generate_images(prompt, seed=5000, image_name=f"nosafe")
     imgGen.enable_safety()
     imgGen.generate_images(prompt, seed=5000, image_name=f"save")
@@ -459,8 +465,3 @@ if __name__ == "__main__":
     #         gc.collect()
     #         time.sleep(1)
     # img3._help_config()
-    
-    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="fn")
-    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, image_name="sn")
-    # img3.generate_images("Create an image of an blue hair anime girl", number_of_images=2, seed=5000, extra_detail=1, image_name="tn")
-    # imagegenerator.generate_images(prompt= "Create an image of an blue hair anime girl", image_name="generated_image", output_dir="images")
