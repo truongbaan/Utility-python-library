@@ -312,3 +312,21 @@ imgGenerator.generate_images(prompt = "your_design",
                     image_name = "generated_image",
                     output_dir = "generated_images")
 ```
+
+**SD15_Image**: generates high-quality images using the SD1.5 model, providing excellent visual fidelity right out of the box with all necessary files included. However, AUTOMATIC1111 is highly recommended to use than this.
+```python 
+from freeai_utils import SD15_Image
+
+prompt = "dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
+imgGen = SD15_Image(reduce_memory=True, preferred_device="cuda")
+# imgGen._help_config()#guide to set up for model, scheduler,etc
+imgGen.generate_images(
+                    positive_prompt = prompt, 
+                    negative_prompt = "<easynegative:0.8>, <negativehand:2.1>, <badprompt:1.4> (hands:1.2)",
+                    image_name = "generated_image", 
+                    output_dir = "generated_images",
+                    steps = 30, 
+                    guidance_scale = 8, 
+                    number_of_images = 2, 
+                    seed = -1)
+```

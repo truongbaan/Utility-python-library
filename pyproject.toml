@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.4.4"
+version = "0.4.5"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -26,7 +26,6 @@ dependencies = [
     "lameenc",
     "openai-whisper",
     "librosa",
-    "torch",  # also needed for PIL use in transformers
     "google-genai",
     "pyperclip",
     "python-dotenv",
@@ -55,7 +54,7 @@ dependencies = [
     "sentencepiece",
     "tiktoken",
     "click",
-    "hf_xet"
+    "hf_xet",
     "diffusers"
 ]
 

@@ -19,7 +19,7 @@ The first time you use a feature that needs a model (like image captioning or Wh
 - **Document Filter**: extract and rank relevant content from documents using an extractive QA model (TinyRoBERTa by default)
 - **Translator**: Provides automatic language detection, translating content into your specified target language. (both online and local)
 - **LocalLLM**: Small Qwen model for offline use or as a chatbot without an API key.
-- **ImageGenerator**: Easy interaction with SDXL Turbo and SD1.5 models for image generation (for UI and performance, consider using AUTOMATIC1111) (Not done)
+- **ImageGenerator**: Easy interaction with SDXL Turbo and SD1.5 models for image generation (for UI and performance, consider using AUTOMATIC1111)
 * **Gemini API**: Interact with Google Cloud Gemini models via your API key
 
   * *Note: This works best with Google accounts that have no billing method added yet (completely free to use with limits).*
