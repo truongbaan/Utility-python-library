@@ -131,11 +131,12 @@ class SD15_Image:
     _model : StableDiffusionPipeline
     _tokenizer : CLIPTokenizer
     
-    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False, reduce_memory : bool = False):
+    def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False, reduce_memory : bool = False, embed_default : bool = True):
         #check type before start
         self.__enforce_type(support_model, str, "support_model")
         self.__enforce_type(safety, bool, "safety")
         self.__enforce_type(reduce_memory, bool, "reduce_memory")
+        self.__enforce_type(embed_default, bool, "embed_default")
         
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
@@ -168,10 +169,10 @@ class SD15_Image:
         
         if support_model.strip() == "":
             self.logger.info("No support_model specify, using default stable-diffusion-v1-5, skipping all other configures..")
-            self._default_setup(preferred_devices, reduce_memory=reduce_memory)
+            self._default_setup(preferred_devices, reduce_memory=reduce_memory, embed_default = embed_default)
         else:
             self.logger.info("Custom setup for SD1.5")
-            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler, safety=safety, reduce_memory=reduce_memory)
+            self._custom_setup(preferred_devices = preferred_devices, path = path, scheduler = scheduler, safety=safety, reduce_memory=reduce_memory, embed_default = embed_default)
         #embeded support
         
         if self._model is None:
@@ -219,7 +220,17 @@ class SD15_Image:
             if (extra_detail > 2 or extra_detail < -2):
                 raise ValueError(f"extra_detail value can only be in range -2 to 2. Current setting: {extra_detail}")
             self._model.enable_lora()
-            self._model.set_adapters("add_detail", adapter_weights=extra_detail)
+            try:
+                self._model.set_adapters("add_detail", adapter_weights=extra_detail)
+            except:
+                try: # load loar file to the model
+                    self._model.load_lora_weights(self._model_path, weight_name="add_detail.safetensors", adapter_name="add_detail")
+                except FileNotFoundError:
+                    self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+                    raise
+                except Exception as e:
+                        raise Exception(e)
+                self._model.set_adapters("add_detail", adapter_weights=extra_detail)
         else: self._model.disable_lora()
          
         #random seed generator
@@ -286,7 +297,7 @@ class SD15_Image:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
         
-    def _default_setup(self, preferred_devices : str, reduce_memory : bool) -> None:
+    def _default_setup(self, preferred_devices : str, reduce_memory : bool, embed_default : bool) -> None:
         for dev in preferred_devices:
             try:
                 self.logger.info(f"Loading on {dev}")
@@ -298,14 +309,15 @@ class SD15_Image:
                 if reduce_memory:
                     self.logger.info("Enable attention slicing, reduce memory usage")
                     self._model.enable_attention_slicing()
-                self._load_default_embed_and_lora()
+                if embed_default:
+                    self._load_default_embed_and_lora()
                 break
             except FileNotFoundError:
                 raise
             except Exception as e:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
-    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool, reduce_memory : bool) -> None:
+    def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool, reduce_memory : bool, embed_default : bool) -> None:
         self.logger.info(f"Loading support model at {path}")
         # Load tokenizer
         self._tokenizer = CLIPTokenizer.from_pretrained(
@@ -341,8 +353,8 @@ class SD15_Image:
                 if reduce_memory:
                     self.logger.info("Enable attention slicing, reduce memory usage")
                     self._model.enable_attention_slicing() #reduce size
-                self._load_default_embed_and_lora()
-                
+                if embed_default:
+                    self._load_default_embed_and_lora()
                 break
             except FileNotFoundError: 
                 raise
