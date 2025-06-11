@@ -16,7 +16,7 @@ class LangTranslator:
     logger: logging.Logger
     _initialized: bool
 
-    def __init__(self, local_status : str = "backup", local_model_num : int = 1): #not done
+    def __init__(self, local_status : str = "backup", local_model_num : int = 1): 
         #check type before init
         self.__enforce_type(local_status, str, "local_status")
         self.__enforce_type(local_model_num, int, "local_model_num")
@@ -44,7 +44,7 @@ class LangTranslator:
     def local_translator(self):
         return self._local_translator
     
-    def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str: #not done
+    def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str:
         if self.local_status == "active":
             return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
         else:

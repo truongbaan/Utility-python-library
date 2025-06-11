@@ -149,39 +149,6 @@ def download_embeded_citivai():
                         download_name="add_detail"
                         )
 
-#testing
-def _download_sdxl10_citivai():
-    #https://civitai.com/models/269232/aam-xl-anime-mix
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/303526?type=Model&format=SafeTensor&size=full&fp=fp16",
-                        model_name="aam_xl_anime",
-                        download_name="aam_xl_anime"
-                        )
-    
-    #https://civitai.com/models/118406/counterfeitxl
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/265012?type=Model&format=SafeTensor&size=pruned&fp=fp16",
-                        model_name="counterfeitxl",
-                        download_name="counterfeitxl"
-                        )
-    
-    #https://civitai.com/models/119012?modelVersionId=592322
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/592322?type=Model&format=SafeTensor&size=pruned&fp=fp16",
-                        model_name="bluePencil_v700",
-                        download_name="bluePencil_v700"
-                        )
-    
-    #embed
-    #https://civitai.com/models/583583/negative-hands
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/651084?type=Model&format=SafeTensor",
-                        model_name="negativehand_xl",
-                        download_name="negativehand_xl"
-                        )
-    
-    #https://civitai.com/models/118418/negativexl
-    _url_download_from_civitai(civitai_api_download_url="https://civitai.com/api/download/models/134583?type=Model&format=SafeTensor",
-                        model_name="negative_xl",
-                        download_name="negative_xl"
-                        )
-
 #only support .safetensors and .pt
 def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None): #only support for '.safetensors' and '.pt'
     #model_name -> this to help know what model is being downloaded
@@ -365,5 +332,4 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
 
 if __name__ == "__main__":
     # download_from_civitai()
-    # _download_sdxl10_citivai()
     download_embeded_citivai()
