@@ -9,6 +9,7 @@ from freeai_utils.log_set_up import setup_logging
 import logging
 from typing import Union, Optional
 import random
+import time
 
 class SDXL_TurboImage:
     
@@ -104,13 +105,14 @@ class SDXL_TurboImage:
                                  Your current input for images per generation: {number_of_images}
                                  """)
         except Exception as e:
-            self.logger.critical("Unknown error")
+            self.logger.critical(f"Error: {e}")
             raise
         
         images = output.images  # a list of PIL images
+        current_time = int(time.time())
         
         for i, img in enumerate(images):
-            file_path = os.path.join(output_dir, f"{image_name}{i}.png")
+            file_path = os.path.join(output_dir, f"{image_name}{current_time + i}.png")
             img.save(file_path) #will add time later to not be overload
             print(f"Save : {file_path}")
         print(f"Saved {len(images)} images.")
@@ -263,11 +265,12 @@ class SD15_Image:
                                  Your current device: {self.device}
                                  """)
         except Exception as e:
-            self.logger.critical("Unknown error")
+            self.logger.critical(f"Error: {e}")
             raise
             
+        current_time = int(time.time())
         for i, img in enumerate(output.images):
-            file_path = os.path.join(output_dir, f"{image_name}{i}.png")
+            file_path = os.path.join(output_dir, f"{image_name}{current_time + i}.png")
             img.save(file_path) #will add time later to not be overload
             print(f"Save : {file_path}")
         print(f"Saved {len(output.images)} images.")
@@ -295,6 +298,15 @@ class SD15_Image:
         print("Including supported schedulers:\n")
         for option in scheduler_list:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
+        print("*" * 40)
+        
+        print("SD 1.5 Prompting Guide:\n")
+        print("    Idea: '1 girl in the middle the street, blue hair, black eyes'")
+        print("    Needs modification for SD 1.5. Try this:")
+        print("(masterpiece, best quality, ultra-detailed:1.3), **dynamic angle**, 1girl, ((vibrant blue hair:1.4)), **very long hair**, ((intense black eyes:1.3)), she is in the middle the street, (beautiful and detailed eyes:1.1), urban background.")
+        print("\nRemember a Negative Prompt is also crucial (if you set 'embed_default' = true, you already have load some embed files to help)")
+        print("Tip: Use AI to reprompt your ideas for SD 1.5.")
+        print("Note: Max prompt token count is 77 (positive/negative).")
         print("*" * 40)
         
     def _default_setup(self, preferred_devices : str, reduce_memory : bool, embed_default : bool) -> None:
@@ -408,10 +420,11 @@ class SD15_Image:
         self._model.scheduler = new_scheduler #set scheduler
         
     def _load_default_embed_and_lora(self) -> None:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
         embedding_paths = {
-            "easynegative": os.path.join(self._model_path, "easynegative.safetensors"),
-            "badprompt": os.path.join(self._model_path, "bad_prompt.pt"),
-            "negativehand": os.path.join(self._model_path, "negative_hand.pt"),
+            "easynegative": os.path.join(path, "easynegative.safetensors"),
+            "badprompt": os.path.join(path, "bad_prompt.pt"),
+            "negativehand": os.path.join(path, "negative_hand.pt"),
         }
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
@@ -423,8 +436,8 @@ class SD15_Image:
             except Exception as e:
                 raise Exception(e)
         
-        try: # load loar file to the model
-            self._model.load_lora_weights(self._model_path, weight_name="add_detail.safetensors", adapter_name="add_detail")
+        try: # load lora file to the model
+            self._model.load_lora_weights(path, weight_name="add_detail.safetensors", adapter_name="add_detail")
         except FileNotFoundError:
             self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
             raise
@@ -451,20 +464,15 @@ class SD15_Image:
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
 
-class SDXL10_Image:
-    def __init__(self):
-        print("nothing here yet :D")
-        pass
-
 if __name__ == "__main__":
-    # imagegenerator = SDXL_TurboImage(device="cuda")
-    import gc, time
+    import gc
     prompt = "sexy, dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
     models = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
     schedulers = ["default", "SDE Karras", "DPM++ 2M Karras", "Euler A"]
     model = "meinapastel.safetensors"
     sc = "Euler A"
     imgGen = SD15_Image(support_model=model, scheduler=sc, reduce_memory=True, preferred_device="cuda")
+    imgGen._help_config()
     imgGen.generate_images(prompt, seed=5000, image_name=f"nosafe")
     imgGen.enable_safety()
     imgGen.generate_images(prompt, seed=5000, image_name=f"save")
@@ -476,4 +484,3 @@ if __name__ == "__main__":
     #         imgGen = None
     #         gc.collect()
     #         time.sleep(1)
-    # img3._help_config()
