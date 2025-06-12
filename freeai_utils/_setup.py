@@ -330,6 +330,9 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
+def _download_and_extract_zip_file(url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None):
+    pass
+
 if __name__ == "__main__":
     # download_from_civitai()
     download_embeded_citivai()

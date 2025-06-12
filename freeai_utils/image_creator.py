@@ -290,22 +290,23 @@ class SD15_Image:
         ]
         
         print("*" * 40)
-        print("Including support_model:\n")
+        print("Including default support_model:\n")
         for option in model_list:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
         
-        print("Including supported schedulers:\n")
+        print("Including default supported schedulers:\n")
         for option in scheduler_list:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
-        
+        print("NOTE: You could still download model and load safetensors file")
+        print("*" * 40)
         print("SD 1.5 Prompting Guide:\n")
         print("    Idea: '1 girl in the middle the street, blue hair, black eyes'")
         print("    Needs modification for SD 1.5. Try this:")
         print("(masterpiece, best quality, ultra-detailed:1.3), **dynamic angle**, 1girl, ((vibrant blue hair:1.4)), **very long hair**, ((intense black eyes:1.3)), she is in the middle the street, (beautiful and detailed eyes:1.1), urban background.")
         print("\nRemember a Negative Prompt is also crucial (if you set 'embed_default' = true, you already have load some embed files to help)")
-        print("Tip: Use AI to reprompt your ideas for SD 1.5.")
+        print("Tip: Use generative AI to reprompt your ideas for SD 1.5.")
         print("Note: Max prompt token count is 77 (positive/negative).")
         print("*" * 40)
         
@@ -330,6 +331,10 @@ class SD15_Image:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
     def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool, reduce_memory : bool, embed_default : bool) -> None:
+        if not os.path.exists(path):
+            self.logger.critical(f"Fail to load model at {path}.\n If you're trying the default models, may be you wanna try command line: 'freeai-utils setup ICF' to download the file?")
+            raise FileNotFoundError(f"File not found at: {path}")
+        
         self.logger.info(f"Loading support model at {path}")
         # Load tokenizer
         self._tokenizer = CLIPTokenizer.from_pretrained(
@@ -391,6 +396,7 @@ class SD15_Image:
             new_scheduler  = DPMSolverSinglestepScheduler.from_config( #this requires number of step to be even
                 self._model.scheduler.config,
                 use_karras_sigmas=True,
+                lower_order_final=True
             )
             
         elif scheduler == "DPM++ 2M Karras":
@@ -428,19 +434,21 @@ class SD15_Image:
         }
         
         for token_name, epath in embedding_paths.items(): #load embeded path to model
+            if not os.path.exists(epath):#check if path exist before try running
+                self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
+                raise FileNotFoundError(f"File not found at: {epath}")
             try:
                 self._model.load_textual_inversion(epath, token=token_name, local_files_only =True)
-            except FileNotFoundError:
-                self.logger.critical(f"Fail to load {token_name} at {epath}.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
-                raise
             except Exception as e:
                 raise Exception(e)
         
-        try: # load lora file to the model
-            self._model.load_lora_weights(path, weight_name="add_detail.safetensors", adapter_name="add_detail")
-        except FileNotFoundError:
+        lora_path = os.path.join(path, "add_detail.safetensors")
+        
+        if not os.path.exists(lora_path):#check if path exist before try running
             self.logger.critical(f"Fail to load default lora file.\n May be you wanna try command line: 'freeai-utils setup ICE' to download the file?")
-            raise
+            raise FileNotFoundError(f"LoRA file not found at: {lora_path}")
+        try: # load lora file to the model
+            self._model.load_lora_weights(path, weight_name=lora_path, adapter_name="add_detail")
         except Exception as e:
                 raise Exception(e)
     
@@ -466,7 +474,7 @@ class SD15_Image:
 
 if __name__ == "__main__":
     import gc
-    prompt = "sexy, dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
+    prompt = "dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
     models = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
     schedulers = ["default", "SDE Karras", "DPM++ 2M Karras", "Euler A"]
     model = "meinapastel.safetensors"
