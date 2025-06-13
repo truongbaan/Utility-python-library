@@ -176,7 +176,7 @@ class MP3Recorder:
         self._chunk = chunk
         self._bitrate = bitrate
 
-        # Initialize lame encoder
+        # Reinitialize lame encoder
         self.encoder = Encoder()
         self.encoder.set_bit_rate(self._bitrate)
         self.encoder.set_in_sample_rate(self._rate)
@@ -227,8 +227,14 @@ class MP3Recorder:
             self._stream = None
 
     def _save_mp3(self, filename):
-        # Encode raw PCM to MP3 and write
-        self.logger.debug(f"Tryint to save audio file as {filename}")
+    # Reinitialize the encoder before use
+        self.encoder = Encoder()
+        self.encoder.set_bit_rate(self._bitrate)
+        self.encoder.set_in_sample_rate(self._rate)
+        self.encoder.set_channels(self._channels)
+        self.encoder.set_quality(2)  # 2 = high quality
+
+        self.logger.debug(f"Trying to save audio file as {filename}")
         with open(filename, 'wb') as f:
             for chunk in self._frames:
                 mp3_data = self.encoder.encode(chunk)
