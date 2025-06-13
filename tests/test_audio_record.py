@@ -3,6 +3,7 @@ import time
 import pytest
 import pyaudio
 import keyboard
+import gc
 from freeai_utils.audio_record import WavRecorder, check_wav_length_and_size, MP3Recorder, check_mp3_length_and_size
 
 current = os.path.dirname(os.path.abspath(__file__))
@@ -27,9 +28,12 @@ def simulate_toggle(monkeypatch, toggle_key: str = "`"):
 # Tests
 # ----------------------------------------------------------------------------
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def wav_rec():
-    return WavRecorder()
+    rec = WavRecorder()
+    yield rec
+    del rec
+    gc.collect()
 
 def test_init_wav_defaults(wav_rec):
     assert wav_rec.channels == 1
@@ -59,9 +63,12 @@ def test_record_silence(wav_rec):
     assert os.path.exists(out)
     assert check_wav_length_and_size(out,2.2)
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def mp3_rec():
-    return MP3Recorder()
+    rec = MP3Recorder()
+    yield rec
+    del rec
+    gc.collect()
 
 def test_init_mp3_default(mp3_rec):
     assert mp3_rec.channels == 1

@@ -1,12 +1,16 @@
 import pytest
 import os
 from freeai_utils.pdf_docx_reader import PDF_DOCX_Reader 
+import gc
 
 path =  os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample")
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def reader():
-    return PDF_DOCX_Reader()
+    red = PDF_DOCX_Reader()
+    yield red
+    del red
+    gc.collect()
 
 def test_pdf_reading_s1(reader):
     raw = reader.extract_all_text(os.path.join(path, "sample.pdf"))
