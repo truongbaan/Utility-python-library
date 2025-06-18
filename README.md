@@ -4,19 +4,19 @@ A lightweight, pip‑installable Python toolkit that wraps popular AI and utilit
 
 Most selected models fall in the **81–242 million parameter** range, which pioritizes real time responsiveness while still delivering solid accuracy. Instead of writing long pipelines or dealing with low level APIs, you get smart defaults out of the box, with the option to customize behavior at init time if needed. 
 
-The first time you use a feature that needs a model (like image captioning or Whisper), it will automatically download the model from Hugging Face. After that, it will work offline using the cached version.
+The first time you use a feature that needs a model (like Whisper, etc...), it will automatically download the model from Hugging Face. After that, it will work offline using the cached version.
 
 **Note**: This library focuses on being simple to use, even if it means sacrificing accuracy. It's great for beginners or anyone who wants to explore AI features without dealing with complex code. Just call the functions, I'll handle the rest.
 
 ## Features
 
-- **Audio**: record WAV/MP3 (fixed, toggle, silence-triggered)  
-- **Speech-to-Text**: OpenAI Whisper transcription & language detection   
-- **Web Search**: scrape Google results  
-- **Image**: caption generation & OCR (EasyOCR)  
+- **Audio**: record WAV/MP3 (fixed, toggle, silence-triggered)
+- **Speech-to-Text**: OpenAI Whisper transcription & language detection 
+- **Web Search**: scrape Google results
+- **Image**: caption generation & OCR (EasyOCR)
 - **TTS**: text-to-speech via gTTS or pyttsx3
 - **PDF-DOCX-Reader**: extract text and images from pdf and docx files
-- **Document Filter**: extract and rank relevant content from documents using an extractive QA model (TinyRoBERTa by default)
+- **Document Filter**: extract and rank relevant content from documents using an extractive QA model
 - **Translator**: Provides automatic language detection, translating content into your specified target language. (both online and local)
 - **LocalLLM**: Small Qwen model for offline use or as a chatbot without an API key.
 - **ImageGenerator**: Easy interaction with SDXL Turbo and SD1.5 models for image generation (for UI and performance, consider using AUTOMATIC1111)
@@ -87,3 +87,15 @@ This project was inspired by the GitHub repository:
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/truongbaan/Utility-python-library/blob/main/LICENSE) file for details.
+
+## Test Environment
+
+This library has been tested on laptop with the following specifications:
+
+**CPU**: Intel Core i5-12500H
+**GPU**: NVIDIA GeForce RTX 3050 4GB GDDR6
+**RAM**: 32GB DDR4
+**OS**: Windows 11 Home 64-bit
+**CUDA Version**: CUDA 12.6
+
+Performance may vary depending on system specs. The selected models and safetensors were intentionally chosen to remain lightweight. All features, including image generation have been tested to run smoothly on GPUs with just 4GB of VRAM, such as the RTX 3050.
