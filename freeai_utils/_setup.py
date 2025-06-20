@@ -4,6 +4,8 @@ import requests
 from tqdm import tqdm
 import re
 import shutil
+import urllib.request
+import zipfile
 
 def install_model(target : str):
     
@@ -151,13 +153,13 @@ def download_embeded_citivai():
                         )
 
 #only support .safetensors and .pt
-def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None): #only support for '.safetensors' and '.pt'
+def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None) ->None: #only support for '.safetensors' and '.pt'
     #model_name -> this to help know what model is being downloaded
     #downloaded_name -> this will check the name when download to own computer
     #download_dir -> where it would be downloaded
     
     if download_dir is None:
-        download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models") #temp
+        download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
     os.makedirs(download_dir, exist_ok=True)
     
     if download_name is None:
@@ -331,10 +333,52 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
-def _download_and_extract_zip_file(url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None):
-    pass
+def _download_and_extract_zip_file(url : str = "", folder_name : str = None, download_dir : str = None) -> None:
+    zip_name : str = url.split('/')[-1]
+    if download_dir is None:
+        download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vosk_models")
+    os.makedirs(download_dir, exist_ok=True)
+    
+    try:
+        #download the ZIP file
+        print(f"Downloading {zip_name}...")
+        urllib.request.urlretrieve(url, zip_name)
+        print("Download completed.")
 
-def remove_dir(path : str):
+        #extract
+        print(f"Extracting {zip_name} to {download_dir}...")
+        with zipfile.ZipFile(zip_name, 'r') as zip_ref:
+            zip_ref.extractall(download_dir)
+        print("Extraction completed.")
+
+    finally:
+        #remove ZIP file
+        if os.path.exists(zip_name):
+            print(f"Deleting {zip_name}...")
+            os.remove(zip_name)
+            print("ZIP file deleted.")
+
+    #rename
+    if folder_name is None:
+        print("No new name specify, exiting..")
+        return
+    new_path = os.path.join(download_dir, folder_name)
+    old_path = os.path.join(download_dir, zip_name.removesuffix(".zip"))
+    
+    if not os.path.exists(old_path):
+        raise FileNotFoundError(f"Error: The folder '{old_path}' does not exist.")
+    elif os.path.exists(new_path):
+        print("Found existed path, procceed to remove")
+        remove_dir(new_path)
+    try:
+        os.rename(old_path, new_path)
+        print(f"Folder '{old_path}' successfully renamed to '{new_path}'.")
+    except OSError as e:
+        print(f"Error renaming folder '{old_path}' to '{new_path}': {e.strerror}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+def remove_dir(path : str) -> None:
     if not os.path.isdir(path):
         raise FileNotFoundError(f"Path {path} not found")
     
