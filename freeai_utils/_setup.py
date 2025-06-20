@@ -3,6 +3,7 @@ import os
 import requests
 from tqdm import tqdm
 import re
+import shutil
 
 def install_model(target : str):
     
@@ -332,6 +333,19 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
 
 def _download_and_extract_zip_file(url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None):
     pass
+
+def remove_dir(path : str):
+    if not os.path.isdir(path):
+        raise FileNotFoundError(f"Path {path} not found")
+    
+    print(f"Removing folder: {path}")
+    try:
+        shutil.rmtree(path)
+        print(f"Succesfully remove folder {path}")
+    except PermissionError:
+        raise PermissionError(f"Permission denied to modify {path}. Fail to remove the folder.")
+    except OSError as e:
+        raise OSError(f"Error removing folder '{path}': {e.strerror}")
 
 if __name__ == "__main__":
     # download_from_civitai()
