@@ -56,7 +56,13 @@ def install_default_model():
     download_document_related()
     download_image_related()
     download_translation()
+    download_vosk_model()
 
+def _download_and_purge(cls, *args, **kwargs):
+    inst = cls(*args, **kwargs)
+    del inst
+    gc.collect()
+    
 def download_transcription():
     from .audio_to_text_vn import VN_Whisper
     from .audio_to_text_whisper import OpenAIWhisper
@@ -87,11 +93,6 @@ def download_translation():
     _download_and_purge(MBartTranslator)
     _download_and_purge(M2M100Translator)
 
-def _download_and_purge(cls, *args, **kwargs):
-    inst = cls(*args, **kwargs)
-    del inst
-    gc.collect()
-
 def download_LLM():
     from .localLLM import LocalLLM
     _download_and_purge(LocalLLM)
@@ -100,6 +101,14 @@ def download_image_creation_related():
     from .image_creator import SDXL_TurboImage, SD15_Image
     _download_and_purge(SDXL_TurboImage)
     _download_and_purge(SD15_Image, safety=True, embed_default = False)
+
+def download_vosk_model():
+    _download_and_extract_zip_file(url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
+                                   folder_name="en_us_015",
+                                   download_dir=None)#for en
+    _download_and_extract_zip_file(url= "https://alphacephei.com/vosk/models/vosk-model-vn-0.4.zip",
+                                   folder_name="vn_04",
+                                   download_dir=None) #for vn
 
 def download_from_civitai():#download some popular models
     #https://civitai.com/models/23521/anime-pastel-dream
