@@ -55,7 +55,9 @@ dependencies = [
     "tiktoken",
     "click",
     "hf_xet",
-    "diffusers"
+    "diffusers",
+    "sounddevice",
+    "vosk"
 ]
 
 [project.urls]

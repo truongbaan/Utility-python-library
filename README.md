@@ -11,7 +11,8 @@ The first time you use a feature that needs a model (like Whisper, etc...), it w
 ## Features
 
 - **Audio**: record WAV/MP3 (fixed, toggle, silence-triggered)
-- **Speech-to-Text**: OpenAI Whisper transcription & language detection 
+- **Audio-to-Text**: OpenAI Whisper transcription & language detection 
+- **Speech-to-Text**: Using Vosk models for real-time transcription from a microphone
 - **Web Search**: scrape Google results
 - **Image**: caption generation & OCR (EasyOCR)
 - **TTS**: text-to-speech via gTTS or pyttsx3
