@@ -1,12 +1,12 @@
 import time
 import json
 import numpy as np
-import sounddevice as sd
-from vosk import Model, KaldiRecognizer
+import sounddevice as sd #need pip install sounddevice
+from vosk import Model, KaldiRecognizer #need pip install vosk
 from typing import Optional
 import os
 
-#this model is for live transcription than using whisper model to transcribe a provided audio
+#this model is for live transcription than using whisper model to transcribe a provided audio (speech to text)
 class STT_Vosk:
     def __init__(self, model_name  : str = 'en_us_015', model_path : Optional[str] = None, sample_rate : int = 16000, dtype : str = "int16", channels  : int  = 1, frame_duration : float = 0.1) -> None:
         #check type before init
