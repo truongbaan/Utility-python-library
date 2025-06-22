@@ -179,6 +179,7 @@ note.txt
 
 #safetensors file
 freeai_utils/downloaded_models
+freeai_utils/vosk_models
 
 #image generate
 generated_images
