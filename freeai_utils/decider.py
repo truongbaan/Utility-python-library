@@ -90,6 +90,13 @@ class DecisionMaker:
         super().__setattr__("_initialized", True)
 
     def construct_sys_prompt(self, sample_ques_ans : str = None, positive_ans : str = None, negative_ans : str = None) -> None:
+        #check type
+        self.__enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
+        self.__enforce_type(negative_ans, str, "negative_ans")
+        self.__enforce_type(positive_ans, str, "positive_ans")
+        if sample_ques_ans is type(str) and sample_ques_ans.strip() == "": #ensure it makes a good prompt
+            sample_ques_ans = None
+            
         self._system_prompt = (
             "Analyze the following question and determine if an internet search is required to answer it. "
             f"Respond with '{positive_ans}' or '{negative_ans}'.\n\n"
@@ -121,7 +128,7 @@ class DecisionMaker:
     
     @property
     def model(self):
-        return self._model_name
+        return self._model
     
     @property
     def system_prompt(self):
