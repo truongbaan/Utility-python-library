@@ -28,6 +28,14 @@ def install_model(target : str):
         print("Downloading default models for local LLMs")
         download_LLM()
     elif target == "ICF":
+        decision = input(
+        "This function will download all included models used for SD15.\n"
+        "The process can take a significant amount of time, so feel free to take a break.\n"
+        "Would you like to proceed with the download? (Y/n): ").strip().lower()
+        
+        if decision != "y":
+            print("Download cancelled.")
+            return
         print("Downloading all models for image creating")
         print("*" * 100)
         print("Recommend to use AUTOMATIC 1111 instead for better speed and UI")
@@ -39,6 +47,11 @@ def install_model(target : str):
         print("Downloading all embeded files for image creating")
         print("*" * 100)
         download_embeded_citivai()
+    elif target == "V":
+        print("*" * 100)
+        print("Downloading/Re-downloading vosk models")
+        print("*" * 100)
+        download_vosk_model()
     else:
         print("No cmd found, please try again")
         
@@ -105,6 +118,9 @@ def download_image_creation_related():
 def download_vosk_model():
     _download_and_extract_zip_file(url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
                                    folder_name="en_us_015",
+                                   download_dir=None)#for en
+    _download_and_extract_zip_file(url = "https://alphacephei.com/vosk/models/vosk-model-en-us-0.22-lgraph.zip",
+                                   folder_name="en_us_022_lgraph",
                                    download_dir=None)#for en
     _download_and_extract_zip_file(url= "https://alphacephei.com/vosk/models/vosk-model-vn-0.4.zip",
                                    folder_name="vn_04",
@@ -402,4 +418,5 @@ def remove_dir(path : str) -> None:
 
 if __name__ == "__main__":
     # download_from_civitai()
-    download_embeded_citivai()
+    # download_embeded_citivai()
+    download_vosk_model()

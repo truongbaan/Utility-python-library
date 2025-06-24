@@ -31,6 +31,7 @@ def help():
     print("   L   Default LLM models          →  freeai-utils setup L")
     print("   ICF Image generator models      →  freeai-utils setup ICF")
     print("   ICE Embeded for Image generator models      →  freeai-utils setup ICE")
+    print("   V Vosk models      →  freeai-utils setup V")
     print("*" * 100)
     print("Usage: freeai-utils clean\n")
     print("Description: Clean up downloaded files and model through setup command")
