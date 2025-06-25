@@ -29,7 +29,7 @@ def install_model(target : str):
         download_LLM()
     elif target == "ICF":
         decision = input(
-        "This function will download all included models used for SD15.\n"
+        "This function will download all included models used for SDXL_Turbo and SD15.\n"
         "The process can take a significant amount of time, so feel free to take a break.\n"
         "Would you like to proceed with the download? (Y/n): ").strip().lower()
         
@@ -121,6 +121,9 @@ def download_vosk_model():
                                    download_dir=None)#for en
     _download_and_extract_zip_file(url = "https://alphacephei.com/vosk/models/vosk-model-en-us-0.22-lgraph.zip",
                                    folder_name="en_us_022_lgraph",
+                                   download_dir=None)#for en
+    _download_and_extract_zip_file(url = "https://alphacephei.com/vosk/models/vosk-model-en-us-0.22.zip",
+                                   folder_name="en_us_022_largest",
                                    download_dir=None)#for en
     _download_and_extract_zip_file(url= "https://alphacephei.com/vosk/models/vosk-model-vn-0.4.zip",
                                    folder_name="vn_04",
