@@ -8,6 +8,7 @@ import os
 from freeai_utils.log_set_up import setup_logging
 import logging
 from typing import Union
+import keyboard
 
 #this model is for live transcription than using whisper model to transcribe a provided audio (speech to text)
 class STT_Vosk:
@@ -47,10 +48,88 @@ class STT_Vosk:
         
         self.logger.info("Init completed")
     
-    def live_transcribe_toggle(toggle_off : str = "`"):
-        pass
+    def live_transcribe_toggle(self, toggle_key : str = "`", join_with_newline : bool = False):
+        listening = True #var to stop
+        
+        def toggle():
+            nonlocal listening
+            listening = False
+            
+        keyboard.add_hotkey(toggle_key, toggle)
+        
+        stream = sd.RawInputStream(
+            samplerate=self._sample_rate,
+            blocksize=self._blocksize,
+            dtype=self._dtype,
+            channels= self._channels
+        )
+        
+        last_partial = ""
+        last_len     = 0
+        segments = []
+        amount_last = 0
+        
+        stream.start()
+        print(f"🎙 Listening… until stop")
+        
+        try:
+            while listening:
+                data, overflowed = stream.read(self._blocksize)
+                if overflowed:
+                    print("⚠️  Warning! Overflow detected!")
+                    continue
+                
+                raw = bytes(data)
+                final_chunk = self._rec.AcceptWaveform(raw)
+                
+                #collect immediately
+                if final_chunk:
+                        result = json.loads(self._rec.FinalResult())
+                        text = result.get("text", "")
+                        if text:
+                            segments.append(text)
+                            
+                
+                p = json.loads(self._rec.PartialResult()).get("partial", "")
+                if p != last_partial:
+                    amount_need_to_ignore = int(len(p) / 100) * 100
+                    if amount_need_to_ignore != amount_last:
+                        print()#break
+                        amount_last = amount_need_to_ignore
+                    p = p[amount_last:]
+                    print(len(p), end  ="\r", flush=True)
+                    text = f"🗣 {p}"
+                    length = len(text)
+
+                    if length > last_len:
+                        print(text, end="\r", flush=True)
+                        last_len = length
+                    else:
+                        print(f"{text}", end="\r", flush=True)
+                        last_len = length
+                    last_partial = p
+                    
+
+        except KeyboardInterrupt:
+            print("\n⛔ Interrupted by user.")
+        finally:
+            keyboard.remove_hotkey(toggle_key)
+            stream.stop()
+            stream.close()
+            
+        #final text
+        final_txt = json.loads(self._rec.FinalResult()).get("text", "")
+        if final_txt:
+            #this should only when it get interrupted by user
+            print(f"✅ Final before getting interrupted: {final_txt}")
+            segments.append(final_txt)
+            
+        if join_with_newline:
+            return "\n".join(segments).strip()
+        
+        return " ".join(segments).strip()
     
-    def live_transcribe_until_silence(self, silence_thresh: float = 0.01, silence_duration: float = 4.0) -> str:
+    def live_transcribe_until_silence(self, silence_thresh: float = 0.01, silence_duration: float = 4.0, join_with_newline : bool = False) -> str:
         stream = sd.RawInputStream(
             samplerate=self._sample_rate,
             blocksize=self._blocksize,
@@ -126,15 +205,20 @@ class STT_Vosk:
         #final text
         final_txt = json.loads(self._rec.FinalResult()).get("text", "")
         if final_txt:
-            print(f"✅ Final: {final_txt}")
+            #this should only when it get interrupted by user
+            print(f"✅ Final before getting interrupted: {final_txt}")
             segments.append(final_txt)
-
+        
+        if join_with_newline:
+            return "\n".join(segments).strip()
+        
         return " ".join(segments).strip()
     
     def _help_config(self) -> None:
         model_list = [
             {"name": "en_us_015", "description": "smallest model, only 40MB, best for live transcription but sacrifices accuracy"},
             {"name": "en_us_022_lgraph", "description": "Slightly bigger model than en_us_015, 128MB, better accuracy but slower for live transcription"},
+            {"name": "en_us_022_largest", "description": "Extremely big compare to other model, 1.8gb, really good accuracy but much slower for live transcription"},
             {"name": "vn_04", "description": "Vietnamese transcription, really bad tho :("},
         ]
         print("*" * 40)
@@ -151,9 +235,9 @@ class STT_Vosk:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-        
+
 if __name__ == "__main__":
     test = STT_Vosk()
     test._help_config()
-    talk = test.live_transcribe_until_silence(silence_duration=4)
+    talk = test.live_transcribe_toggle()
     print(talk)
