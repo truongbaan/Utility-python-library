@@ -5,9 +5,22 @@ import sounddevice as sd #need pip install sounddevice
 from vosk import Model, KaldiRecognizer #need pip install vosk
 from typing import Optional
 import os
+from freeai_utils.log_set_up import setup_logging
+import logging
+from typing import Union
 
 #this model is for live transcription than using whisper model to transcribe a provided audio (speech to text)
 class STT_Vosk:
+    
+    logger : logging.Logger
+    _model : Model
+    _rec : KaldiRecognizer
+    _sample_rate : int
+    _dtype : str
+    _channels = int
+    _frame_duration = Union[int,float]
+    _blocksize = int
+    
     def __init__(self, model_name  : str = 'en_us_015', model_path : Optional[str] = None, sample_rate : int = 16000, dtype : str = "int16", channels  : int  = 1, frame_duration : float = 0.1) -> None:
         #check type before init
         self.__enforce_type(model_name, str, "model_name")
@@ -30,7 +43,9 @@ class STT_Vosk:
         self._channels = channels
         self._frame_duration = frame_duration
         self._blocksize = int(sample_rate * self._frame_duration)
-        pass
+        self.logger = setup_logging(self.__class__.__name__)
+        
+        self.logger.info("Init completed")
     
     def live_transcribe_toggle(toggle_off : str = "`"):
         pass
@@ -42,32 +57,58 @@ class STT_Vosk:
             dtype=self._dtype,
             channels= self._channels
         )
+        
+        last_partial = ""
+        last_len     = 0
+        segments = []
+        amount_last = 0
+        
         stream.start()
         print(f"🎙 Listening… (will stop after {silence_duration}s of silence)")
-
         last_voice = time.time()
-        last_partial = ""
-        segments = []
-
+        
         try:
             while True:
                 data, overflowed = stream.read(self._blocksize)
                 if overflowed:
-                    # Just drop it and keep going
+                    print("⚠️  Warning! Overflow detected!")
                     continue
-
+                
                 raw = bytes(data)
-                self._rec.AcceptWaveform(raw)  # Always call, but ignore its True/False return
-
-                # 1) Live partial
+                final_chunk = self._rec.AcceptWaveform(raw)
+                
+                #collect immediately
+                if final_chunk:
+                        result = json.loads(self._rec.FinalResult())
+                        text = result.get("text", "")
+                        if text:
+                            segments.append(text)
+                            
+                
                 p = json.loads(self._rec.PartialResult()).get("partial", "")
                 if p != last_partial:
-                    print(f"🗣 {p}", end="\r")
-                    last_partial = p
+                    amount_need_to_ignore = int(len(p) / 100) * 100
+                    if amount_need_to_ignore != amount_last:
+                        print()#break
+                        # text = f"🗣 {p[amount_need_to_ignore - 100 : amount_need_to_ignore]}"
+                        # print(f"{text}")
+                        amount_last = amount_need_to_ignore
+                    p = p[amount_last:]
+                    print(len(p), end  ="\r", flush=True)
+                    text = f"🗣 {p}"
+                    length = len(text)
 
-                # 2) Silence detection
+                    if length > last_len:
+                        print(text, end="\r", flush=True)
+                        last_len = length
+                    else:
+                        print(f"{text}", end="\r", flush=True)
+                        last_len = length
+                    last_partial = p
+                    
+                # Silence detection
                 audio = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
-                rms = np.sqrt((audio**2).mean()) / np.iinfo(np.int16).max
+                rms = self.rms(audio)
                 # print(rms)
                 if rms > silence_thresh:
                     last_voice = time.time()
@@ -81,8 +122,8 @@ class STT_Vosk:
         finally:
             stream.stop()
             stream.close()
-
-        # Now flush out the final text
+            
+        #final text
         final_txt = json.loads(self._rec.FinalResult()).get("text", "")
         if final_txt:
             print(f"✅ Final: {final_txt}")
@@ -90,9 +131,21 @@ class STT_Vosk:
 
         return " ".join(segments).strip()
     
+    def _help_config(self) -> None:
+        model_list = [
+            {"name": "en_us_015", "description": "smallest model, only 40MB, best for live transcription but sacrifices accuracy"},
+            {"name": "en_us_022_lgraph", "description": "Slightly bigger model than en_us_015, 128MB, better accuracy but slower for live transcription"},
+            {"name": "vn_04", "description": "Vietnamese transcription, really bad tho :("},
+        ]
+        print("*" * 40)
+        print("Including default support_model:\n")
+        for option in model_list:
+            print(f"Name: {option['name']}\n    Description: {option['description']}")
+        print("*" * 40)
+        
     def rms(self, data): #use for silence
         return np.sqrt(np.mean(np.square(data / np.iinfo(np.dtype(self._dtype)).max)))
-
+    
     def __enforce_type(self, value, expected_types, arg_name):
         if not isinstance(value, expected_types):
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
@@ -101,5 +154,6 @@ class STT_Vosk:
         
 if __name__ == "__main__":
     test = STT_Vosk()
+    test._help_config()
     talk = test.live_transcribe_until_silence(silence_duration=4)
     print(talk)
