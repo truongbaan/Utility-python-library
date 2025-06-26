@@ -6,8 +6,9 @@ Use the table below to navigate quickly to each feature section.
 | --------------------- | ---------------------------------------------------- | --------------------------------------- |
 | Audio Recording (WAV) | Record WAV audio via fixed, toggle, or silence modes | [WAV Recorder](#wav-recorder)           |
 | Audio Recording (MP3) | Record MP3 audio via fixed, toggle, or silence modes | [MP3 Recorder](#mp3-recorder)           |
-| Speech-to-Text        | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
+| Audio-to-Text         | Transcribe audio and detect language                 | [OpenAI Whisper](#openai-whisper)       |
 |                       | Transcribe audio (vn only)                           | [VN Whisper](#vn-whisper)               |
+| Speech-to-Text        | Real time transcription from microphone (vosk)       | [Speech to Text](#speech-to-text)       |
 | Gemini Client (LLM)   | Interact with Google Gemini through api              | [GeminiChatBot](#GeminiChatBot)         |
 |                       | Similar to GeminiChatBot, able to search and see img | [GeminiClient](#GeminiClient)           |
 | Web Search            | Grab information from Google                         | [Web Scraper](#web-scraper)             |
@@ -86,7 +87,23 @@ from freeai_utils.audio_to_text_vn import VN_Whisper
 vn_transcriber = VN_Whisper() #init the model
 text = vn_transcriber.transcribe_audio("your_audio.wav") #return str
 print(text)
+```
 
+---
+
+## Speech to Text
+
+**Use a Vosk model to do live transcription through a microphone.**
+
+```python
+import freeai_utils
+
+live_Stt = freeai_utils.STT_Vosk(model_name = 'en_us_015')
+# live_Stt._help_config() #This guides the default installation of models
+talk = live_Stt.live_transcribe_until_silence(silence_duration = 4) #transcribes and stops after a specified duration of silence
+print(talk)
+talk = live_Stt.live_transcribe_toggle(toggle_key = "`")#transcribe until toggled off
+print(talk)
 ```
 
 ---
