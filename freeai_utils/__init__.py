@@ -21,7 +21,8 @@ _module_to_names = {
     'wrapper': ['time_it'],
     'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator'],
     'localLLM': ['LocalLLM'],
-    'image_creator': ['SDXL_TurboImage', 'SD15_Image']
+    'image_creator': ['SDXL_TurboImage', 'SD15_Image'],
+    'live_stt_vosk': ['STT_Vosk']
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -65,3 +66,4 @@ if TYPE_CHECKING:
     from .language_detection       import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
     from .localLLM                 import LocalLLM
     from .image_creator            import SDXL_TurboImage, SD15_Image
+    from .live_stt_vosk            import STT_Vosk
