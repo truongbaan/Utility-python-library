@@ -43,8 +43,10 @@ class DocumentFilter:
             preferred_devices.append("cuda")
         if "cpu" not in preferred_devices:
             preferred_devices.append("cpu")
-            
+        
+        load_success = False 
         for dev in preferred_devices:
+            if load_success: break
             for offline in (True, False):
                 if offline:
                     os.environ["HF_HUB_OFFLINE"] = "1"
@@ -57,6 +59,7 @@ class DocumentFilter:
                     reader = ExtractiveReader(model=model_name, device=device_obj)
                     reader.warm_up()
                     self._reader = reader
+                    load_success = True
                     self.logger.info(f"Successfully runs on {dev} with mode {mode}")
                     break
                 except Exception as e:
@@ -158,3 +161,5 @@ class DocumentFilter:
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+        
+doc = DocumentFilter()
