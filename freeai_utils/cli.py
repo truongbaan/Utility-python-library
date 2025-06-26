@@ -51,7 +51,7 @@ def clean():
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     
     #known folder
-    known_folder = ["downloaded_models", "vosk_model"]
+    known_folder = ["downloaded_models", "vosk_models"]
     for folder in known_folder:
         path = os.path.join(cur_dir, folder)
         try:
@@ -65,7 +65,7 @@ def clean():
     #unknown folder in the directory
     for item_name in os.listdir(cur_dir):
             item_path = os.path.join(cur_dir, item_name)
-            if not os.path.isdir(item_path):
+            if not os.path.isdir(item_path) or "__pycache__" in item_path:
                 continue
             unknown_item.append(item_path)
             
