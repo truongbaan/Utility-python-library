@@ -21,6 +21,7 @@ class STT_Vosk:
     _channels = int
     _frame_duration = Union[int,float]
     _blocksize = int
+    __stream = sd.RawInputStream
     
     def __init__(self, model_name  : str = 'en_us_015', model_path : Optional[str] = None, sample_rate : int = 16000, dtype : str = "int16", channels  : int  = 1, frame_duration : float = 0.1) -> None:
         #check type before init
@@ -45,38 +46,46 @@ class STT_Vosk:
         self._frame_duration = frame_duration
         self._blocksize = int(sample_rate * self._frame_duration)
         self.logger = setup_logging(self.__class__.__name__)
-        
-        self.logger.info("Init completed")
-    
-    def live_transcribe_toggle(self, toggle_key : str = "`", join_with_newline : bool = False):
-        listening = True #var to stop
-        
-        def toggle():
-            nonlocal listening
-            listening = False
-            
-        keyboard.add_hotkey(toggle_key, toggle)
-        
-        stream = sd.RawInputStream(
+        self.__stream = sd.RawInputStream(
             samplerate=self._sample_rate,
             blocksize=self._blocksize,
             dtype=self._dtype,
             channels= self._channels
         )
         
+        self.logger.info("Init completed")
+    
+    def live_transcribe_toggle(self, toggle_key : str = "`", join_with_newline : bool = False):
+        #check type
+        self.__enforce_type(toggle_key, str, "toggle_key")
+        self.__enforce_type(join_with_newline, bool, "join_with_newline")
+        
+        listening = True #var to stop
+        
+        def toggle():
+            nonlocal listening
+            listening = False
+            
+        try:
+            keyboard.add_hotkey(toggle_key, toggle)
+        except Exception as e:
+            self.logger.critical(f"Fail to add hotkey {toggle_key}! Error: {e}")
+            keyboard.unhook_all() #ensure no binding left
+            raise
+        
         last_partial = ""
         last_len     = 0
         segments = []
         amount_last = 0
         
-        stream.start()
-        print(f"🎙 Listening… until stop")
+        self.__stream.start()
+        print(f"Listening… press '{toggle_key}' to stop ")
         
         try:
             while listening:
-                data, overflowed = stream.read(self._blocksize)
+                data, overflowed = self.__stream.read(self._blocksize)
                 if overflowed:
-                    print("⚠️  Warning! Overflow detected!")
+                    self.logger.warning("Warning! Overflow detected!")
                     continue
                 
                 raw = bytes(data)
@@ -94,34 +103,34 @@ class STT_Vosk:
                 if p != last_partial:
                     amount_need_to_ignore = int(len(p) / 100) * 100
                     if amount_need_to_ignore != amount_last:
-                        print()#break
+                        print() #break
                         amount_last = amount_need_to_ignore
                     p = p[amount_last:]
                     print(len(p), end  ="\r", flush=True)
-                    text = f"🗣 {p}"
+                    text = f"SPEAK: {p}"
                     length = len(text)
 
                     if length > last_len:
                         print(text, end="\r", flush=True)
                         last_len = length
                     else:
+                        if p == "":
+                            print()
                         print(f"{text}", end="\r", flush=True)
                         last_len = length
                     last_partial = p
                     
-
         except KeyboardInterrupt:
-            print("\n⛔ Interrupted by user.")
+            self.logger.info("\nInterrupted by user.")
         finally:
             keyboard.remove_hotkey(toggle_key)
-            stream.stop()
-            stream.close()
+            self.__stream.stop()
             
         #final text
         final_txt = json.loads(self._rec.FinalResult()).get("text", "")
         if final_txt:
             #this should only when it get interrupted by user
-            print(f"✅ Final before getting interrupted: {final_txt}")
+            print(f"Final before getting interrupted: {final_txt}")
             segments.append(final_txt)
             
         if join_with_newline:
@@ -129,28 +138,26 @@ class STT_Vosk:
         
         return " ".join(segments).strip()
     
-    def live_transcribe_until_silence(self, silence_thresh: float = 0.01, silence_duration: float = 4.0, join_with_newline : bool = False) -> str:
-        stream = sd.RawInputStream(
-            samplerate=self._sample_rate,
-            blocksize=self._blocksize,
-            dtype=self._dtype,
-            channels= self._channels
-        )
+    def live_transcribe_until_silence(self, silence_thresh: float = 0.01, silence_duration: Union[int, float] = 4.0, join_with_newline : bool = False) -> str:
+        #check type
+        self.__enforce_type(silence_thresh, float, "silence_thresh")
+        self.__enforce_type(silence_duration, (int, float), "silence_duration")
+        self.__enforce_type(join_with_newline, bool, "join_with_newline")
         
         last_partial = ""
         last_len     = 0
         segments = []
         amount_last = 0
         
-        stream.start()
-        print(f"🎙 Listening… (will stop after {silence_duration}s of silence)")
+        self.__stream.start()
+        print(f"Listening… (will stop after {silence_duration}s of silence)")
         last_voice = time.time()
         
         try:
             while True:
-                data, overflowed = stream.read(self._blocksize)
+                data, overflowed = self.__stream.read(self._blocksize)
                 if overflowed:
-                    print("⚠️  Warning! Overflow detected!")
+                    self.logger.warning("Warning! Overflow detected!")
                     continue
                 
                 raw = bytes(data)
@@ -168,45 +175,43 @@ class STT_Vosk:
                 if p != last_partial:
                     amount_need_to_ignore = int(len(p) / 100) * 100
                     if amount_need_to_ignore != amount_last:
-                        print()#break
-                        # text = f"🗣 {p[amount_need_to_ignore - 100 : amount_need_to_ignore]}"
-                        # print(f"{text}")
+                        print() #break
                         amount_last = amount_need_to_ignore
                     p = p[amount_last:]
                     print(len(p), end  ="\r", flush=True)
-                    text = f"🗣 {p}"
+                    text = f"SPEAK: {p}"
                     length = len(text)
 
                     if length > last_len:
                         print(text, end="\r", flush=True)
                         last_len = length
                     else:
+                        if p == "":
+                            print()
                         print(f"{text}", end="\r", flush=True)
                         last_len = length
                     last_partial = p
                     
                 # Silence detection
                 audio = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
-                rms = self.rms(audio)
-                # print(rms)
+                rms = self._rms(audio)
                 if rms > silence_thresh:
                     last_voice = time.time()
 
-                if time.time() - last_voice > silence_duration:
-                    print("\n🔇 Silence reached, finalizing…")
+                if time.time() - last_voice > float(silence_duration):
+                    print("\nSilence reached, finalizing…")
                     break
 
         except KeyboardInterrupt:
-            print("\n⛔ Interrupted by user.")
+            self.logger.info("\nInterrupted by user.")
         finally:
-            stream.stop()
-            stream.close()
+            self.__stream.stop()
             
         #final text
         final_txt = json.loads(self._rec.FinalResult()).get("text", "")
         if final_txt:
             #this should only when it get interrupted by user
-            print(f"✅ Final before getting interrupted: {final_txt}")
+            print(f"Final before getting interrupted: {final_txt}")
             segments.append(final_txt)
         
         if join_with_newline:
@@ -227,7 +232,7 @@ class STT_Vosk:
             print(f"Name: {option['name']}\n    Description: {option['description']}")
         print("*" * 40)
         
-    def rms(self, data): #use for silence
+    def _rms(self, data): #use for silence detect
         return np.sqrt(np.mean(np.square(data / np.iinfo(np.dtype(self._dtype)).max)))
     
     def __enforce_type(self, value, expected_types, arg_name):
@@ -235,9 +240,20 @@ class STT_Vosk:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-
+    
+    def __del__(self):
+        if self.__stream:
+            try:
+                self.__stream.stop()
+                self.__stream.close()
+            except Exception as e:
+                self.logger.critical(f"Can not close vosk model. Error: {e}")
+                raise Exception
+    
 if __name__ == "__main__":
-    test = STT_Vosk()
-    test._help_config()
-    talk = test.live_transcribe_toggle()
+    live_Stt = STT_Vosk(model_name = 'en_us_015')
+    # live_Stt._help_config() #guide default installation models
+    talk = live_Stt.live_transcribe_until_silence(silence_duration = 4) #transcribe and turn off after a certain amount of seconds when silence
+    print(talk)
+    talk = live_Stt.live_transcribe_toggle(toggle_key = "`")#transcribe until toggle off
     print(talk)
