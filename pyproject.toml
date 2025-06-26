@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.5.0"
+version = "0.5.1"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability, decider"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -57,7 +57,8 @@ dependencies = [
     "hf_xet",
     "diffusers",
     "sounddevice",
-    "vosk"
+    "vosk",
+    "protobuf", # for mbart fast
 ]
 
 [project.urls]
