@@ -23,6 +23,6 @@ def test_ask(lc_model):
     assert s_result == "yes"
     
 def test_ask_memories(lc_model):
-    lc_model.ask_with_memories("Hi my name is An, please remember my name.")
-    result = lc_model.ask_with_memories("This is a test of memory, please just tell me the provided name.")
+    lc_model.ask_with_memories("The provided name is An, please remember it.")
+    result = lc_model.ask_with_memories("This is a test of memory, please return the provided name.")
     assert "An" in result[0]

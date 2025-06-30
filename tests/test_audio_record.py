@@ -59,7 +59,7 @@ def test_record_toggle(wav_rec, monkeypatch):
 
 def test_record_silence(wav_rec):
     out = os.path.join(current, "silence_record.wav")
-    wav_rec.record_silence(output_filename=out, silence_threshold=10000, max_silence_seconds=2)
+    wav_rec.record_silence(output_filename=out, silence_threshold=100000, max_silence_seconds=2)
     assert os.path.exists(out)
     assert check_wav_length_and_size(out,2.2)
 
@@ -94,7 +94,7 @@ def test_record_toggle_mp3(mp3_rec, monkeypatch):
 
 def test_record_silence_mp3(mp3_rec):
     out = os.path.join(current, "silence_record.mp3")
-    mp3_rec.record_silence(output_filename=out, silence_threshold=10000, max_silence_seconds=2)
+    mp3_rec.record_silence(output_filename=out, silence_threshold=100000, max_silence_seconds=2)
     assert os.path.exists(out)
     assert check_mp3_length_and_size(out,2.2)
 
