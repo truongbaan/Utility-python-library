@@ -44,7 +44,7 @@ class LangTranslator:
     def local_translator(self):
         return self._local_translator
     
-    def translate(self, text_to_translate, tgt_lang = 'en', src_lang : Union[str, None] = None) -> str:
+    def translate(self, text_to_translate : str, tgt_lang : str = 'en', src_lang : Union[str, None] = None) -> str:
         if self.local_status == "active":
             return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
         else:
@@ -389,6 +389,10 @@ class MBartTranslator:
         return self._tokenizer
     
     def translate(self, text: str, src_lang : Union[str, None] = None, tgt_lang: str = None) -> str:
+        self.__enforce_type(text, str, "text")
+        self.__enforce_type(src_lang, (str, type(None)), "src_lang")
+        self.__enforce_type(tgt_lang, str, "tgt_lang")
+        
         if not src_lang:
             iso = detect(text)
             src_tag = self._resolve_lang_tag(iso)
