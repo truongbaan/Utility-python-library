@@ -97,7 +97,7 @@ class DocumentFilter:
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
     
-    def search_document(self, prompt : str = None) -> List:
+    def search_document(self, prompt : str = None) -> List: #content text, score, and doc.id
         self.__enforce_type(prompt, str, "prompt") #check type before start
         
         result = self._reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
@@ -123,7 +123,7 @@ class DocumentFilter:
             seen_texts.add(text)
             counts[doc_id] += 1
         
-        #contain text, score, and doc.id
+        #content text, score, and doc.id
         return filtered_answers #return list of document with ranking score that > threshold
 
     def __init_documents(self, directory : str = "") -> None:
@@ -162,4 +162,3 @@ class DocumentFilter:
         if not isinstance(value, expected_type):
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
         
-doc = DocumentFilter()

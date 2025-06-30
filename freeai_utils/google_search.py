@@ -23,6 +23,9 @@ class WebScraper:
         headers = {"User-Agent": self.user_agent}  #mimic a real browser
         resp = requests.get(url, headers=headers)  # GET the page
         resp.raise_for_status()
+        if not resp.text.strip():
+            self.logger.warning(f"Empty response from URL: {url}")
+            
         self.logger.debug("Fetching html completed")
         return resp.text
 
@@ -33,7 +36,7 @@ class WebScraper:
         self.logger.debug("Trying to get the text from html")
         return BeautifulSoup(summary_html, "html.parser").get_text()
 
-    def search(self, prompt : str = None) -> str:
+    def search(self, prompt : str = None, reduce_length : bool = False) -> str:
         self.__enforce_type(prompt, str, "prompt")
         
         answer = ""
@@ -45,8 +48,11 @@ class WebScraper:
                 answer += text[:self.limit_word]
             except Exception:
                 pass #ignore
+            
+        if reduce_length:
+            return answer.replace("\n", " ") #this to reduce the token use if calls API
         
-        return answer.replace("\n", " ") #this to reduce the token use if calls API
+        return answer.replace("\n\n", "\n")
     
     def __enforce_type(self, value, expected_type, arg_name):
         if not isinstance(value, expected_type):
