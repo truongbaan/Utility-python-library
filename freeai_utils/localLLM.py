@@ -2,6 +2,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from freeai_utils.log_set_up import setup_logging
 import logging
 import torch
+from typing import Union
 
 #other model: Qwen/Qwen3-4B, or any models that is Qwen
 class LocalLLM:
@@ -38,7 +39,7 @@ class LocalLLM:
         try:
             self._tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
         except Exception:
-            self.logger.info(f"Decect model not found, attempt to download {model_name}")
+            self.logger.info(f"Detect model not found, attempt to download {model_name}")
             self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         
         self._model = None
@@ -93,9 +94,14 @@ class LocalLLM:
             raise ValueError("memories_length must be a non-negative integer.")
         self._max_length = value
     
-    def ask(self, messages: list[dict]):
+    def ask(self, messages: Union[list, str]):
+        self.__enforce_type(messages, (list, str), "messages")
+        
+        if type(messages) is str:
+            sent_mes = [{"role": "user", "content": messages}]
+        else: sent_mes = messages
         text = self._tokenizer.apply_chat_template(
-            messages,
+            sent_mes,
             tokenize=False,
             add_generation_prompt=True,
             enable_thinking=True
@@ -120,6 +126,8 @@ class LocalLLM:
         return content, thinking_content
         
     def ask_with_memories(self, prompt: str) -> tuple[str, str]:
+        self.__enforce_type(prompt, str, "prompt")
+        
         messages = []
         line = "Here's our previous conversation:\n"
         if self._history:
@@ -145,9 +153,11 @@ class LocalLLM:
             self._history.pop(0)
         self._history.append({"question": question, "answer": answer})
     
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+    def __enforce_type(self, value, expected_types, arg_name):
+        if not isinstance(value, expected_types):
+            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
+            expected_str = ", ".join(expected_names)
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __setattr__(self, name, value):
         # once initialized, block these core attributes
@@ -157,6 +167,7 @@ class LocalLLM:
     
 if __name__ == "__main__":
     lm = LocalLLM()
-    print(lm.ask([{"role": "user", "content": "Hi, how are you? When will you use thinking mode and when will not?"}]))
+    print(lm.ask("Hi, how are you?"))
+    print(lm.ask([{"role": "user", "content": "This is a test of connecting. Please just answer \'yes\'"}]))
     print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
     print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0])
