@@ -7,11 +7,11 @@ import shutil
 import urllib.request
 import zipfile
 
-def install_model(target : str):
-    
+def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
+    
     if target is None or target == "A" or target == "":
-        install_default_model()  # Installs all default models (excluding image generation)
+        install_default_model(auto_confirm)  # Installs all default models (excluding image generation)
     elif target == "S":
         print("Downloading default models for speech-to-text")
         download_transcription()
@@ -28,14 +28,16 @@ def install_model(target : str):
         print("Downloading default models for local LLMs")
         download_LLM()
     elif target == "ICF":
-        decision = input(
-        "This function will download all included models used for SDXL_Turbo and SD15.\n"
-        "The process can take a significant amount of time, so feel free to take a break.\n"
-        "Would you like to proceed with the download? (Y/n): ").strip().lower()
+        if not auto_confirm:
+            decision = input(
+                "This function will download all included models and extra style safetensors files used for SDXL_Turbo and SD15.\n"
+                "The process can take a significant amount of time, so feel free to take a break.\n"
+                "Would you like to proceed with the download? (Y/n): ").strip().lower()
+
+            if decision != "y":
+                print("Download cancelled.")
+                return
         
-        if decision != "y":
-            print("Download cancelled.")
-            return
         print("Downloading all models for image creating")
         print("*" * 100)
         print("Recommend to use AUTOMATIC 1111 instead for better speed and UI")
@@ -55,15 +57,16 @@ def install_model(target : str):
     else:
         print("No cmd found, please try again")
         
-def install_default_model():
-    decision = input(
-        "This function will download all default models used by this library.\n"
-        "The process can take a significant amount of time, so feel free to take a break.\n"
-        "Would you like to proceed with the download? (Y/n): ").strip().lower()
-        
-    if decision != "y":
-        print("Download cancelled.")
-        return
+def install_default_model(auto_confirm : bool = False):
+    if not auto_confirm:
+        decision = input(
+            "This function will download all default models used by this library.\n"
+            "The process can take a significant amount of time, so feel free to take a break.\n"
+            "Would you like to proceed with the download? (Y/n): ").strip().lower()
+            
+        if decision != "y":
+            print("Download cancelled.")
+            return
         
     download_transcription()
     download_document_related()
@@ -419,6 +422,19 @@ def remove_dir(path : str) -> None:
     except OSError as e:
         raise OSError(f"Error removing folder '{path}': {e.strerror}")
 
+def get_free_space_gb(path='/') -> float:
+    #Defaults to the root directory ('/') which typically represents the system drive.
+    try:
+        disk_stats = shutil.disk_usage(path)
+
+        # Convert bytes to gigabytes
+        free_space_bytes = disk_stats.free
+        free_space_gb = free_space_bytes / (1024**3)
+        return free_space_gb
+    except Exception as e:
+        print(f"Error checking disk space: {e}")
+        return None
+    
 if __name__ == "__main__":
     # download_from_civitai()
     # download_embeded_citivai()

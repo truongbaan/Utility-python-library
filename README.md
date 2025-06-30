@@ -1,12 +1,30 @@
 # freeai-utils
+[![freeai-utils](https://badge.fury.io/py/freeai-utils.svg)](https://badge.fury.io/py/freeai-utils)
+![Python Version](https://img.shields.io/pypi/pyversions/freeai-utils)
 
-A lightweight, pip‑installable Python toolkit that wraps popular AI and utility libraries into classes and functions (no external binaries or convoluted setup scripts required). 
+A lightweight Python toolkit that wrapped popular AI and utility libraries into intuitive classes and functions. No external binaries, no convoluted setup. Just clean, readable code.
 
-Most selected models fall in the **81–242 million parameter** range, which pioritizes real time responsiveness while still delivering solid accuracy. Instead of writing long pipelines or dealing with low level APIs, you get smart defaults out of the box, with the option to customize behavior at init time if needed. 
+Models are smartly chosen between **81–242M parameters**, fast enough for real-time use, accurate enough for tasks.
 
-The first time you use a feature that needs a model (like Whisper, etc...), it will automatically download the model from Hugging Face. After that, it will work offline using the cached version.
+Hate writing boilerplate or messing with low-level APIs? Just use the built-in defaults or customize them when needed.
 
-**Note**: This library focuses on being simple to use, even if it means sacrificing accuracy. It's great for beginners or anyone who wants to explore AI features without dealing with complex code. Just call the functions, I'll handle the rest.
+⬇️ One setup command, then offline
+
+Run **freeai-utils setup -y** once to download the required models (like Whisper). After that, everything runs locally using the cached versions.
+
+**Note**: This library focuses on being simple to use, even if it means sacrificing accuracy. It's great for beginners or anyone who wants to explore AI features without dealing with complex code. Just call the functions, it handles the rest.
+
+## 📚 Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [📝 Models Download](#models-download)
+- [ GPU Performance Boost](#-optional-gpu-performance-boost)
+- [📖 Full API Reference](#-full-api-reference)
+- [Acknowledgements](#acknowledgements--references)
+- [Inspiration](#inspiration)
+- [License](#license)
+- [Test Environment](#test-environment)
 
 ## Features
 
@@ -49,10 +67,10 @@ pip install freeai-utils
 ## 📝Models download 
 ```bash
 freeai-utils setup
-```
-or
-```bash
-freeai-utils setup A
+# Will ask you for confirmation
+
+freeai-utils setup -y
+# Will skip confirmation prompt
 ```
 
 >This will help downloads default models for most functional classes (excluding image generation).

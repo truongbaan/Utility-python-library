@@ -13,8 +13,9 @@ def main(ctx):
 
 @main.command(help="Download default models for this library through hugging face ")
 @click.argument("target", required=False)
-def setup(target : str  = ""):
-    install_model(target)
+@click.option("-y", "--yes", is_flag=True, help="Automatically confirm downloads without prompting")
+def setup(target: str = "", yes: bool = False):
+    install_model(target, yes)
     
 @main.command(help="Detail guide on command line")
 def help():
