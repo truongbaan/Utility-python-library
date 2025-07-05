@@ -7,6 +7,7 @@ def test_langtrans():
     assert model.local_status == "backup"
     assert model.local_translator is not None
     assert model.translate(text_to_translate="Xin chào bạn", tgt_lang='en') == "Hello"
+    assert model.detect_language("Xin chào bạn.")[0] == "vi"
     del model
     gc.collect()
 
@@ -15,6 +16,7 @@ def test_langtrans_local():
     assert model.local_status is None
     assert model.local_translator is None
     assert model.translate(text_to_translate="Xin chào bạn", tgt_lang='en') == "Hello"
+    assert model.detect_language("Xin chào bạn.")[0] == "vi"
     del model
     gc.collect()
 
@@ -26,6 +28,7 @@ def test_localtrans():
     model = LocalTranslator()
     assert model.model is not None
     assert model.translate(prompt="Xin chào bạn", tgt_lang='en') == "Hello friends."
+    assert model.detect_language("Xin chào bạn") == "vi"
     del model
     gc.collect()
 
@@ -39,6 +42,7 @@ def test_m2():
     assert model.tokenizer is not None
     assert model.device in ("cpu", "cuda")
     assert model.translate(text="Xin chào bạn", tgt_lang='en') == "Hello friends."
+    assert model.detect_language("Xin chào bạn.") == "vi"
     del model
     gc.collect()
 
@@ -48,5 +52,6 @@ def test_mbart():
     assert model.tokenizer is not None
     assert model.device in ("cpu", "cuda")
     assert model.translate(text="Xin chào bạn", tgt_lang='en') == "Hi there."
+    assert model.detect_language("Xin chào bạn.") == "vi"
     del model
     gc.collect()

@@ -6,6 +6,7 @@ def test_init_sdxl(): #idk what to test...
     model = SDXL_TurboImage()
     assert model.model is not None
     assert model.device in ("cpu", "cuda")
+    model.generate_images("A house")
     del model
     gc.collect()
 
@@ -15,6 +16,18 @@ def sd15():
     yield model
     del model
     gc.collect()
+
+@pytest.fixture(autouse=True)#run after each functions
+def test_create_img(request):
+    # List of test names dont want this test to run after
+    trigger_after = {"test_init_sdxl", "sd15", "test_init_sd15", "test_load_default_embed_lora_sd15", "test_clean_up"}
+
+    if request.function.__name__ not in trigger_after:
+        print(f"Creating image before test: {request.function.__name__}")
+        sd15 = request.getfixturevalue("sd15")
+        prompt = "A house"
+        sd15.generate_images(prompt)
+        sd15.generate_images(prompt, extra_detail = 1)
 
 def test_init_sd15(sd15):
     assert sd15.model is not None
@@ -26,6 +39,14 @@ def test_init_sd15(sd15):
     for embed in embeds:
         assert embed not in sd15.model.tokenizer.added_tokens_encoder
     assert sd15._model.get_active_adapters() == []
+
+def test_load_default_embed_lora_sd15(sd15):
+    sd15._load_default_embed_and_lora()
+    embeds = ["easynegative", "badprompt", "negativehand"]
+    for embed in embeds:
+        assert embed in sd15.model.tokenizer.added_tokens_encoder
+    assert sd15._model.get_active_adapters() == ["add_detail"]
+
 
 def test_scheduler_sd15_sdekarras(sd15):
     sd15._custom_scheduler("SDE Karras")
@@ -57,13 +78,6 @@ def test_scheduler_sd15_euler_a(sd15):
         lower_order_final = True)
     assert sd15.model.scheduler.config == new_scheduler.config
 
-def test_load_default_embed_lora_sd15(sd15):
-    sd15._load_default_embed_and_lora()
-    embeds = ["easynegative", "badprompt", "negativehand"]
-    for embed in embeds:
-        assert embed in sd15.model.tokenizer.added_tokens_encoder
-    assert sd15._model.get_active_adapters() == ["add_detail"]
-
 def test_enable_safety_sd15(sd15):
     sd15.enable_safety()
     from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker #safety check
@@ -77,8 +91,14 @@ def test_enable_safety_sd15(sd15):
     assert sd15._model.safety_checker.config.to_dict() == safety_checker.config.to_dict()
     assert sd15._model.feature_extractor.to_dict() == feature_extractor.to_dict()
 
-def disable_safety_sd15(sd15):
+def test_disable_safety_sd15(sd15):
     sd15.disable_safety()
     assert sd15.model.safety_checker is None
     assert sd15.model.feature_extractor is None
     
+def test_clean_up():
+    from freeai_utils import __Cleaner
+    import os
+    cur = os.path.abspath(os.path.join(os.getcwd(), "generated_images"))
+    cleaner = __Cleaner(directory=cur)
+    cleaner.remove_all_files_end_with(".png")
