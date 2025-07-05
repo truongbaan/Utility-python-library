@@ -263,7 +263,7 @@ def _url_download_from_civitai(civitai_api_download_url : str = "", model_name :
         return
         
     #filename for the downloaded
-    filepath = os.path.join(download_dir, f"{download_name}.{final_filename.split(".")[-1]}")
+    filepath = os.path.join(download_dir, f"{download_name}.{final_filename.split('.')[-1]}")
     
     headers = {}
     download_start_byte = 0

@@ -387,7 +387,7 @@ class SD15_Image:
     def _custom_scheduler(self, scheduler : str) -> None:
         self.__enforce_type(scheduler, str, "scheduler")
         scheduler = scheduler.strip()
-        self.logger.info(f"Loading scheduler: {scheduler if scheduler != "default" else "Euler"}")
+        self.logger.info(f"Loading scheduler: {scheduler if scheduler != 'default' else 'Euler'}")
         #schedule type
         new_scheduler = None
         if scheduler == "SDE Karras":
