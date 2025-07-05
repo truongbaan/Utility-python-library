@@ -44,6 +44,27 @@ def install_model(target : str, auto_confirm: bool = False):
         print("*" * 100)
         download_image_creation_related()
         download_from_civitai()
+        print("*" * 100)
+        print("Note: Please recheck if any files were not downloaded completely due to connection loss or anything.")
+        print("If so, please rerun the command line again.")
+        print("*" * 100)
+    elif target == "EICF":
+        if not auto_confirm:
+            decision = input(
+                "This function will download extra style safetensors files used for SDXL_Turbo and SD15.\n"
+                "The process can take a significant amount of time, so feel free to take a break.\n"
+                "Would you like to proceed with the download? (Y/n): ").strip().lower()
+
+            if decision != "y":
+                print("Download cancelled.")
+                return
+        
+        print("Downloading safetensors files from civitai...")
+        download_from_civitai()
+        print("*" * 100)
+        print("Note: Please recheck if any files were not downloaded completely due to connection loss or anything.")
+        print("If so, please rerun the command line again.")
+        print("*" * 100)
     elif target == "ICE":
         print("*" * 100)
         print("Downloading all embeded files for image creating")
@@ -67,7 +88,7 @@ def install_default_model(auto_confirm : bool = False):
         if decision != "y":
             print("Download cancelled.")
             return
-        
+    print("Downloading default models...")
     download_transcription()
     download_document_related()
     download_image_related()
