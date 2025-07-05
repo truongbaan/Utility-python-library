@@ -34,16 +34,33 @@ def help():
     print("   ICE Embeded for Image generator models      →  freeai-utils setup ICE")
     print("   V Vosk models      →  freeai-utils setup V")
     print("*" * 100)
-    print("Usage: freeai-utils clean\n")
+    print("Usage: freeai-utils clean [FLAG]\n")
     print("Description: Clean up downloaded files and model through setup command")
+    print(" Flags:")
+    print("   A   Remove both extra downloaded safetensors and vosk models      →  freeai-utils clean A")
+    print("   ICE   Remove extra safetensors file downloaded from ICF setup             →  freeai-utils clean ICF")
+    print("   V   Remove Vosk models      →  freeai-utils clean V")
     print("*" * 100)
     
 @main.command(help="Remove extra downloaded files")
-def clean():
-    decision = input(
-        "This function will remove all downloaded files from civitai as well as vosk model\n"
-        "This should only be used when you want to clean up the libraries before pip uninstall\n"
-        "Are you sure you want to proceed? (Y/n): ").strip().lower()
+@click.argument("target", required=False)
+def clean(target : str = ""):
+    
+    messages = {
+        "V" : "Are you sure you want to remove only the Vosk model files? (Y/n): ",
+        "ICF" : "Are you sure you want to remove only the safetensors files? (Y/n): ",
+        "A" : "Are you sure you want to remove everything (Vosk + safetensors)? (Y/n): ",
+        "" : "This will remove all downloaded files from civitai and the Vosk model.\n"
+            "Use this before running pip uninstall.\n"
+            "Are you sure you want to proceed? (Y/n): ",
+    }
+    
+    key = target.upper()
+    if key not in messages:
+        print(f"Unknown target '{target}'. Valid options are: '', 'V', 'ICF', 'A'")
+        return
+    
+    decision = input(messages[key]).strip().lower()
         
     if decision != "y":
         print("Clean Up cancelled.")
@@ -52,7 +69,16 @@ def clean():
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     
     #known folder
-    known_folder = ["downloaded_models", "vosk_models"]
+    if key in ("A", ""):
+        print("Cleaning: Vosk model and safetensors files...")
+        known_folder = ["downloaded_models", "vosk_models"]
+    elif key == "V":
+        print("Cleaning: Vosk model files only...")
+        known_folder = ["vosk_models"]
+    elif key == "ICF":
+        print("Cleaning: Extra safetensors files only...")
+        known_folder = ["downloaded_models"]
+        
     for folder in known_folder:
         path = os.path.join(cur_dir, folder)
         try:
@@ -61,17 +87,3 @@ def clean():
             pass
         except Exception as e:
             raise Exception(e)
-    
-    unknown_item = []
-    #unknown folder in the directory
-    for item_name in os.listdir(cur_dir):
-            item_path = os.path.join(cur_dir, item_name)
-            if not os.path.isdir(item_path) or "__pycache__" in item_path:
-                continue
-            unknown_item.append(item_path)
-            
-    if len(unknown_item) > 0:
-        print(f"Warning. Unknowned folder found, did you personally add extra folders? If not, please go to {cur_dir} to delete manually")
-        print(f"Unknown folder amount: {len(unknown_item)}")
-        for item in unknown_item:
-            print(f"Path : {item}") 
