@@ -38,13 +38,13 @@ def help():
     print("Description: Clean up downloaded files and model through setup command")
     print(" Flags:")
     print("   A   Remove both extra downloaded safetensors and vosk models      →  freeai-utils clean A")
-    print("   ICE   Remove extra safetensors file downloaded from ICF setup             →  freeai-utils clean ICF")
+    print("   ICF   Remove extra safetensors file downloaded from ICF setup             →  freeai-utils clean ICF")
     print("   V   Remove Vosk models      →  freeai-utils clean V")
     print("*" * 100)
     
 @main.command(help="Remove extra downloaded files")
 @click.argument("target", required=False)
-def clean(target : str = ""):
+def clean(target : str):
     
     messages = {
         "V" : "Are you sure you want to remove only the Vosk model files? (Y/n): ",
@@ -55,7 +55,7 @@ def clean(target : str = ""):
             "Are you sure you want to proceed? (Y/n): ",
     }
     
-    key = target.upper()
+    key = target.strip().upper() if target is str else target
     if key not in messages:
         print(f"Unknown target '{target}'. Valid options are: '', 'V', 'ICF', 'A'")
         return
