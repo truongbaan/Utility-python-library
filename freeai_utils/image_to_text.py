@@ -22,6 +22,10 @@ class ImageCaptioner:
         
         #init
         super().__setattr__("_initialized", False)
+        #logger 
+        self.logger = setup_logging(self.__class__.__name__)
+        self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
+        
         try:
             self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True, local_files_only = True)
             self._model = AutoModelForVision2Seq.from_pretrained(model_name, local_files_only = True)
@@ -30,10 +34,6 @@ class ImageCaptioner:
             self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
             self._model = AutoModelForVision2Seq.from_pretrained(model_name)
                 
-        #logger 
-        self.logger = setup_logging(self.__class__.__name__)
-        self.logger.info("Note: This class takes an image path as input and generates a caption. It is not designed for question answering.")
-        
         #init the var to hold device available
         preferred_devices = []
         

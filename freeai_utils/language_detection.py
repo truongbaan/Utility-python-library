@@ -204,6 +204,7 @@ class M2M100Translator:
         
         #init
         super().__setattr__("_initialized", False)
+        self.logger = setup_logging(self.__class__.__name__)
         
         #init the var to hold device available
         preferred_devices = []
@@ -230,8 +231,6 @@ class M2M100Translator:
             self._tokenizer = M2M100Tokenizer.from_pretrained(model_name)
             self._model = M2M100ForConditionalGeneration.from_pretrained(model_name)
             
-        self.logger = setup_logging(self.__class__.__name__)
-        
         last_err = None
         for dev in preferred_devices:
             try:
