@@ -44,7 +44,7 @@ def help():
     
 @main.command(help="Remove extra downloaded files")
 @click.argument("target", required=False)
-def clean(target : str):
+def clean(target : str = ""):
     
     messages = {
         "V" : "Are you sure you want to remove only the Vosk model files? (Y/n): ",
