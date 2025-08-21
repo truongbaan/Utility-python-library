@@ -141,7 +141,7 @@ answer = client.ask("What land animal do you think is the best?") #answer only (
 print(answer)
 
 answer = client.ask_and_copy_to_clipboard("Could you write a hello world python script?") #answer with copy to clipboard (use CTRL+V to paste)
-answer = client.ask_with_memories("My name is An, could you please describe this img?", img_path="your_img.png") #answer and add in memory
+answer = client.ask_with_memories("My name is An, could you please describe this img?", file_path="your_img.png") #answer and add in memory, could be any files as long as gemini accept it (pdf, png, etc...)
 print(answer)
 answer = client.ask_with_memories("Do you remember what we're talking about?") #answer with knowledge about the previous conversation
 print(answer)

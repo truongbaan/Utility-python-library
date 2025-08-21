@@ -233,16 +233,16 @@ class GeminiClient:
         else:
             raise ValueError("Memory length must be a positive integer.")
     
-    def ask(self, prompt : str = None, img_path : str = None) -> str:
+    def ask(self, prompt : str = None, file_path : str = None) -> str:
         #not str, return...
         self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(img_path, (str, type(None)), "img_path")
+        self.__enforce_type(file_path, (str, type(None)), "file_path")
         
         if not prompt:
             self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
             return ""
         
-        prompt_parts = self.__prepare_prompt(prompt, img_path) #make the prompt to send
+        prompt_parts = self.__prepare_prompt(prompt, file_path) #make the prompt to send
         
         try:
             response = self._client.models.generate_content(
@@ -281,8 +281,8 @@ class GeminiClient:
         except Exception as e:
             self.logger.error(f"Error retrieving models with new lib: {e}")
             
-    def ask_and_copy_to_clipboard(self, prompt : str, img_path : str) -> str:
-        answer = self.ask(prompt, img_path)
+    def ask_and_copy_to_clipboard(self, prompt : str, file_path : str) -> str:
+        answer = self.ask(prompt, file_path)
         if answer:
             try:
                 pyperclip.copy(answer)
@@ -291,14 +291,14 @@ class GeminiClient:
                 self.logger.error(f"CANT COPY TO CLIPBOARD, {e}")
         return answer
 
-    def ask_with_memories(self, prompt : str = None, img_path : str = None) -> str: # use if you want to store history to ask again (cap with memories_length)
+    def ask_with_memories(self, prompt : str = None, file_path : str = None) -> str: # use if you want to store history to ask again (cap with memories_length)
         line = "Here's our previous conversation:\n"
         if self._history:
             for turn in self._history:
                 line += f"User: {turn['question']}\nAI: {turn['answer']}\n"
         line += "Now, continue the conversation:\n"
         line += prompt
-        answer = self.ask(line, img_path)
+        answer = self.ask(line, file_path)
         self.__add_turn(prompt, answer)
         return answer
     
@@ -320,23 +320,34 @@ class GeminiClient:
             self._history.pop(0)  # Remove the oldest turn
         self._history.append({"question": question, "answer": answer})
     
-    def __prepare_prompt(self, prompt : str, img_path : Union[str, None]) -> list:
+    def __prepare_prompt(self, prompt : str, file_path : Union[str, None]) -> list:
         prompt_parts = [] # this is the actual prompt send to the model
         
-        if img_path:
+        if file_path and file_path is not "":
             try:
-                img = Image.open(img_path)
-                prompt_parts.append(img)
+                uploaded_file = self.upload_file_to_api(file_path)
+                self.logger.info(f"File uploaded successfully. Name: {uploaded_file.name}")
+                prompt_parts.append(uploaded_file)
             except FileNotFoundError:
-                self.logger.error(f"Image file not found: {img_path}")
+                self.logger.error(f"file_path not found: {file_path}")
                 return ""
             except Exception as e:
-                self.logger.error(f"Error loading image from {img_path}: {e}")
+                self.logger.error(f"Error loading file from {file_path}: {e}")
                 return ""
         
         prompt_parts.append(self._word_prompt + prompt)
         
         return prompt_parts
+    
+    def upload_file_to_api(self, file_path: str) -> Union[genai.types.File, None]:
+        try:
+            self.logger.info(f"Attempting to upload file: {file_path}")
+            uploaded_file = self._client.files.upload(file=file_path)
+            self.logger.info(f"File uploaded successfully. Name: {uploaded_file.name}")
+            return uploaded_file
+        except Exception as e:
+            self.logger.error(f"Error uploading file {file_path}: {e}")
+            return None
     
 if __name__ == "__main__":
     genbot = GeminiChatBot()
@@ -349,5 +360,5 @@ if __name__ == "__main__":
     
     print(genbot.ask_with_memories("My name is Ngan, what about you?"))
     print(genbot.ask_with_memories("Hi, what are we talking about?"))
-    print(genAI.ask_with_memories("Hi, my name is Huyen, what about you?"))
+    print(genAI.ask_with_memories("Hi, my name is Huyen, what about you? Summarize this file info", file_path=""))
     print(genAI.ask_with_memories("Hi, what are we talking about?"))
