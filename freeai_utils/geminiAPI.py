@@ -323,7 +323,7 @@ class GeminiClient:
     def __prepare_prompt(self, prompt : str, file_path : Union[str, None]) -> list:
         prompt_parts = [] # this is the actual prompt send to the model
         
-        if file_path and file_path is not "":
+        if file_path and file_path != "":
             try:
                 uploaded_file = self.upload_file_to_api(file_path)
                 self.logger.info(f"File uploaded successfully. Name: {uploaded_file.name}")
