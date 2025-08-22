@@ -2,15 +2,13 @@
 [![freeai-utils](https://badge.fury.io/py/freeai-utils.svg)](https://badge.fury.io/py/freeai-utils)
 ![Python Version](https://img.shields.io/pypi/pyversions/freeai-utils)
 
-A lightweight Python toolkit that wrapped popular AI and utility libraries into intuitive classes and functions. No external binaries, no convoluted setup. Just clean, readable code.
+#### Freeai-Utils is a lightweight Python library that puts the power of popular AI models right in your hands. No external binaries, no convoluted setup. Just clean, readable code.
 
-Models are smartly chosen between **81–242M parameters**, fast enough for real-time use, accurate enough for tasks.
+**🚀 Small and Mighty Models**: Models are smartly chosen between **81–242M parameters**, fast enough for real-time use, accurate enough for tasks.
 
-Hate writing boilerplate or messing with low-level APIs? Just use the built-in defaults or customize them when needed.
+**✍️ No More Boilerplate**: Hate writing boilerplate or messing with low-level APIs? Just use the built-in defaults or customize them when needed.
 
-⬇️ One setup command, then offline
-
-Run **freeai-utils setup -y** once to download the required models (like Whisper). After that, everything runs locally using the cached versions.
+**⬇️ One setup command, then offline**: After a single setup command, "**freeai-utils setup -y**". all models are cached locally. Your entire toolkit then runs offline, no internet required.
 
 **Note**: This library focuses on being simple to use, even if it means sacrificing accuracy. It's great for beginners or anyone who wants to explore AI features without dealing with complex code. Just call the functions, it handles the rest.
 
