@@ -35,7 +35,6 @@ dependencies = [
     "readability-lxml",
     "transformers",
     "Pillow",
-    "pyautogui",
     "easyocr",
     "gTTS",
     "playsound==1.2.2",  # required specific version

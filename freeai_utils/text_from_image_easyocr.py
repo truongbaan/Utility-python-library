@@ -1,7 +1,13 @@
 # Library for people who want to do ocr but don't want to download Tesseract OCR
 # Weaker than Tesseract OCR
 
-import pyautogui # need pip install pyautogui (use to screenshot)
+# need pip install pyautogui (use to screenshot)
+try:
+    import pyautogui
+except ImportError:
+    print("The 'pyautogui' library is required for this feature.")
+    print("Please install it with: pip install pyautogui")
+
 import easyocr# need pip install easyocr (use to read text from image)
 import time
 from typing import Optional, List, Union
