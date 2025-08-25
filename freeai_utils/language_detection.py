@@ -45,6 +45,13 @@ class LangTranslator:
         return self._local_translator
     
     def translate(self, text_to_translate : str, tgt_lang : str = 'en', src_lang : Union[str, None] = None) -> str:
+        """
+        Translates text from one language to another. 
+        Prioritizes a local translation model if status is active. 
+        If not, it uses an online Google translator as a primary method and falls back to the local model if the online translation fails.
+        
+        Returns the translated text as a string.
+        """
         if self.local_status == "active":
             return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
         else:
@@ -58,6 +65,7 @@ class LangTranslator:
                     return self._local_translator.translate(text_to_translate, src_lang=src_lang, tgt_lang=tgt_lang)
             
     def detect_language(self, prompt) -> Tuple[str, float]:
+        """Detects the language of a given text. It returns a tuple containing the language code and the confidence score of the detection."""
         detected_language = detect_langs(prompt)
 
         if detected_language:
@@ -108,15 +116,25 @@ class LocalTranslator:
         return self._model
 
     def translate(self, prompt : str, src_lang : Union[str, None] = None, tgt_lang : str = None) -> str:
+        """
+        Translates a given text prompt from a source language (src_lang) to a target language (tgt_lang). 
+        
+        Returns the translated text as a string.
+        """
         self.__enforce_type(prompt, str, "prompt")
         self.__enforce_type(src_lang, (str, type(None)), "src_lang")
         self.__enforce_type(tgt_lang, str, "tgt_lang")
         return self._model.translate(prompt, src_lang = src_lang, tgt_lang = tgt_lang)
     
     def detect_language(self, prompt) -> Tuple[str, float]:
+        """Returns a tuple containing the language code and a confidence score for the detection."""
         return self._model.detect_language(prompt)
         
     def __init_local_translator(self, num : int, device : str) -> None:
+        """
+        Initializes a local translation model based on the provided model number (num) and device (e.g., CPU or GPU). 
+        Loads either the M2M100 or MBart translator
+        """
         if num == 1:
             self._model = M2M100Translator(device = device)
         elif num == 2:
@@ -262,6 +280,7 @@ class M2M100Translator:
         return self._tokenizer
        
     def translate(self, text: str, src_lang: Union[str, None] = None, tgt_lang: str = None, seed_num : int = 42) -> str:
+        """Translates text from a source language to a target language. It automatically detects the source language if it's not specified."""
         self.__enforce_type(text, str, "text")
         self.__enforce_type(src_lang, (str, type(None)), "src_lang")
         self.__enforce_type(tgt_lang, str, "tgt_lang")
@@ -296,6 +315,7 @@ class M2M100Translator:
         return self._tokenizer.decode(generated_tokens[0], skip_special_tokens=True)
 
     def detect_language(self, text) -> str:
+        """Identifies the language of a given text."""
         return detect(text)
     
     def __enforce_type(self, value, expected_types, arg_name):
@@ -388,6 +408,10 @@ class MBartTranslator:
         return self._tokenizer
     
     def translate(self, text: str, src_lang : Union[str, None] = None, tgt_lang: str = None) -> str:
+        """
+        Translates text from a source language to a target language. 
+        The source language is automatically detected if not provided
+        """
         self.__enforce_type(text, str, "text")
         self.__enforce_type(src_lang, (str, type(None)), "src_lang")
         self.__enforce_type(tgt_lang, str, "tgt_lang")
@@ -418,15 +442,18 @@ class MBartTranslator:
         return self._tokenizer.decode(out[0], skip_special_tokens=True)
 
     def detect_language(self, text) -> str:
+        """Identifies the language of a given text."""
         return detect(text)
     
     def supported_lang_id(self) -> None:
+        """Prints a list of all supported language IDs for translation."""
         print("*" * 100)
         print("Supported Language ISO ID (If you wanna know, or just use those id like langdetect, it would still works :D )")
         print("*" * 100)
         print(self._tokenizer.lang_code_to_id.keys())
     
     def _resolve_lang_tag(self, lang_code: str) -> str:
+        """a helper function that converts a language code (like "en" or "fr") into the correct internal tag used by the tokenizer."""
         # If it's already a valid mBART tag
         if lang_code in self._tokenizer.lang_code_to_id:
             return lang_code

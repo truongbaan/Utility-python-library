@@ -92,6 +92,9 @@ class ImageCaptioner:
         super().__setattr__(name, value)
         
     def write_caption(self, image_path: str, max_length: int = 100, num_beams: int = 3, early_stopping: bool = True) -> str:
+        """
+        Generates a descriptive caption for an image.
+        """
         #check type
         self.__enforce_type(image_path, str, "image_path")
         self.__enforce_type(max_length, int, "max_length")

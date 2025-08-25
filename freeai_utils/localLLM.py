@@ -95,6 +95,7 @@ class LocalLLM:
         self._max_length = value
     
     def ask(self, messages: Union[list, str]):
+        """Sends a prompt to Qwen model and Returns the text response."""
         self.__enforce_type(messages, (list, str), "messages")
         
         if type(messages) is str:
@@ -126,6 +127,11 @@ class LocalLLM:
         return content, thinking_content
         
     def ask_with_memories(self, prompt: str) -> tuple[str, str]:
+        """ 
+        Sends a prompt to a language model, 
+        including the history of the conversation to provide context, 
+        then stores the new turn in its memory.
+        """
         self.__enforce_type(prompt, str, "prompt")
         
         messages = []
@@ -142,10 +148,15 @@ class LocalLLM:
         return content, thinking_content
         
     def _clear_history(self) -> None:
+        """helper function that clears the entire conversation history."""
         if self._history:
             self._history.clear()
     
     def __add_turn(self, question, answer) -> None:
+        """
+        Appends a new question-answer pair to the conversation history. 
+        Removing the oldest entry if the history exceeds a maximum length.
+        """
         self.__enforce_type(question, str, "question")
         self.__enforce_type(answer, str, "answer")
     

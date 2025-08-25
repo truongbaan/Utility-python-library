@@ -234,6 +234,7 @@ class GeminiClient:
             raise ValueError("Memory length must be a positive integer.")
     
     def ask(self, prompt : str = None, file_path : str = None) -> str:
+        """sends a prompt to Gemini model and returns the text response. Can include an optional file to the prompt."""
         #not str, return...
         self.__enforce_type(prompt, str, "prompt")
         self.__enforce_type(file_path, (str, type(None)), "file_path")
@@ -267,6 +268,7 @@ class GeminiClient:
             return ""
 
     def list_models(self, search : str = "") -> None:
+        """Retrieves and prints a list of all available language models, optionally filtering the list based on model's name."""
         self.__enforce_type(search, str, "search")
         
         print("Retrieve available models: ")
@@ -282,6 +284,7 @@ class GeminiClient:
             self.logger.error(f"Error retrieving models with new lib: {e}")
             
     def ask_and_copy_to_clipboard(self, prompt : str, file_path : str) -> str:
+        """Return text response from model and automatically copies the answer to the user's clipboard."""
         answer = self.ask(prompt, file_path)
         if answer:
             try:
@@ -292,6 +295,11 @@ class GeminiClient:
         return answer
 
     def ask_with_memories(self, prompt : str = None, file_path : str = None) -> str: # use if you want to store history to ask again (cap with memories_length)
+        """ 
+        Sends a prompt to a language model, 
+        including the history of the conversation to provide context, 
+        then stores the new turn in its memory.
+        """
         line = "Here's our previous conversation:\n"
         if self._history:
             for turn in self._history:
@@ -303,6 +311,7 @@ class GeminiClient:
         return answer
     
     def _clear_history(self) -> None:
+        """helper function that clears the entire conversation history."""
         if self._history:
             self._history.clear()
     
@@ -313,6 +322,10 @@ class GeminiClient:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __add_turn(self, question, answer) -> None:
+        """
+        Appends a new question-answer pair to the conversation history. 
+        Removing the oldest entry if the history exceeds a maximum length.
+        """
         self.__enforce_type(question, str, "question")
         self.__enforce_type(answer, str, "answer")
         
@@ -321,6 +334,10 @@ class GeminiClient:
         self._history.append({"question": question, "answer": answer})
     
     def __prepare_prompt(self, prompt : str, file_path : Union[str, None]) -> list:
+        """
+        helper function that takes a prompt and an optional file path, 
+        and formats them into a list of parts ready to be sent to the language model.
+        """
         prompt_parts = [] # this is the actual prompt send to the model
         
         if file_path and file_path != "":
@@ -340,6 +357,7 @@ class GeminiClient:
         return prompt_parts
     
     def upload_file_to_api(self, file_path: str) -> Union[genai.types.File, None]:
+        """ helper function that uploads a specified file to the API and returns a file object to be used in an API call."""
         try:
             self.logger.info(f"Attempting to upload file: {file_path}")
             uploaded_file = self._client.files.upload(file=file_path)

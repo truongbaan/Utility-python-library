@@ -15,11 +15,13 @@ class WebScraper:
         self.logger = setup_logging(self.__class__.__name__)
         
     def _url_search(self, query) -> list:
+        """helper function that performs a search based on a query and returns a list of URLs from the top results"""
         #return the first num_results url
         self.logger.debug("Trying to return the list of urls")
         return list(search(query, num_results= self.num_results))
 
     def _fetch_html(self, url : str) -> str:
+        """helper function that downloads the HTML content of a given URL."""
         headers = {"User-Agent": self.user_agent}  #mimic a real browser
         resp = requests.get(url, headers=headers)  # GET the page
         resp.raise_for_status()
@@ -30,6 +32,7 @@ class WebScraper:
         return resp.text
 
     def _extract_with_readability(self, html : str) -> str:
+        """ helper function that takes the HTML content of a web page and extracts its main, readable text."""
         doc = Document(html)          # build readability DOM
         summary_html = doc.summary()  # HTML content
         # BeautifulSoup to get plain text
@@ -37,6 +40,7 @@ class WebScraper:
         return BeautifulSoup(summary_html, "html.parser").get_text()
 
     def search(self, prompt : str = None, reduce_length : bool = False) -> str:
+        """Performs a full web search for a given prompt. Return the extracted text"""
         self.__enforce_type(prompt, str, "prompt")
         
         answer = ""

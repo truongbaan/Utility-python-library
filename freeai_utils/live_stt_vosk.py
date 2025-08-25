@@ -220,6 +220,7 @@ class STT_Vosk:
         return " ".join(segments).strip()
     
     def _help_config(self) -> None:
+        """Print guide on config for init of this class"""
         model_list = [
             {"name": "en_us_015", "description": "smallest model, only 40MB, best for live transcription but sacrifices accuracy"},
             {"name": "en_us_022_lgraph", "description": "Slightly bigger model than en_us_015, 128MB, better accuracy but slower for live transcription"},
