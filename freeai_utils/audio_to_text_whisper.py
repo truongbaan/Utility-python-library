@@ -102,8 +102,11 @@ class OpenAIWhisper:
         audio = np.frombuffer(out, dtype=np.float32).copy()
         return audio
 
-
     def transcribe(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> Dict[str, Any]:
+        """
+        Transcribes an audio file from a given file path. 
+        Returns a dictionary with the transcription results, including text, and other data.
+        """
         # Transcribes audio from a file path.
         # param audio_path: Path to the audio file.
         # param fp16: Whether to use fp16 precision (GPU only).
@@ -126,7 +129,9 @@ class OpenAIWhisper:
             raise
 
     def get_time_transcription(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> List[List[Any]]:
-
+        """
+        Transcribes an audio file and returns a list of lists, where each inner list contains the start time, end time, and transcribed text.
+        """
         result = self.transcribe(audio_path=audio_path, fp16=fp16 if self._device == "cuda" else False, **transcribe_kwargs)
         segments = result.get("segments", [])
         return [
@@ -135,10 +140,16 @@ class OpenAIWhisper:
         ]
     
     def get_transcription(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
+        """
+        Transcribes an audio file and returns only the full transcribed text as a single string, without any additional data.
+        """
         text = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["text"]
         return text
 
     def get_lang_detect(self, audio_path: str, fp16: bool = False, **transcribe_kwargs: Any) -> str:
+        """
+        Transcribes an audio file to determine the language of the audio and returns the detected language as a string.
+        """
         language = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["language"]
         return language
     

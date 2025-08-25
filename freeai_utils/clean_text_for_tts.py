@@ -1,8 +1,8 @@
 import re 
 #made by AI, need to check again later
 
-#Strip out markdown/HTML artifacts so that text-to-speech reads clean prose.
 def clean_ai_text_for_tts(text: str) -> str:
+    """Strip out markdown/HTML artifacts so that text-to-speech reads clean prose."""
     if not isinstance(text, str):
             raise TypeError("Text must be str type.")
     

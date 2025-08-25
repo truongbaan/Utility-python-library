@@ -69,6 +69,10 @@ class VN_Whisper:
         return self._processor   
               
     def transcribe_audio(self, audio_path) -> str:
+        """
+        Transcribes the speech in an audio file to text using a machine learning model. 
+        It loads the audio from the given file path, and return the transcription from the model's output.
+        """
         # Load and preprocess audio
         self.logger.info(f"Loading audio from: {audio_path}")
         audio, sr = librosa.load(audio_path, sr=16000)

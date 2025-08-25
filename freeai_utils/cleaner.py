@@ -14,7 +14,11 @@ class __Cleaner: #this class first created is due to the gttS doesnt delete the 
             raise FileNotFoundError(f"Your path doesn't exist")
         
     
-    def remove_all_files_end_with(self, ends_with : str = None) -> Tuple[List[str], int]: #return the amount of files just got removed
+    def remove_all_files_end_with(self, ends_with : str = None) -> Tuple[List[str], int]:
+        """
+        Removes all files in a directory that end with a specified string.\n
+        Returns a tuple containing a list of the paths of the removed files and an integer count of how many files were deleted.
+        """
         counter : int = 0
         paths : List[str] = []
         
@@ -29,7 +33,7 @@ class __Cleaner: #this class first created is due to the gttS doesnt delete the 
                     paths.append(file_path)
                     os.remove(file_path)
         
-        return paths, counter            
+        return paths, counter
         
 if __name__ == "__main__":
     cleaner = __Cleaner()

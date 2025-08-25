@@ -98,6 +98,10 @@ class DocumentFilter:
         super().__setattr__(name, value)
     
     def search_document(self, prompt : str = None) -> List: #content text, score, and doc.id
+        """Searches a collection of documents for answers to a given prompt,
+        then filters the results based on a threshold score, a limit per document, and uniqueness.\n
+        Returns a list of tuples containing the text, score, and document ID.
+        """
         self.__enforce_type(prompt, str, "prompt") #check type before start
         
         result = self._reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
@@ -127,6 +131,10 @@ class DocumentFilter:
         return filtered_answers #return list of document with ranking score that > threshold
 
     def __init_documents(self, directory : str = "") -> None:
+        """
+        Initializes and loads documents from a specified directory. 
+        It finds and extracts text from all PDF and DOCX files in the directory to prepare them for searching.
+        """
         #get from here
         self._documents.clear()
         pdf_urls, docx_urls =self.__collect_file_paths(directory)
@@ -144,6 +152,7 @@ class DocumentFilter:
             self._documents.append(Document(content=text))
     
     def __collect_file_paths(self, directory):
+        """a helper that scans a directory for all PDF and DOCX files and returns their file paths in two separate lists."""
         pdf_urls = []
         docx_urls = []
     

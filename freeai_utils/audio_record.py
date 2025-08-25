@@ -71,6 +71,7 @@ class WavRecorder:
         return np.sqrt(np.mean(samples**2))
 
     def record_fixed(self, duration : int, output_filename : str ="fixed_record.wav") -> None:  # duration in seconds
+        """Records audio for a set duration in seconds and saves it to a WAV file."""
         self.__enforce_type(duration, int, "duration")
         self.__enforce_type(output_filename, str, "output_filename")
         
@@ -95,6 +96,7 @@ class WavRecorder:
             self._save_wave(output_filename)
 
     def record_toggle(self, toggle_key : str ='`', output_filename : str ="toggle_record.wav") -> None:  # default toggle key: backtick
+        """Records audio continuously until a specific keyboard key (the default is backtick `) is pressed to stop it."""
         #check type
         self.__enforce_type(toggle_key, str, "toggle_key")
         self.__enforce_type(output_filename, str, "output_filename")
@@ -126,6 +128,9 @@ class WavRecorder:
             self._save_wave(output_filename)
 
     def record_silence(self, silence_threshold : int = 800, max_silence_seconds : int = 3, output_filename : str ="silence_record.wav") -> None: 
+        """
+        Records audio and automatically stops after a period of silence that exceeds a specified duration and volume threshold.
+        """
         #check type 
         self.__enforce_type(silence_threshold, int, "silence_threshold")
         self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
@@ -254,6 +259,7 @@ class MP3Recorder:
                 f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
     def record_fixed(self, duration: int, output_filename: str ="fixed_record.mp3") -> None:
+        """Records audio for a set duration in seconds and saves it to a MP3 file."""
         self.__enforce_type(duration, int, "duration")
         self.__enforce_type(output_filename, str, "output_filename")
 
@@ -277,6 +283,7 @@ class MP3Recorder:
             self._save_mp3(output_filename)
 
     def record_toggle(self, toggle_key: str ='`', output_filename: str ="toggle_record.mp3") -> None:
+        """Records audio continuously until a specific keyboard key (the default is backtick ') is pressed to stop it."""
         self.__enforce_type(toggle_key, str, "toggle_key")
         self.__enforce_type(output_filename, str, "output_filename")
 
@@ -304,6 +311,9 @@ class MP3Recorder:
             self._save_mp3(output_filename)
 
     def record_silence(self, silence_threshold: int = 800, max_silence_seconds: int = 3, output_filename: str ="silence_record.mp3") -> None:
+        """
+        Records audio and automatically stops after a period of silence that exceeds a specified duration and volume threshold.
+        """
         self.__enforce_type(silence_threshold, int, "silence_threshold")
         self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
         self.__enforce_type(output_filename, str, "output_filename")
@@ -341,6 +351,10 @@ class MP3Recorder:
 from mutagen.mp3 import MP3, MutagenError
 
 def check_wav_length_and_size(file_path: str, period: float = 5.0, allowed_logger : bool = True) -> bool:
+    """
+    Checks if a given WAV audio file's duration is less than or equal to a specified time period. 
+    It returns True if it is and False if it isn't. The function also logs the file's duration and size.
+    """
     logger = logging.getLogger("WAV Checker")
     if allowed_logger:
         logger.setLevel(logging.INFO)
@@ -373,6 +387,10 @@ def check_wav_length_and_size(file_path: str, period: float = 5.0, allowed_logge
         raise
 
 def check_mp3_length_and_size(file_path: str, period: float = 5.0, allowed_logger : bool = True) -> bool:
+    """
+    Checks if a given MP3 audio file's duration is less than or equal to a specified time period. 
+    It returns True if it is and False if it isn't. The function also logs the file's duration and size.
+    """
     logger = logging.getLogger("MP3 Checker")
     if allowed_logger:
         logger.setLevel(logging.INFO)
