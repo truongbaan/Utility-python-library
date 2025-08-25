@@ -90,6 +90,9 @@ class DecisionMaker:
         super().__setattr__("_initialized", True)
 
     def construct_sys_prompt(self, sample_ques_ans : str = None, positive_ans : str = None, negative_ans : str = None) -> None:
+        """constructs a system prompt for a language model to help it decide if a question requires an internet search. 
+        It uses optional sample questions and answers to provide examples, and defines the specific strings for positive and negative answers.
+        """
         #check type
         self.__enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
         self.__enforce_type(negative_ans, str, "negative_ans")
@@ -98,12 +101,13 @@ class DecisionMaker:
             sample_ques_ans = None
             
         self._system_prompt = (
-            "Analyze the following question and determine if an internet search is required to answer it. "
+            "Analyze the following question and determine which result is better to answer it. "
             f"Respond with '{positive_ans}' or '{negative_ans}'.\n\n"
             f"Example:\n{sample_ques_ans or '<no example provided>'}"
         )
     
     def decide(self, user_question: str, temp_prompt : str = None) -> str:
+        """Returns the model's decision as a capitalized string."""
         self.__enforce_type(user_question, str, "user_question")
         self.__enforce_type(temp_prompt, (str, type(None)), "temp_prompt")
         
@@ -156,6 +160,7 @@ class DecisionMaker:
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def _run_examples(self) -> None:
+        """Print guide on config for this class"""
         print("This is the example of each field you would put in, to help you know how it works")
         print("*" * 100)
         print("DEMO")
@@ -179,13 +184,11 @@ class DecisionMaker:
         
         print(f"FIELD [sample_ques_ans]:\n{sample_ques_ans}")
         sample_ques_ans = (
-            "Analyze the following question and determine if an internet search is required to answer it. "
+            "Analyze the following question and determine which result is better to answer it. "
             f"Respond with '{positive_ans}' or '{negative_ans}'.\n\n"
             "Examples:\n"
             f"{sample_ques_ans}"
         )
-        
-        
         
         example_questions = [
             "What is the capital of Germany?", #search

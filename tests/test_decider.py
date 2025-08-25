@@ -29,7 +29,7 @@ def test_model_initialized(decision_model):
     #check prompt modification
     decision_model.construct_sys_prompt("", "Yes", "No")
     cons_prompt = (
-            "Analyze the following question and determine if an internet search is required to answer it. "
+            "Analyze the following question and determine which result is better to answer it. "
             f"Respond with 'Yes' or 'No'.\n\n"
             f"Example:\n<no example provided>"
         )
