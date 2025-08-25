@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.5.5"
+version = "0.5.6"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability, decider"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -19,7 +19,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "pyaudio",
     "numpy",
     "keyboard",
     "lameenc",

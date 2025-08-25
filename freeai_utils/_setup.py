@@ -6,10 +6,15 @@ import re
 import shutil
 import urllib.request
 import zipfile
+import subprocess
+import sys
 
 def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
-    
+    install_linux_dependencies() #for linux system-level
+    #add extra libs cant pip install on google collab
+    install_library("pyaudio")
+    install_library("pyautogui")
     if target is None or target == "A" or target == "":
         install_default_model(auto_confirm)  # Installs all default models (excluding image generation)
     elif target == "S":
@@ -442,6 +447,80 @@ def remove_dir(path : str) -> None:
         raise PermissionError(f"Permission denied to modify {path}. Fail to remove the folder.")
     except OSError as e:
         raise OSError(f"Error removing folder '{path}': {e.strerror}")
+
+def install_library(package):
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        print(f"Successfully installed {package}.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Can not to install {package}. Proceed to skip installing {package}")
+        
+def install_linux_dependencies():
+    # Installs system-level dependencies for PyAutoGUI and PyAudio on Linux.
+    # This function first updates the package list, then attempts to install
+    # all required packages in a single command. It will only run if the
+    # operating system is Linux.
+
+    # A list of all required apt-get packages
+    apt_packages = [
+        # Base audio/video dependencies
+        "ffmpeg",
+        "libmp3lame-dev",
+        "libportaudio2",
+        "libportaudiocpp0",
+        "portaudio19-dev",  # Added this for PyAudio compatibility
+        "espeak",
+        # Dependencies for PyAutoGUI
+        "python3-xlib",
+        "libx11-dev",
+        "libjpeg-dev",
+        "libpng-dev",
+        "zlib1g-dev",
+        "xserver-xephyr",
+        # Dependencies for PyAudio
+        "libasound-dev",
+        "xvfb", #for pyautogui fakescreen
+    ]
+    
+    # Check if the operating system is Linux
+    if sys.platform.startswith("linux"):
+        print("Detected Linux environment. Updating package list...")
+        try:
+            # update the apt-get package list
+            subprocess.check_call(["sudo", "apt-get", "update"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,)
+            print("Package list updated. Installing dependencies...")
+            
+            # Now, install all the dependencies
+            subprocess.check_call(["sudo", "apt-get", "install", "-y"] + apt_packages,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,)
+            print("All system dependencies installed successfully.")
+            if os.getenv('DISPLAY') is None:
+                print("Setting up virtual display for PyAutoGUI...")
+                subprocess.Popen(['Xvfb', ':99', '-screen', '0', '1024x768x24', '-ac', '+extension', 'GLX'])
+                os.environ['DISPLAY'] = ':99'
+                print("Virtual display is ready.")
+            _setup_collab_environment()
+        except subprocess.CalledProcessError as e:
+            print(f"Error: An apt-get command failed.")
+            print(f"Details: {e}")
+            
+# Additional helper function to ensure proper X11 setup before importing GUI libraries (created by AI)
+def _setup_collab_environment():
+    """For headless environment like google collab to not stop because of pyautogui"""
+    if sys.platform.startswith("linux") and os.getenv("DISPLAY") and 'google.colab' in sys.modules:
+        # Ensure XAUTHORITY is properly set
+        if "XAUTHORITY" not in os.environ:
+            temp_xauth = "/tmp/.Xauth_temp"
+            if os.path.exists(temp_xauth):
+                os.environ["XAUTHORITY"] = temp_xauth
+            else:
+                # Create empty auth file
+                try:
+                    with open(temp_xauth, 'wb') as f:
+                        pass
+                    os.chmod(temp_xauth, 0o600)
+                    os.environ["XAUTHORITY"] = temp_xauth
+                except Exception:
+                    pass
 
 def get_free_space_gb(path='/') -> float:
     #Defaults to the root directory ('/') which typically represents the system drive.
