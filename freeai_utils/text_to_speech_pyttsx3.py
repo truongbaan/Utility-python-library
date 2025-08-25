@@ -10,6 +10,7 @@ class Text_To_Speech_Pyttsx3:
         return self.__engine
 
     def config_voice(self, rate: float = 170, volume: float = 1.0, voice_index: int = 0) -> None:
+        """Adjust the speech rate, volume, and select a specific voice using its numerical index."""
         if not isinstance(rate, (int, float)):
             raise TypeError("Rate must be a number.")
         if not (0.0 <= volume <= 1.0):
@@ -24,6 +25,7 @@ class Text_To_Speech_Pyttsx3:
         self.__engine.setProperty('voice', voices[voice_index].id)
 
     def speak(self, text: str) -> None:
+        """Takes a string of text and converts it into spoken audio. It uses the voice settings configured by config_voice to speak the text. The function will not proceed until all the text has been spoken."""
         if not isinstance(text, str):
             raise ValueError(f"The provided text is not string!")
         self.__engine.say((text))

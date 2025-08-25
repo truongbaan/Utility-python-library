@@ -81,6 +81,10 @@ class SDXL_TurboImage:
                     image_name : str = "generated_image",
                     output_dir : str = "generated_images") -> None:
         
+        """
+        Creates images from a positive prompt (what you want to see) and a negative prompt (what you want to avoid). 
+        It saves the generated images to a specified directory.
+        """
         #check type
         self.__enforce_type(prompt, str, "prompt")
         self.__enforce_type(negative_prompt, str, "negative_prompt")
@@ -204,6 +208,24 @@ class SD15_Image:
                         extra_detail : Union[int, float, None] = None,
                         seed : int = -1,
                         **optional_kwargs) -> None:
+        """
+        Creates images from a positive prompt (what you want to see) and a negative prompt (what you want to avoid). 
+        It saves the generated images to a specified directory. You can control various aspects of the image generation process:
+        
+        ARGS: 
+        - positive prompt: The main description of what you want the image to contain. This is the core instruction for the model.
+        - negative prompt: A description of what you want to exclude from the generated image. By default, it includes common negative prompts to help avoid artifacts like bad hands and poor composition.
+        - image_name: The base name for the generated image files. A timestamp will be appended to each filename to ensure they are unique.
+        - output_dir: The directory where the generated images will be saved. The function will create this directory if it doesn't already exist.
+        - width, height: image pixels
+        - number of images: The number of images to generate per call.
+        - clip_skip: Controls how many layers of the CLIP text encoder to skip. Skipping layers can alter the stylistic output of the image.
+        - steps:  The number of diffusion steps to run. A higher number of steps can lead to a more detailed and refined image but will take longer to generate.
+        - guidance scale: A value that influences how strongly the model adheres to the positive_prompt. Higher values make the output more closely match the prompt but can sometimes reduce image quality.
+        - extra_detail: This is the strength of the lora applied
+        - seed: A value used to initialize the random number generator. Using a fixed seed will produce the exact same image(s) for the same prompts and parameters, which is useful for reproducibility. If set to -1 (the default), a random seed will be used for each generation.
+        - **optional_kwargs: Additional keyword arguments that can be passed directly to the underlying model for advanced control.
+        """
         #check type before proceed
         self.__enforce_type(positive_prompt, str, "positive_prompt")
         self.__enforce_type(negative_prompt, str, "negative_prompt")
@@ -276,6 +298,7 @@ class SD15_Image:
         print(f"Saved {len(output.images)} images.")
     
     def _help_config(self) -> None:
+        """Print guide on config for init of this class"""
         model_list = [
             {"name": "anime_pastal_dream.safetensors", "description": "Anime: Dreamy aesthetic with soft, pastel colors."},
             {"name": "meinapastel.safetensors", "description": "Anime: 2D illustrations with good lighting, shadows, and vibrant colors."},
@@ -311,6 +334,10 @@ class SD15_Image:
         print("*" * 40)
         
     def _default_setup(self, preferred_devices : str, reduce_memory : bool, embed_default : bool) -> None:
+        """
+        Sets up the image generation pipeline with a default Stable Diffusion 1.5 model.
+        Can optionally enable memory reduction and load default negative embeddings.
+        """
         for dev in preferred_devices:
             try:
                 self.logger.info(f"Loading on {dev}")
@@ -331,6 +358,10 @@ class SD15_Image:
                 self.logger.error(f"Failed to load on {dev}: {e}")
 
     def _custom_setup(self, preferred_devices : list, path : str, scheduler : str, safety : bool, reduce_memory : bool, embed_default : bool) -> None:
+        """
+        Sets up the image generation pipeline using a custom model from a local file path. 
+        Can configure specific scheduler, enable or disable an NSFW safety checker, and reduce memory usage.
+        """
         if not os.path.exists(path):
             self.logger.critical(f"Fail to load model at {path}.\n If you're trying the default models, may be you wanna try command line: 'freeai-utils setup ICF' to download the file?")
             raise FileNotFoundError(f"File not found at: {path}")
@@ -385,6 +416,11 @@ class SD15_Image:
         self.logger.info("Initalized completed")
         
     def _custom_scheduler(self, scheduler : str) -> None:
+        """Modifies the diffusion scheduler of the image generation model. 
+        
+        Supports several scheduler types: including SDE Karras, DPM++ 2M Karras, and Euler A.
+        Defaults to Euler if the provided scheduler is not supported.
+        """
         self.__enforce_type(scheduler, str, "scheduler")
         scheduler = scheduler.strip()
         self.logger.info(f"Loading scheduler: {scheduler if scheduler != 'default' else 'Euler'}")
@@ -426,6 +462,10 @@ class SD15_Image:
         self._model.scheduler = new_scheduler #set scheduler
         
     def _load_default_embed_and_lora(self) -> None:
+        """
+        Loads default textual inversion embeddings and a LoRA model into the pipeline. 
+        These are used to enhance the quality of the generated images.
+        """
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
         embedding_paths = {
             "easynegative": os.path.join(path, "easynegative.safetensors"),
@@ -453,6 +493,7 @@ class SD15_Image:
                 raise Exception(e)
     
     def enable_safety(self) -> None:
+        """Enables a NSFW safety checker to prevent the generation of inappropriate content."""
         safety_checker = StableDiffusionSafetyChecker.from_pretrained(
             "CompVis/stable-diffusion-safety-checker"
         ).to(self._device)
@@ -463,6 +504,7 @@ class SD15_Image:
         self._model.feature_extractor = feature_extractor
         
     def disable_safety(self) -> None:
+        """Disables the NSFW safety checker."""
         self._model.safety_checker = None
         self._model.feature_extractor = None
     

@@ -5,6 +5,11 @@ import playsound # need pip install playsound==1.2.2 (the later version wouldn't
 from multiprocessing.managers import Namespace
 
 def gtts_speak(text: str = None, lang: str = 'vi', shared_name: Namespace = None) -> str:
+    """Converts a string of text into a spoken audio file, plays it, and then deletes the temporary file.
+    
+    The shared_name parameter is used in multiprocessing. When the function is run in a separate process, this parameter allows it to share the temporary file's path with the main process. This is useful for cleanup, ensuring the temporary file is deleted even if the process playing the sound is terminated unexpectedly.
+    
+    Returns the file path of the temporary audio file for manual cleanup if the process fails to delete it."""
     if text is None:
         raise ValueError("text could not be None, did you forget what to speak?")
     elif not isinstance(text, str):
@@ -29,6 +34,8 @@ def gtts_speak(text: str = None, lang: str = 'vi', shared_name: Namespace = None
 
 #for those who need what language it supports and the code lang for it
 def gtts_print_supported_languages() -> None:
+    """Prints a list of all languages supported by Google's Text-to-Speech (gTTS). 
+    The list includes the language code and its corresponding name."""
     supported_languages = lang.tts_langs()  # Get the dictionary of supported languages
     print("Supported languages by gTTS:")
     for code, language in supported_languages.items():

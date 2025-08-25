@@ -27,6 +27,7 @@ class PDF_DOCX_Reader:
         self.logger.info(f"Initialize successfully")
 
     def extract_all_text(self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
+        """ Extracts and returns all text from a .pdf or .docx file into a single string. It can process a specific range of pages from a file."""
         # Extract all text into a single string.
         # Tries pypdf for PDF, Document for DOCX, and falls back to fitz for PDFs.
         
@@ -93,6 +94,7 @@ class PDF_DOCX_Reader:
                 return ""
 
     def extract_ordered_text( self, file_path: str = None, first_page: Optional[int] = None, last_page: Optional[int] = None) -> str:
+        """Extracts and returns text from a file while preserving its layout and order."""
         # Extract text maintaining layout using pdfplumber for PDFs,
         # or fallback to fitz. DOCX behaves same as extract_all_text.
         
@@ -149,6 +151,7 @@ class PDF_DOCX_Reader:
             return self.extract_all_text(file_path, fp, lp)
 
     def extract_images(self, file_path: str = None, folder_extract: str = "extracted_images", first_page: Optional[int] = None, last_page: Optional[int] = None) -> int:
+        """Extracts images from a PDF or DOCX file and saves them to a specified folder. """
         # Extract images from PDF using fitz (PyMuPDF).
         # Saves images to folder_extract, and returns count.
    

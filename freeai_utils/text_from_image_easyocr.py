@@ -62,6 +62,7 @@ class Text_Extractor_EasyOCR:
         return self._reader
     
     def _initialize_reader(self, language: List[str], prefer_device: str):
+        """Initializes an easyocr.Reader instance."""
         if prefer_device.lower() == 'cuda':
             try:
                 reader = easyocr.Reader(language, gpu=True)
@@ -82,12 +83,20 @@ class Text_Extractor_EasyOCR:
     
     #this function asks for an image_path and perform ocr on it
     def get_text_from_image(self, image_path : str = None) -> str:
+        """
+        Takes a file path to an image and uses OCR to read and extract all text from it. 
+        Returns the extracted text as a single string.
+        """
         self.__enforce_type(image_path, str, "image_path")
         result = self._reader.readtext(image_path, detail=0)
         return " ".join(result)
         
     #this function will take a screenshot at your current screen and return the text from the screenshot
     def get_text_from_screenshot(self, capture_region: Optional[tuple] = None, image_name : Optional[str] = None) -> str:
+        """
+        Captures a screenshot of a specified screen region and performs OCR to extract the text from the image. 
+        Returns the combined text as a single string.
+        """
         __region = self._capture_region
         # Rationale: This design provides flexibility.  
         # The class's `self._capture_region` acts as a default, while the `capture_region` parameter allows for one-off, 
@@ -115,6 +124,11 @@ class Text_Extractor_EasyOCR:
 
     #set capture region base on percentage instead of choosing specific size capture
     def set_capture_region(self, crop_left: float = 0, crop_right: float = 0, crop_up: float = 0, crop_down: float = 0) -> tuple:
+        """
+        Defines a specific region of the screen for capturing screenshots based on percentages. 
+        It takes percentages to crop from the top, bottom, left, and right of the screen, 
+        then calculates and sets the pixel coordinates for the capture area.
+        """
         #check type of the input
         self.__enforce_type(crop_left, (int, float), "crop_left")
         self.__enforce_type(crop_right, (int, float), "crop_right")
