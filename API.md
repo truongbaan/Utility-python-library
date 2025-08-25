@@ -206,12 +206,12 @@ print(text)
 **Convert text to speech using gTTS or pyttsx3.**
 
 ```python
-from freeai_utils import gtts_speak, Text_To_Speech_Pyttsx3, __Cleaner
+from freeai_utils import gtts_speak, Text_To_Speech_Pyttsx3, Cleaner
 
 # gTTS version
 gtts_speak(text = "Xin chào người đẹp, em tên là gì thế", lang = "vi")
 gtts_speak(text = "Hello, how are you?", lang = "en")
-__Cleaner().remove_all_files_end_with(".mp3") #remove in case it didnt remove the file correctly
+Cleaner().remove_all_files_end_with(".mp3") #remove in case it didnt remove the file correctly
 
 # pyttsx3 version
 speaker = Text_To_Speech_Pyttsx3()

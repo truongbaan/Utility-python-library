@@ -3,6 +3,7 @@ import sys
 import click
 from ._setup import install_model, remove_dir
 import os
+from .cleaner import Cleaner
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -78,7 +79,10 @@ def clean(target : str = ""):
     elif key == "ICF":
         print("Cleaning: Extra safetensors files only...")
         known_folder = ["downloaded_models"]
-        
+    
+    cleaner = Cleaner()
+    print(cleaner.remove_all_files_end_with('.mp3'))
+    
     for folder in known_folder:
         path = os.path.join(cur_dir, folder)
         try:

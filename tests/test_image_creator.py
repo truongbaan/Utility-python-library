@@ -97,8 +97,8 @@ def test_disable_safety_sd15(sd15):
     assert sd15.model.feature_extractor is None
     
 def test_clean_up():
-    from freeai_utils import __Cleaner
+    from freeai_utils import Cleaner
     import os
     cur = os.path.abspath(os.path.join(os.getcwd(), "generated_images"))
-    cleaner = __Cleaner(directory=cur)
+    cleaner = Cleaner(directory=cur)
     cleaner.remove_all_files_end_with(".png")

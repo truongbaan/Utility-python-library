@@ -1,7 +1,7 @@
 import os
 from typing import List, Tuple, Union
 
-class __Cleaner: #this class first created is due to the gttS doesnt delete the .mp3 100% each time when interrupt in a multiprocessing 
+class Cleaner: #this class first created is due to the gttS doesnt delete the .mp3 100% each time when interrupt in a multiprocessing 
     def __init__(self, directory : Union[str, None] = None):
         if directory is None:
             self._dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,5 +36,5 @@ class __Cleaner: #this class first created is due to the gttS doesnt delete the 
         return paths, counter
         
 if __name__ == "__main__":
-    cleaner = __Cleaner()
+    cleaner = Cleaner()
     print(cleaner.remove_all_files_end_with('.png'))

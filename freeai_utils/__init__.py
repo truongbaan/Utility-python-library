@@ -8,7 +8,7 @@ _module_to_names = {
     'audio_to_text_whisper': ['OpenAIWhisper'],
     'audio_to_text_vn': ['VN_Whisper'],
     'clean_text_for_tts': ['clean_ai_text_for_tts'],
-    'cleaner': ['__Cleaner'],
+    'cleaner': ['Cleaner'],
     'decider': ['DecisionMaker'],
     'document_filter': ['DocumentFilter'],
     'geminiAPI': ['GeminiChatBot', 'GeminiClient'],
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from .audio_to_text_whisper    import OpenAIWhisper
     from .audio_to_text_vn         import VN_Whisper
     from .clean_text_for_tts       import clean_ai_text_for_tts
-    from .cleaner                  import __Cleaner
+    from .cleaner                  import Cleaner
     from .document_filter          import DocumentFilter
     from .geminiAPI                import GeminiChatBot, GeminiClient
     from .google_search            import WebScraper

@@ -99,7 +99,7 @@ def test_record_silence_mp3(mp3_rec):
     assert check_mp3_length_and_size(out,2.2)
 
 def test_clean_up(): #not really a test, just a clean up :D
-    from freeai_utils.cleaner import __Cleaner
-    cleaner = __Cleaner(current)
+    from freeai_utils.cleaner import Cleaner
+    cleaner = Cleaner(current)
     cleaner.remove_all_files_end_with(".wav")
     cleaner.remove_all_files_end_with(".mp3")
