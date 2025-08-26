@@ -12,6 +12,7 @@ import sys
 def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
     install_linux_dependencies() #for linux system-level
+    _setup_collab_environment() #for google collab to fix xauthority
     #add extra libs cant pip install on google collab
     install_library("pyaudio")
     install_library("pyautogui")
@@ -498,7 +499,6 @@ def install_linux_dependencies():
                 subprocess.Popen(['Xvfb', ':99', '-screen', '0', '1024x768x24', '-ac', '+extension', 'GLX'])
                 os.environ['DISPLAY'] = ':99'
                 print("Virtual display is ready.")
-            _setup_collab_environment()
         except subprocess.CalledProcessError as e:
             print(f"Error: An apt-get command failed.")
             print(f"Details: {e}")
@@ -506,7 +506,9 @@ def install_linux_dependencies():
 # Additional helper function to ensure proper X11 setup before importing GUI libraries (created by AI)
 def _setup_collab_environment():
     """For headless environment like google collab to not stop because of pyautogui"""
-    if sys.platform.startswith("linux") and os.getenv("DISPLAY") and 'google.colab' in sys.modules:
+    collab_env = ('COLAB_GPU' in os.environ) or ('COLAB_TPU_ADDR' in os.environ) or ('google.colab' in sys.modules)
+    if sys.platform.startswith("linux") and collab_env:
+        print("Detect google collab environment...")
         # Ensure XAUTHORITY is properly set
         if "XAUTHORITY" not in os.environ:
             temp_xauth = "/tmp/.Xauth_temp"
