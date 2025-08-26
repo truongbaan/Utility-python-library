@@ -519,8 +519,11 @@ def _setup_collab_environment():
                         pass
                     os.chmod(temp_xauth, 0o600)
                     os.environ["XAUTHORITY"] = temp_xauth
-                except Exception:
-                    pass
+                    print(f"Created temporary X authority file: {temp_xauth}")
+                except Exception as e:
+                    print(f"Could not create auth file: {e}")
+                    # disable auth
+                    os.environ["XAUTHORITY"] = "/dev/null"
 
 def get_free_space_gb(path='/') -> float:
     #Defaults to the root directory ('/') which typically represents the system drive.
