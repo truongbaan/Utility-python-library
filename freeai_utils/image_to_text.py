@@ -1,9 +1,9 @@
-from transformers import AutoProcessor, AutoModelForVision2Seq # need pip install transformers 
+from transformers import AutoProcessor, AutoModelForImageTextToText # need pip install transformers 
 from PIL import Image # need pip install torch
 import torch # need pip install torch
 import logging
 from typing import Optional
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
@@ -12,7 +12,7 @@ class ImageCaptioner:
     __slots__ = ("_device", "_processor", "_model", "logger", "_initialized")
     _device: str
     _processor: AutoProcessor
-    _model: AutoModelForVision2Seq
+    _model: AutoModelForImageTextToText
     logger: logging.Logger
     _initialized: bool
     
@@ -28,11 +28,11 @@ class ImageCaptioner:
         
         try:
             self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True, local_files_only = True)
-            self._model = AutoModelForVision2Seq.from_pretrained(model_name, local_files_only = True)
+            self._model = AutoModelForImageTextToText.from_pretrained(model_name, local_files_only = True)
         except Exception:
             self.logger.info(f"Detect local model not found, attemp to download {model_name}")
             self._processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
-            self._model = AutoModelForVision2Seq.from_pretrained(model_name)
+            self._model = AutoModelForImageTextToText.from_pretrained(model_name)
                 
         #init the var to hold device available
         preferred_devices = []
