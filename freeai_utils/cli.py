@@ -56,7 +56,7 @@ def clean(target : str = ""):
             "Are you sure you want to proceed? (Y/n): ",
     }
     
-    key = target.strip().upper() if target is str else target
+    key = target.strip().upper() if target is str else ""
     if key not in messages:
         print(f"Unknown target '{target}'. Valid options are: '', 'V', 'ICF', 'A'")
         return
