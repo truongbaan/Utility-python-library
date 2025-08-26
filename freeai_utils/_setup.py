@@ -8,6 +8,7 @@ import urllib.request
 import zipfile
 import subprocess
 import sys
+import importlib.util
 
 def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
@@ -449,11 +450,17 @@ def remove_dir(path : str) -> None:
     except OSError as e:
         raise OSError(f"Error removing folder '{path}': {e.strerror}")
 
-def install_library(package):
+
+def install_library(package) -> None:
+    # check before trying to install library 
+    spec = importlib.util.find_spec(package)
+    if spec is not None:
+        return
+    
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         print(f"Successfully installed {package}.")
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print(f"Error: Can not to install {package}. Proceed to skip installing {package}")
         
 def install_linux_dependencies():
