@@ -16,7 +16,8 @@ Use the table below to navigate quickly to each feature section.
 | OCR                   | Extract text from images or screen regions           | [EasyOCR Extractor](#easyocr-extractor) |
 | Text-to-Speech        | Convert text to speech via gTTS or pyttsx3           | [Text-to-Speech](#text-to-speech)       |
 | PDF-DOCX-Reader       | Extract text and images from pdf/docx file           | [PDF-DOCX-Reader](#pdf-docx-reader)     |
-| Document-Filter       | Filter documents using prompt                        | [Document-Filter](#document-filter)     |
+| AI-Document-Searcher  | Searcher documents using AI                          | [AI-Document-Searcher](#document-searcher)|
+| Document-Filter       | Search documents for specific keywords               | [Document-Filter](#document-filter)     |
 | DecisionMaker         | Answer yes no question base on prompt type           | [DecisionMaker](#decision-maker)        |
 | LangTranslator        | Translate and detect language                        | [LangTranslattor](#lang-translator)     |
 | LocalLLM              | Local LLM model (Qwen) to interact without API keys  | [LocalLLM](#local-llm)                  |
@@ -233,16 +234,31 @@ print(reader.extract_all_text("example.pdf")) #return str (text) in the file
 print(reader.extract_images("example.docx")) #return the number of images found in the file
 ```
 
-## Document filter
+## Document Searcher
 
 **Use an LLM or local model to evaluate and rank each document against the prompt**
 
 ```python
-from freeai_utils import DocumentFilter
-filter = DocumentFilter(path = "your_folder") #this will get all docx, pdf file in that folder and put them into documents
-list_ans : list = filter.search_document("your_keyword")
+from freeai_utils import AIDocumentSearcher
+Searcher = AIDocumentSearcher(path = "your_folder") #this will get all docx, pdf file in that folder and put them into documents
+list_ans : list = Searcher.search_document("your_keyword")
 for ans in list_ans:
     print(ans)
+```
+
+## Document Filter
+
+**Search keyword in the the provided documents**
+
+```python
+from freeai_utils import DocumentFilter
+from typing import List, Dict
+filter = DocumentFilter(path = "your_folder") #this will get all docx, pdf file in that folder and put them into documents
+search_results : Dict[str, List[str]] = filter.search_keyword("your_keyword")
+for path, sentences in search_results.items():
+    print(f"Keyword found in: {path}")
+    for sentence in sentences:
+        print(f"  - {sentence}")
 ```
 
 ## Decision Maker

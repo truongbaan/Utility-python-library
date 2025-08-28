@@ -10,7 +10,7 @@ _module_to_names = {
     'clean_text_for_tts': ['clean_ai_text_for_tts'],
     'cleaner': ['Cleaner'],
     'decider': ['DecisionMaker'],
-    'document_filter': ['DocumentFilter'],
+    'document_filter': ['AIDocumentSearcher', 'DocumentFilter', 'collect_file_paths'],
     'geminiAPI': ['GeminiChatBot', 'GeminiClient'],
     'google_search': ['WebScraper'],
     'image_to_text': ['ImageCaptioner'],
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from .audio_to_text_vn         import VN_Whisper
     from .clean_text_for_tts       import clean_ai_text_for_tts
     from .cleaner                  import Cleaner
-    from .document_filter          import DocumentFilter
+    from .document_filter          import AIDocumentSearcher, DocumentFilter, collect_file_paths
     from .geminiAPI                import GeminiChatBot, GeminiClient
     from .google_search            import WebScraper
     from .image_to_text            import ImageCaptioner

@@ -117,10 +117,10 @@ def download_transcription():
 
 def download_document_related():
     from .decider import DecisionMaker
-    from .document_filter import DocumentFilter
+    from .document_filter import AIDocumentSearcher
      
     _download_and_purge(DecisionMaker)
-    _download_and_purge(DocumentFilter, auto_init=False)
+    _download_and_purge(AIDocumentSearcher, auto_init=False)
 
 
 def download_image_related():

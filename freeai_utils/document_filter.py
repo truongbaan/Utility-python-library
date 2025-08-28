@@ -4,13 +4,20 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 from haystack import Document
 from haystack.components.readers import ExtractiveReader
 from haystack.utils.device import ComponentDevice
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from .pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
 import torch
+import re
 
 #smaller model: deepset/roberta-base-squad2
-class DocumentFilter:
+class AIDocumentSearcher:
+    """
+    AI-driven approach to document search. 
+    It uses an extractive question-answering model to understand the meaning and intent behind a query. 
+    Instead of just looking for keywords, 
+    it can find relevant answers even if they are paraphrased or semantically related to the query.
+    """
     
     __slots__ = ("_reader", "threshold", "max_per_doc", "top_k", "_documents", "_initialized", "logger")
     
@@ -97,7 +104,7 @@ class DocumentFilter:
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
     
-    def search_document(self, prompt : str = None) -> List: #content text, score, and doc.id
+    def search_document(self, prompt : str = None) -> List[Tuple]: #content text, score, and doc.id
         """Searches a collection of documents for answers to a given prompt,
         then filters the results based on a threshold score, a limit per document, and uniqueness.\n
         Returns a list of tuples containing the text, score, and document ID.
@@ -137,7 +144,7 @@ class DocumentFilter:
         """
         #get from here
         self._documents.clear()
-        pdf_urls, docx_urls =self.__collect_file_paths(directory)
+        pdf_urls, docx_urls = collect_file_paths(directory)
         
         reader = PDF_DOCX_Reader() #init reader
         
@@ -151,7 +158,83 @@ class DocumentFilter:
             text = reader.extract_ordered_text(pdf)
             self._documents.append(Document(content=text))
     
-    def __collect_file_paths(self, directory):
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+        
+class DocumentFilter:
+    """
+    Designed for efficient, keyword-based search across a collection of documents. 
+    It functions by indexing the raw text of PDF and DOCX files, 
+    allowing it to quickly identify and filter documents containing a specific keyword or phrase.
+    """
+    def __init__(self, path: Optional[str] = None, auto_init: bool = True) -> None:
+        self.__enforce_type(auto_init, bool, "auto_init")
+        self.logger = setup_logging(self.__class__.__name__)
+        self.logger.propagate = False
+
+        self._documents: Dict[str, str] = {}  # Changed to a dictionary
+        if path is None:
+            path = os.getcwd()
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The path '{path}' does not exist.")
+        if auto_init:
+            self.__init_documents(path)
+        self.logger.info(f"Initialize successfully at path {path}")
+
+    @property
+    def documents(self):
+        return self._documents
+       
+    def search_keyword(self, keyword: str) -> Dict[str, List[str]]:
+        """
+        Searches a collection of documents for answers to a given keyword,
+        \n
+        Returns a Dict of str,list with str is the path, and list is the place it occurs the matched keyword
+        """
+        results = {}
+        
+        pattern = re.compile(r'\b' + re.escape(keyword) + r'\b', re.IGNORECASE)
+        
+        for path, text in self._documents.items():
+            # Split the document into sentences using '.'
+            sentences = text.split('.')
+            matches = []
+            
+            for sentence in sentences:
+                if pattern.search(sentence):
+                    # Add the matching sentence to the list for this file
+                    matches.append(sentence.strip())
+            
+            # Only add the file to the results if a match was found
+            if matches:
+                results[path] = matches
+                
+        return results
+    
+    def __init_documents(self, directory: str = "") -> None:
+        """
+        Initializes and loads documents from a specified directory.
+        It finds and extracts text from all PDF and DOCX files in the directory.
+        """
+        self._documents.clear()
+        pdf_urls, docx_urls = collect_file_paths(directory)
+
+        reader = PDF_DOCX_Reader()
+
+        for doc_path in docx_urls:
+            text = reader.extract_ordered_text(doc_path)
+            self._documents[doc_path] = text
+
+        for pdf_path in pdf_urls:
+            text = reader.extract_ordered_text(pdf_path)
+            self._documents[pdf_path] = text
+
+    def __enforce_type(self, value, expected_type, arg_name):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+        
+def collect_file_paths(directory : str)-> Tuple[List[str], List[str]]:
         """a helper that scans a directory for all PDF and DOCX files and returns their file paths in two separate lists."""
         pdf_urls = []
         docx_urls = []
@@ -166,8 +249,3 @@ class DocumentFilter:
                     docx_urls.append(file_path)
         
         return pdf_urls, docx_urls
-    
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-        
