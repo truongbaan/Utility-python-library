@@ -1,13 +1,14 @@
 # freeai_utils/cli.py
 import sys
 import click
-from ._setup import install_model, remove_dir
+from ._setup import install_model, remove_dir, check_for_updates
 import os
 from .cleaner import Cleaner
 
 @click.group(invoke_without_command=True)
 @click.pass_context
 def main(ctx):
+    check_for_updates("freeai-utils")
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         sys.exit(1)
@@ -41,6 +42,9 @@ def help():
     print("   A   Remove both extra downloaded safetensors and vosk models      →  freeai-utils clean A")
     print("   ICF   Remove extra safetensors file downloaded from ICF setup             →  freeai-utils clean ICF")
     print("   V   Remove Vosk models      →  freeai-utils clean V")
+    print("*" * 100)
+    print("Usage: freeai-utils updates\n")
+    print("Description: Checks for latest update on the library")
     print("*" * 100)
     
 @main.command(help="Remove extra downloaded files")
@@ -93,3 +97,9 @@ def clean(target : str = "", yes : bool = False):
             pass
         except Exception as e:
             raise Exception(e)
+
+@main.command(help="Checks for latest version")
+def updates():
+    result = check_for_updates("freeai-utils")
+    if not result:
+        click.echo("Library is up to dated")

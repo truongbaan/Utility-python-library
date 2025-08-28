@@ -9,6 +9,9 @@ import zipfile
 import subprocess
 import sys
 import importlib.util
+import click
+from packaging.version import parse
+from importlib.metadata import version
 
 def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
@@ -213,9 +216,11 @@ def download_embeded_citivai():
 
 #only support .safetensors and .pt
 def _url_download_from_civitai(civitai_api_download_url : str = "", model_name : str = None, download_name : str = None, download_dir : str = None) ->None: #only support for '.safetensors' and '.pt'
-    #model_name -> this to help know what model is being downloaded
-    #downloaded_name -> this will check the name when download to own computer
-    #download_dir -> where it would be downloaded
+    """Download a safetensor or pt file from civitai web\n
+    model_name -> this to help know what model is being downloaded\n
+    downloaded_name -> this will check the name when download to own computer\n
+    download_dir -> where it would be downloaded
+    """
     
     if download_dir is None:
         download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
@@ -452,6 +457,7 @@ def remove_dir(path : str) -> None:
 
 
 def install_library(package) -> None:
+    """Install a library seperately from the dependencies in toml file"""
     # check before trying to install library 
     spec = importlib.util.find_spec(package)
     if spec is not None:
@@ -464,7 +470,7 @@ def install_library(package) -> None:
         print(f"Error: Can not to install {package}. Proceed to skip installing {package}")
         
 def install_linux_dependencies():
-    # Installs system-level dependencies for PyAutoGUI and PyAudio on Linux.
+    """Installs system-level dependencies for PyAutoGUI and PyAudio on Linux."""
     # This function first updates the package list, then attempts to install
     # all required packages in a single command. It will only run if the
     # operating system is Linux.
@@ -534,6 +540,30 @@ def _setup_collab_environment():
                     # disable auth
                     os.environ["XAUTHORITY"] = "/dev/null"
 
+def check_for_updates(package_name) -> bool:
+    try:
+        installed_version = parse(version(package_name))
+        url = f"https://pypi.org/pypi/{package_name}/json"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        latest_version = parse(data["info"]["version"])
+        
+        if latest_version > installed_version:
+            click.echo(f"\n{colorize('[notice]', '96')} A new version of {package_name} is available! ({colorize(installed_version, '31')} → {colorize(latest_version, '32')})")
+            install_support = colorize(f'pip install --upgrade {package_name}', '32')
+            click.echo(f"{colorize('[notice]', '96')} To update, run: {install_support}")
+            return True
+        return False
+            
+    except Exception as e:
+        click.echo(f"An error occurred while checking for updates: {e}")
+        return False # Return False on error
+    
+def colorize(text: str, color_code: str) -> str:
+    """Returns a string with the specified ANSI color and a reset code."""
+    return f"\033[{color_code}m{text}\033[0m"
+
 def get_free_space_gb(path='/') -> float:
     #Defaults to the root directory ('/') which typically represents the system drive.
     try:
@@ -546,8 +576,3 @@ def get_free_space_gb(path='/') -> float:
     except Exception as e:
         print(f"Error checking disk space: {e}")
         return None
-    
-if __name__ == "__main__":
-    # download_from_civitai()
-    # download_embeded_citivai()
-    download_vosk_model()
