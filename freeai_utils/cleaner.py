@@ -34,7 +34,3 @@ class Cleaner: #this class first created is due to the gttS doesnt delete the .m
                     os.remove(file_path)
         
         return paths, counter
-        
-if __name__ == "__main__":
-    cleaner = Cleaner()
-    print(cleaner.remove_all_files_end_with('.png'))

@@ -366,17 +366,3 @@ class GeminiClient:
         except Exception as e:
             self.logger.error(f"Error uploading file {file_path}: {e}")
             return None
-    
-if __name__ == "__main__":
-    genbot = GeminiChatBot()
-    genbot.list_models("2.5")
-    genAI = GeminiClient()
-    genAI.list_models()
-    
-    print(genbot.ask("Hi, how are you?"))
-    print("AI : " + genAI.ask("Is the whether nice today?",))
-    
-    print(genbot.ask_with_memories("My name is Ngan, what about you?"))
-    print(genbot.ask_with_memories("Hi, what are we talking about?"))
-    print(genAI.ask_with_memories("Hi, my name is Huyen, what about you? Summarize this file info", file_path=""))
-    print(genAI.ask_with_memories("Hi, what are we talking about?"))

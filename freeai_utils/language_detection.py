@@ -474,26 +474,3 @@ class MBartTranslator:
         if getattr(self, "_initialized", False) and name in ("_model", "_device", "_tokenizer", "_iso_to_tag"):
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
-    
-if __name__ == "__main__":
-    text3 = "Đây là một đoạn văn bản mẫu bằng tiếng Việt."
-    trans = LangTranslator()
-    print(trans.detect_language(text3))
-    print(trans.translate(text3))
-    
-    local = LocalTranslator(local_model_num=1, device= "cpu")
-    print(local.translate(text3, tgt_lang="en"))
-    print(local.detect_language(text3))
-    
-    mb = MBartTranslator()
-    print(mb.detect_language(text3))
-    print(mb.translate(text3, tgt_lang='en'))
-    mb.supported_lang_id() #print support in ISO ID
-    
-    m1 = M2M100Translator()
-    print(m1.detect_language(text3))
-    print(m1.translate(text3, tgt_lang='en'))
-        
-    trans_local = LangTranslator(local_status="active", local_model_num=2)
-    print(trans_local.detect_language(text3))
-    print(trans_local.translate(text3))

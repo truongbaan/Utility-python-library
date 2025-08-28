@@ -513,24 +513,3 @@ class SD15_Image:
             expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
             expected_str = ", ".join(expected_names)
             raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-
-if __name__ == "__main__":
-    import gc
-    prompt = "dynamic angle,ultra-detailed, close-up 1girl, (fantasy:1.4), ((purple eyes)),Her eyes shone like dreamy stars,(glowing eyes:1.233),(beautiful and detailed eyes:1.1),(Silver hair:1.14),very long hair"
-    models = ["anime_pastal_dream.safetensors", "meinapastel.safetensors", "reality.safetensors", "annylora_checkpoint.safetensors"]
-    schedulers = ["default", "SDE Karras", "DPM++ 2M Karras", "Euler A"]
-    model = "meinapastel.safetensors"
-    sc = "Euler A"
-    imgGen = SD15_Image(support_model=model, scheduler=sc, reduce_memory=True, preferred_device="cuda")
-    imgGen._help_config()
-    imgGen.generate_images(prompt, seed=5000, image_name=f"nosafe")
-    imgGen.enable_safety()
-    imgGen.generate_images(prompt, seed=5000, image_name=f"save")
-    # for model in models:
-    #     for sc in schedulers:
-    #         imgGen = SD15_Image(support_model=model, scheduler=sc)
-    #         imgGen.generate_images(prompt, seed=5000, image_name=f"{model.split('.')[0]}_{sc}")
-    #         imgGen.generate_images(prompt, seed=5000, image_name=f"{model.split('.')[0]}_{sc}_extra", extra_detail=1)
-    #         imgGen = None
-    #         gc.collect()
-    #         time.sleep(1)

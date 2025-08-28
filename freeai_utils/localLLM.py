@@ -175,10 +175,3 @@ class LocalLLM:
         if getattr(self, "_initialized", False) and name in ("_model", "_device", "_tokenizer"):
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
-    
-if __name__ == "__main__":
-    lm = LocalLLM()
-    print(lm.ask("Hi, how are you?"))
-    print(lm.ask([{"role": "user", "content": "This is a test of connecting. Please just answer \'yes\'"}]))
-    print(lm.ask_with_memories("Hi, my name is Andy, what is your favorite animal")[0])
-    print(lm.ask_with_memories("Hi, do you remember our conversation,could you tell me about it?")[0])

@@ -250,11 +250,3 @@ class STT_Vosk:
             except Exception as e:
                 self.logger.critical(f"Can not close vosk model. Error: {e}")
                 raise Exception
-    
-if __name__ == "__main__":
-    live_Stt = STT_Vosk(model_name = 'en_us_015')
-    # live_Stt._help_config() #guide default installation models
-    talk = live_Stt.live_transcribe_until_silence(silence_duration = 4) #transcribe and turn off after a certain amount of seconds when silence
-    print(talk)
-    talk = live_Stt.live_transcribe_toggle(toggle_key = "`")#transcribe until toggle off
-    print(talk)
