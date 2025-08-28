@@ -45,7 +45,8 @@ def help():
     
 @main.command(help="Remove extra downloaded files")
 @click.argument("target", required=False)
-def clean(target : str = ""):
+@click.option("-y", "--yes", is_flag=True, help="Automatically confirm delete without asking")
+def clean(target : str = "", yes : bool = False):
     
     messages = {
         "V" : "Are you sure you want to remove only the Vosk model files? (Y/n): ",
@@ -61,11 +62,12 @@ def clean(target : str = ""):
         print(f"Unknown target '{target}'. Valid options are: '', 'V', 'ICF', 'A'")
         return
     
-    decision = input(messages[key]).strip().lower()
-        
-    if decision != "y":
-        print("Clean Up cancelled.")
-        return
+    if not yes:
+        decision = input(messages[key]).strip().lower()
+            
+        if decision != "y":
+            print("Clean Up cancelled.")
+            return
     
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     
@@ -81,7 +83,7 @@ def clean(target : str = ""):
         known_folder = ["downloaded_models"]
     
     cleaner = Cleaner()
-    print(cleaner.remove_all_files_end_with('.mp3'))
+    cleaner.remove_all_files_end_with('.mp3') #for gttS audio
     
     for folder in known_folder:
         path = os.path.join(cur_dir, folder)
