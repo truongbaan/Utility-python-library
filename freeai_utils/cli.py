@@ -4,6 +4,7 @@ import click
 from ._setup import install_model, remove_dir, check_for_updates
 import os
 from .cleaner import Cleaner
+from .scripts import screenshot_ask_and_answer_clip
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -88,6 +89,7 @@ def clean(target : str = "", yes : bool = False):
     
     cleaner = Cleaner()
     cleaner.remove_all_files_end_with('.mp3') #for gttS audio
+    cleaner.remove_all_files_end_with('.png')
     
     for folder in known_folder:
         path = os.path.join(cur_dir, folder)
@@ -103,3 +105,9 @@ def updates():
     result = check_for_updates("freeai-utils")
     if not result:
         click.echo("Library is up to dated")
+        
+@main.command(help="Built-in script to run gemini api without making a file")
+@click.argument("apikey", required=True)
+@click.argument("hotkey", required=False, default="`")
+def test_helper(apikey, hotkey):
+    screenshot_ask_and_answer_clip(apikey, hotkey)
