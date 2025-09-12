@@ -22,7 +22,8 @@ _module_to_names = {
     'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator'],
     'localLLM': ['LocalLLM'],
     'image_creator': ['SDXL_TurboImage', 'SD15_Image'],
-    'live_stt_vosk': ['STT_Vosk']
+    'live_stt_vosk': ['STT_Vosk'],
+    'utils':        ['enforce_type'],
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -67,3 +68,4 @@ if TYPE_CHECKING:
     from .localLLM                 import LocalLLM
     from .image_creator            import SDXL_TurboImage, SD15_Image
     from .live_stt_vosk            import STT_Vosk
+    from .utils                    import enforce_type
