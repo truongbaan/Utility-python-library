@@ -158,7 +158,7 @@ print(answer)
 import freeai_utils
 
 google_search = freeai_utils.WebScraper(num_results=5, limit_word_per_url=500)
-results = google_search.search("What is the capital of Vietnam?")
+results = google_search.search("What is the capital of Vietnam?", grouped = True)
 print(results)
 ```
 

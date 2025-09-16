@@ -16,4 +16,6 @@ def test_model_initialized(webscrap):
 
 def test_search(webscrap):
     result = webscrap.search("What is the capital of Vietnam?")
-    assert "ha noi" in result.lower()
+    assert "ha noi" in result.lower() or "hanoi" in result.lower()
+    result2 = webscrap.quick_search("What is the capital of Vietnam?")
+    assert "ha noi" in result2.lower() or "hanoi" in result2.lower()

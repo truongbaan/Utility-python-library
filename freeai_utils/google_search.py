@@ -1,8 +1,11 @@
-from googlesearch import search #need pip install googlesearch-python
 import requests #need pip install requests
 from bs4 import BeautifulSoup # need pip install beautifulsoup4
 from readability import Document # need pip install readability-lxml
 from freeai_utils.log_set_up import setup_logging
+import time
+from typing import Union
+from ddgs import DDGS # need  pip install ddgs
+
 class WebScraper:
     def __init__(self, user_agent: str = "Mozilla/5.0", num_results: int = 5, limit_word_per_url : int = 500):
         self.__enforce_type(user_agent, str, "user_agent")
@@ -14,11 +17,22 @@ class WebScraper:
         #for logging only this class rather
         self.logger = setup_logging(self.__class__.__name__)
         
-    def _url_search(self, query) -> list:
+    def _url_search(self, query : str, region : str) -> list:
         """helper function that performs a search based on a query and returns a list of URLs from the top results"""
-        #return the first num_results url
         self.logger.debug("Trying to return the list of urls")
-        return list(search(query, num_results= self.num_results))
+        try:
+            with DDGS() as ddgs:
+                results_generator = ddgs.text(query=query, region=region, max_results=self.num_results )
+                
+                # Convert them to a list
+                results = list(results_generator)
+                
+                # Extract only the URLs from the results
+                urls = [result['href'] for result in results]
+                return urls
+        except Exception as e:
+            self.logger.error(f"Search failed: {e}")
+            return []
 
     def _fetch_html(self, url : str) -> str:
         """helper function that downloads the HTML content of a given URL."""
@@ -39,25 +53,142 @@ class WebScraper:
         self.logger.debug("Trying to get the text from html")
         return BeautifulSoup(summary_html, "html.parser").get_text()
 
-    def search(self, prompt : str = None, reduce_length : bool = False) -> str:
-        """Performs a full web search for a given prompt. Return the extracted text"""
+    def search(self, prompt : str = None, region : str = "vn-vi", grouped : bool = True) -> Union[str, list]:
+        """Performs search and extracted text of the web search for the given prompt, length of each page is limited by the limit_word when init class\n
+        If grouped=True, returns all extracted text as one string\n
+        If grouped=False, returns a list of extracted texts (one per URL).
+        """
         self.__enforce_type(prompt, str, "prompt")
+        self.__enforce_type(region, str, "region")
+        self.__enforce_type(grouped, bool, "grouped")
         
-        answer = ""
-        urls = self._url_search(prompt)
+        results = []
+        urls = self._url_search(prompt, region)
+        self.logger.debug(f"URLS: {urls}")
+
         for url in urls:
             try:
                 result = self._fetch_html(url)
                 text = self._extract_with_readability(result)
-                answer += text[:self.limit_word]
+                results.append(text[:self.limit_word])
             except Exception:
-                pass #ignore
-            
-        if reduce_length:
-            return answer.replace("\n", " ") #this to reduce the token use if calls API
-        
-        return answer.replace("\n\n", "\n")
+                pass  # ignore
+            finally:
+                time.sleep(0.5) #delay to not trigger bot
+
+        if grouped:
+            return " ".join(results).replace("\n\n", "\n")
+        return results
     
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
+    def quick_search(self, prompt: str = None, region : str = "vn-vi", grouped: bool = True) -> Union[str, list]:
+        """Performs the default search using DuckDuckGo API.\n
+        If grouped=True, returns all answers joined as one string.\n
+        If grouped=False, returns a list of answers.
+        """
+        self.__enforce_type(prompt, str, "prompt")
+        self.__enforce_type(region, str, "region")
+        self.__enforce_type(grouped, bool, "grouped")
+        
+        try:
+            with DDGS() as ddgs:
+                results_generator = ddgs.text(query=prompt, region=region, max_results=self.num_results )
+                results = list(results_generator)
+                answers = [result.get('body', '') for result in results]
+
+                if grouped:
+                    return " ".join(answers).replace("\n\n", "\n")
+                return answers
+        except Exception as e:
+            self.logger.error(f"Search failed: {e}")
+            return [] if not grouped else ""
+    
+    def list_ddgs_regions(self, keyword: str = None) -> None:
+        """Print supported ddgs regions. Optionally filter by a keyword."""
+        self.__enforce_type(keyword, (type(None), str), "keyword")
+        regions = {
+            "xa-ar": "Arabia (Arabic)",
+            "xa-en": "Arabia (English)",
+            "ar-es": "Argentina (Spanish)",
+            "au-en": "Australia (English)",
+            "at-de": "Austria (German)",
+            "be-fr": "Belgium (French)",
+            "be-nl": "Belgium (Dutch/Flemish)",
+            "br-pt": "Brazil (Portuguese)",
+            "bg-bg": "Bulgaria (Bulgarian)",
+            "ca-en": "Canada (English)",
+            "ca-fr": "Canada (French)",
+            "ct-ca": "Catalan (Catalonia/Canada)",
+            "cl-es": "Chile (Spanish)",
+            "cn-zh": "China (Chinese)",
+            "co-es": "Colombia (Spanish)",
+            "hr-hr": "Croatia (Croatian)",
+            "cz-cs": "Czech Republic (Czech)",
+            "dk-da": "Denmark (Danish)",
+            "ee-et": "Estonia (Estonian)",
+            "fi-fi": "Finland (Finnish)",
+            "fr-fr": "France (French)",
+            "de-de": "Germany (German)",
+            "gr-el": "Greece (Greek)",
+            "hk-tzh": "Hong Kong (Traditional Chinese)",
+            "hu-hu": "Hungary (Hungarian)",
+            "in-en": "India (English)",
+            "id-id": "Indonesia (Indonesian)",
+            "id-en": "Indonesia (English)",
+            "ie-en": "Ireland (English)",
+            "il-he": "Israel (Hebrew)",
+            "it-it": "Italy (Italian)",
+            "jp-jp": "Japan (Japanese)",
+            "kr-kr": "Korea (Korean)",
+            "lv-lv": "Latvia (Latvian)",
+            "lt-lt": "Lithuania (Lithuanian)",
+            "xl-es": "Latin America (Spanish)",
+            "my-ms": "Malaysia (Malay)",
+            "my-en": "Malaysia (English)",
+            "mx-es": "Mexico (Spanish)",
+            "nl-nl": "Netherlands (Dutch)",
+            "nz-en": "New Zealand (English)",
+            "no-no": "Norway (Norwegian)",
+            "pe-es": "Peru (Spanish)",
+            "ph-en": "Philippines (English)",
+            "ph-tl": "Philippines (Tagalog)",
+            "pl-pl": "Poland (Polish)",
+            "pt-pt": "Portugal (Portuguese)",
+            "ro-ro": "Romania (Romanian)",
+            "ru-ru": "Russia (Russian)",
+            "sg-en": "Singapore (English)",
+            "sk-sk": "Slovak Republic (Slovak)",
+            "sl-sl": "Slovenia (Slovenian)",
+            "za-en": "South Africa (English)",
+            "es-es": "Spain (Spanish)",
+            "se-sv": "Sweden (Swedish)",
+            "ch-de": "Switzerland (German)",
+            "ch-fr": "Switzerland (French)",
+            "ch-it": "Switzerland (Italian)",
+            "tw-tzh": "Taiwan (Traditional Chinese)",
+            "th-th": "Thailand (Thai)",
+            "tr-tr": "Turkey (Turkish)",
+            "ua-uk": "Ukraine (Ukrainian)",
+            "uk-en": "United Kingdom (English)",
+            "us-en": "United States (English)",
+            "ue-es": "United States (Spanish)",
+            "ve-es": "Venezuela (Spanish)",
+            "vn-vi": "Vietnam (Vietnamese)",
+        }
+
+        if keyword:
+            keyword = keyword.lower()
+            filtered = {k: v for k, v in regions.items() if keyword in v.lower() or keyword in k.lower()}
+            if not filtered:
+                print(f"No regions found for keyword: {keyword}")
+                return
+            for code, desc in filtered.items():
+                print(f"{code:7} -> {desc}")
+        else:
+            for code, desc in regions.items():
+                print(f"{code:7} -> {desc}")
+
+    def __enforce_type(self, value, expected_types, arg_name) -> None:
+        if not isinstance(value, expected_types):
+            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
+            expected_str = ", ".join(expected_names)
+            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")

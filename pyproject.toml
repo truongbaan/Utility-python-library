@@ -27,7 +27,6 @@ dependencies = [
     "google-genai",
     "pyperclip",
     "python-dotenv",
-    "googlesearch-python",
     "requests",
     "beautifulsoup4",
     "readability-lxml",
@@ -57,6 +56,7 @@ dependencies = [
     "vosk",
     "protobuf", # for mbart fast
     "peft", #for lora
+    "ddgs",
 ]
 
 [project.urls]
