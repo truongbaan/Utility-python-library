@@ -106,8 +106,8 @@ def updates():
     if not result:
         click.echo("Library is up to dated")
         
-@main.command(help="Built-in script to run gemini api without making a file")
+@main.command(help="Built-in script to run gemini api, only for solving coding question.")
 @click.argument("apikey", required=True)
 @click.argument("hotkey", required=False, default="`")
-def test_helper(apikey, hotkey):
+def code_helper(apikey, hotkey):
     screenshot_ask_and_answer_clip(apikey, hotkey)

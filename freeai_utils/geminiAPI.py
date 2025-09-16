@@ -343,7 +343,6 @@ class GeminiClient:
         if file_path and file_path != "":
             try:
                 uploaded_file = self.upload_file_to_api(file_path)
-                self.logger.info(f"File uploaded successfully. Name: {uploaded_file.name}")
                 prompt_parts.append(uploaded_file)
             except FileNotFoundError:
                 self.logger.error(f"file_path not found: {file_path}")
