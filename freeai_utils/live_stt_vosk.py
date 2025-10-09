@@ -5,10 +5,11 @@ import sounddevice as sd #need pip install sounddevice
 from vosk import Model, KaldiRecognizer #need pip install vosk
 from typing import Optional
 import os
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 import logging
 from typing import Union
 import keyboard
+from .utils import enforce_type
 
 #this model is for live transcription than using whisper model to transcribe a provided audio (speech to text)
 class STT_Vosk:
@@ -25,12 +26,12 @@ class STT_Vosk:
     
     def __init__(self, model_name  : str = 'en_us_015', model_path : Optional[str] = None, sample_rate : int = 16000, dtype : str = "int16", channels  : int  = 1, frame_duration : float = 0.1) -> None:
         #check type before init
-        self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(model_path, (str, type(None)), "model_path")
-        self.__enforce_type(sample_rate, int, "sample_rate")
-        self.__enforce_type(dtype, str, "dtype")
-        self.__enforce_type(channels, int, "channels")
-        self.__enforce_type(frame_duration, (int, float), "frame_duration")
+        enforce_type(model_name, str, "model_name")
+        enforce_type(model_path, (str, type(None)), "model_path")
+        enforce_type(sample_rate, int, "sample_rate")
+        enforce_type(dtype, str, "dtype")
+        enforce_type(channels, int, "channels")
+        enforce_type(frame_duration, (int, float), "frame_duration")
         
         if model_path is None:
             model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vosk_models")#use defualt downloaded
@@ -57,8 +58,8 @@ class STT_Vosk:
     
     def live_transcribe_toggle(self, toggle_key : str = "`", join_with_newline : bool = False):
         #check type
-        self.__enforce_type(toggle_key, str, "toggle_key")
-        self.__enforce_type(join_with_newline, bool, "join_with_newline")
+        enforce_type(toggle_key, str, "toggle_key")
+        enforce_type(join_with_newline, bool, "join_with_newline")
         
         listening = True #var to stop
         
@@ -140,9 +141,9 @@ class STT_Vosk:
     
     def live_transcribe_until_silence(self, silence_thresh: float = 0.01, silence_duration: Union[int, float] = 4.0, join_with_newline : bool = False) -> str:
         #check type
-        self.__enforce_type(silence_thresh, float, "silence_thresh")
-        self.__enforce_type(silence_duration, (int, float), "silence_duration")
-        self.__enforce_type(join_with_newline, bool, "join_with_newline")
+        enforce_type(silence_thresh, float, "silence_thresh")
+        enforce_type(silence_duration, (int, float), "silence_duration")
+        enforce_type(join_with_newline, bool, "join_with_newline")
         
         last_partial = ""
         last_len     = 0
@@ -235,12 +236,6 @@ class STT_Vosk:
         
     def _rms(self, data): #use for silence detect
         return np.sqrt(np.mean(np.square(data / np.iinfo(np.dtype(self._dtype)).max)))
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __del__(self):
         if self.__stream:

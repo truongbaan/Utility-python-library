@@ -5,11 +5,12 @@ from transformers import CLIPImageProcessor #for safety check
 import os
 from diffusers import StableDiffusionPipeline #for sd1.5
 from transformers import CLIPTokenizer #for sd1.5
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 import logging
 from typing import Union, Optional
 import random
 import time
+from .utils import enforce_type
 
 class SDXL_TurboImage:
     
@@ -22,7 +23,7 @@ class SDXL_TurboImage:
     
     def __init__(self, model_name : str = "stabilityai/sdxl-turbo", device : str = None):
         #check type
-        self.__enforce_type(model_name, str, "model_name")
+        enforce_type(model_name, str, "model_name")
         
         #init
         super().__setattr__("_initialized", False)
@@ -33,7 +34,7 @@ class SDXL_TurboImage:
         self._model = None
         #try input first
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -86,12 +87,12 @@ class SDXL_TurboImage:
         It saves the generated images to a specified directory.
         """
         #check type
-        self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(negative_prompt, str, "negative_prompt")
-        self.__enforce_type(steps, int, "steps")
-        self.__enforce_type(number_of_images, int, "number_of_images")
-        self.__enforce_type(image_name, str, "image_name")
-        self.__enforce_type(output_dir, str, "output_dir")
+        enforce_type(prompt, str, "prompt")
+        enforce_type(negative_prompt, str, "negative_prompt")
+        enforce_type(steps, int, "steps")
+        enforce_type(number_of_images, int, "number_of_images")
+        enforce_type(image_name, str, "image_name")
+        enforce_type(output_dir, str, "output_dir")
         
         #make the folder exists
         os.makedirs(output_dir, exist_ok=True)
@@ -126,10 +127,6 @@ class SDXL_TurboImage:
         if getattr(self, "_initialized", False) and name in ("_model", "_device"):
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
-        
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
 class SD15_Image:
     
@@ -139,10 +136,10 @@ class SD15_Image:
     
     def __init__(self, preferred_device : Optional[str] = None ,support_model : str = "" , model_path : str = None, scheduler : str = "default", safety : bool = False, reduce_memory : bool = False, embed_default : bool = True):
         #check type before start
-        self.__enforce_type(support_model, str, "support_model")
-        self.__enforce_type(safety, bool, "safety")
-        self.__enforce_type(reduce_memory, bool, "reduce_memory")
-        self.__enforce_type(embed_default, bool, "embed_default")
+        enforce_type(support_model, str, "support_model")
+        enforce_type(safety, bool, "safety")
+        enforce_type(reduce_memory, bool, "reduce_memory")
+        enforce_type(embed_default, bool, "embed_default")
         
         #model path is to check whether get from lib or get from running folder
         #support_model is for use or not
@@ -155,7 +152,7 @@ class SD15_Image:
         if model_path is None:
             self._model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloaded_models")
         else:
-            self.__enforce_type(model_path, str, "model_path")
+            enforce_type(model_path, str, "model_path")
             self._model_path = model_path
             
         path = os.path.join(self._model_path, support_model) #init the path to model
@@ -164,7 +161,7 @@ class SD15_Image:
 
         #try input first
         if preferred_device is not None:
-            self.__enforce_type(preferred_device, str, "device")
+            enforce_type(preferred_device, str, "device")
             preferred_devices.append(preferred_device)
         # try cuda second 
         if torch.cuda.is_available() and "cuda" not in preferred_devices:
@@ -227,18 +224,18 @@ class SD15_Image:
         - **optional_kwargs: Additional keyword arguments that can be passed directly to the underlying model for advanced control.
         """
         #check type before proceed
-        self.__enforce_type(positive_prompt, str, "positive_prompt")
-        self.__enforce_type(negative_prompt, str, "negative_prompt")
-        self.__enforce_type(image_name, str, "image_name")
-        self.__enforce_type(output_dir, str, "output_dir")
-        self.__enforce_type(width, int, "width")
-        self.__enforce_type(height, int, "height")
-        self.__enforce_type(steps, int, "steps")
-        self.__enforce_type(guidance_scale, (int, float), "guidance_scale")
-        self.__enforce_type(number_of_images, int, "number_of_images")
-        self.__enforce_type(clip_skip, int, "clip_skip")
-        self.__enforce_type(seed, int, "seed")
-        self.__enforce_type(extra_detail, (int, float, type(None)), "extra_detail") #lora support 
+        enforce_type(positive_prompt, str, "positive_prompt")
+        enforce_type(negative_prompt, str, "negative_prompt")
+        enforce_type(image_name, str, "image_name")
+        enforce_type(output_dir, str, "output_dir")
+        enforce_type(width, int, "width")
+        enforce_type(height, int, "height")
+        enforce_type(steps, int, "steps")
+        enforce_type(guidance_scale, (int, float), "guidance_scale")
+        enforce_type(number_of_images, int, "number_of_images")
+        enforce_type(clip_skip, int, "clip_skip")
+        enforce_type(seed, int, "seed")
+        enforce_type(extra_detail, (int, float, type(None)), "extra_detail") #lora support 
         
         if extra_detail is not None :
             if (extra_detail > 2 or extra_detail < -2):
@@ -421,7 +418,7 @@ class SD15_Image:
         Supports several scheduler types: including SDE Karras, DPM++ 2M Karras, and Euler A.
         Defaults to Euler if the provided scheduler is not supported.
         """
-        self.__enforce_type(scheduler, str, "scheduler")
+        enforce_type(scheduler, str, "scheduler")
         scheduler = scheduler.strip()
         self.logger.info(f"Loading scheduler: {scheduler if scheduler != 'default' else 'Euler'}")
         #schedule type
@@ -507,9 +504,3 @@ class SD15_Image:
         """Disables the NSFW safety checker."""
         self._model.safety_checker = None
         self._model.feature_extractor = None
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")

@@ -12,6 +12,7 @@ from typing import Optional
 from freeai_utils.log_set_up import setup_logging
 import ffmpeg #need pip install ffmpeg-python
 import imageio_ffmpeg as iioff #need pip install imageio-ffmpeg
+from .utils import enforce_type
 
 # 4 function use: transcribe -> return Dict (return everything and you choose which to get)
 #                 get_lang_detect -> return str (return the language)
@@ -24,7 +25,7 @@ class OpenAIWhisper:
     
     def __init__(self, model: str = "medium", sample_rate: int = 16000, device : Optional[str]  = None) -> None:
         #check type
-        self.__enforce_type(sample_rate, int, sample_rate)
+        enforce_type(sample_rate, int, sample_rate)
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.propagate = False 
         # init not lock
@@ -40,7 +41,7 @@ class OpenAIWhisper:
         
         #try input first
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -113,8 +114,8 @@ class OpenAIWhisper:
         # param transcribe_kwargs: Additional arguments dokter for whisper.model.transcribe().
         # return: A dictionary containing the transcription results.
         
-        self.__enforce_type(audio_path, str, "audio_path")
-        self.__enforce_type(fp16, bool, "fp16")
+        enforce_type(audio_path, str, "audio_path")
+        enforce_type(fp16, bool, "fp16")
         
         try:
             audio_data = self._load_media(audio_path)
@@ -152,10 +153,6 @@ class OpenAIWhisper:
         """
         language = self.transcribe(audio_path=audio_path, fp16=fp16, **transcribe_kwargs)["language"]
         return language
-    
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
     
     def __setattr__(self, name, value):
         # once initialized, block these core attributes

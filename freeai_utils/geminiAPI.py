@@ -6,8 +6,9 @@ import os
 from PIL import Image
 import logging
 from typing import Optional
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 from typing import Union
+from .utils import enforce_type
 
 class GeminiChatBot:
     
@@ -21,8 +22,8 @@ class GeminiChatBot:
     
     def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
-        self.__enforce_type(memories_length, int, "memories_length")
-        self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
+        enforce_type(memories_length, int, "memories_length")
+        enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
         
         env_path = os.path.join(os.getcwd(), ".env")
         load_dotenv(env_path) # load if there is env file
@@ -32,8 +33,8 @@ class GeminiChatBot:
             raise ValueError("API key was not provided or found in the 'GEMINI_API_KEY' environment variable.")
         
         #check data type before proceed further into connecting
-        self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(self.__api_key, str, "api_key")
+        enforce_type(model_name, str, "model_name")
+        enforce_type(self.__api_key, str, "api_key")
         
         #logging
         self.logger = setup_logging(self.__class__.__name__)
@@ -80,7 +81,7 @@ class GeminiChatBot:
     
     def ask(self, prompt : str) -> str:
         #not str, return...
-        self.__enforce_type(prompt, str, "prompt")
+        enforce_type(prompt, str, "prompt")
         
         if not prompt:
             self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
@@ -104,7 +105,7 @@ class GeminiChatBot:
             return ""
         
     def list_models(self, search : str = "") -> None:
-        self.__enforce_type(search, str, "search")
+        enforce_type(search, str, "search")
         
         print("Retrieve available models: ")
         try:
@@ -129,7 +130,7 @@ class GeminiChatBot:
         return answer
 
     def ask_with_memories(self, prompt : str) -> str: # use if you want to store history to ask again (cap with memories_length)
-        self.__enforce_type(prompt, str, "prompt") #check type
+        enforce_type(prompt, str, "prompt") #check type
         
         if not prompt: #check if input
             self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
@@ -149,13 +150,9 @@ class GeminiChatBot:
         if self._history:
             self._history.clear()
     
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-    
     def __add_turn(self, question, answer) -> None:
-        self.__enforce_type(question, str, "question")
-        self.__enforce_type(answer, str, "answer")
+        enforce_type(question, str, "question")
+        enforce_type(answer, str, "answer")
 
         while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
             self._history.pop(0)  # Remove the oldest turn
@@ -175,8 +172,8 @@ class GeminiClient:
     
     def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
-        self.__enforce_type(memories_length, int, "memories_length")
-        self.__enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
+        enforce_type(memories_length, int, "memories_length")
+        enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
         
         env_path = os.path.join(os.getcwd(), ".env")
         load_dotenv(env_path) # load if there is env file
@@ -186,8 +183,8 @@ class GeminiClient:
             raise ValueError("API key was not provided or found in the 'GEMINI_API_KEY' environment variable.")
         
         #check data type before proceed further into connecting
-        self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(self.__api_key, str, "api_key")
+        enforce_type(model_name, str, "model_name")
+        enforce_type(self.__api_key, str, "api_key")
         
         #logging
         self.logger = setup_logging(self.__class__.__name__)
@@ -236,8 +233,8 @@ class GeminiClient:
     def ask(self, prompt : str = None, file_path : str = None) -> str:
         """sends a prompt to Gemini model and returns the text response. Can include an optional file to the prompt."""
         #not str, return...
-        self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(file_path, (str, type(None)), "file_path")
+        enforce_type(prompt, str, "prompt")
+        enforce_type(file_path, (str, type(None)), "file_path")
         
         if not prompt:
             self.logger.warning("WARNING: Empty prompt provided, skipping API call.")
@@ -269,7 +266,7 @@ class GeminiClient:
 
     def list_models(self, search : str = "") -> None:
         """Retrieves and prints a list of all available language models, optionally filtering the list based on model's name."""
-        self.__enforce_type(search, str, "search")
+        enforce_type(search, str, "search")
         
         print("Retrieve available models: ")
         try:
@@ -315,19 +312,13 @@ class GeminiClient:
         if self._history:
             self._history.clear()
     
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-    
     def __add_turn(self, question, answer) -> None:
         """
         Appends a new question-answer pair to the conversation history. 
         Removing the oldest entry if the history exceeds a maximum length.
         """
-        self.__enforce_type(question, str, "question")
-        self.__enforce_type(answer, str, "answer")
+        enforce_type(question, str, "question")
+        enforce_type(answer, str, "answer")
         
         while len(self._history) >= self._max_length: #change from if to while because the memories could now be modified
             self._history.pop(0)  # Remove the oldest turn

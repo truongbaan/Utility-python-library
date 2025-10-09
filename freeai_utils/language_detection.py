@@ -6,7 +6,8 @@ import translators as ts
 import torch
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer, MBart50TokenizerFast, MBartForConditionalGeneration
 import logging 
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
+from .utils import enforce_type
 
 class LangTranslator:
     
@@ -18,8 +19,8 @@ class LangTranslator:
 
     def __init__(self, local_status : str = "backup", local_model_num : int = 1): 
         #check type before init
-        self.__enforce_type(local_status, str, "local_status")
-        self.__enforce_type(local_model_num, int, "local_model_num")
+        enforce_type(local_status, str, "local_status")
+        enforce_type(local_model_num, int, "local_model_num")
         
         #init
         super().__setattr__("_initialized", False)
@@ -78,12 +79,6 @@ class LangTranslator:
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
     
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
-    
 class LocalTranslator:
     
     __slots__ = ("_model", "logger", "_initialized")
@@ -93,8 +88,8 @@ class LocalTranslator:
     
     def __init__(self, local_model_num : int = 1, device : str = "cuda"):
         #secure type first
-        self.__enforce_type(local_model_num, int, "local_model_num")
-        self.__enforce_type(device, str, "device")
+        enforce_type(local_model_num, int, "local_model_num")
+        enforce_type(device, str, "device")
         
         #init
         super().__setattr__("_initialized", False)
@@ -121,9 +116,9 @@ class LocalTranslator:
         
         Returns the translated text as a string.
         """
-        self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(src_lang, (str, type(None)), "src_lang")
-        self.__enforce_type(tgt_lang, str, "tgt_lang")
+        enforce_type(prompt, str, "prompt")
+        enforce_type(src_lang, (str, type(None)), "src_lang")
+        enforce_type(tgt_lang, str, "tgt_lang")
         return self._model.translate(prompt, src_lang = src_lang, tgt_lang = tgt_lang)
     
     def detect_language(self, prompt) -> Tuple[str, float]:
@@ -147,12 +142,6 @@ class LocalTranslator:
         if getattr(self, "_initialized", False) and name in ("_model"):
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
 ######################################### Use only for providing number for possible local model Class #########################################
 import inspect
@@ -218,7 +207,7 @@ class M2M100Translator:
     #other model: facebook/m2m100_1.2B
     def __init__(self, model_name : str = 'facebook/m2m100_418M', device: Union[str, None] = None):
         #check type
-        self.__enforce_type(model_name, str, "model_name")
+        enforce_type(model_name, str, "model_name")
         
         #init
         super().__setattr__("_initialized", False)
@@ -229,7 +218,7 @@ class M2M100Translator:
         
         #try input first
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -281,10 +270,10 @@ class M2M100Translator:
        
     def translate(self, text: str, src_lang: Union[str, None] = None, tgt_lang: str = None, seed_num : int = 42) -> str:
         """Translates text from a source language to a target language. It automatically detects the source language if it's not specified."""
-        self.__enforce_type(text, str, "text")
-        self.__enforce_type(src_lang, (str, type(None)), "src_lang")
-        self.__enforce_type(tgt_lang, str, "tgt_lang")
-        self.__enforce_type(seed_num, int, "seed_num")
+        enforce_type(text, str, "text")
+        enforce_type(src_lang, (str, type(None)), "src_lang")
+        enforce_type(tgt_lang, str, "tgt_lang")
+        enforce_type(seed_num, int, "seed_num")
         
         # 1) Determine source language
         if not src_lang:
@@ -317,12 +306,6 @@ class M2M100Translator:
     def detect_language(self, text) -> str:
         """Identifies the language of a given text."""
         return detect(text)
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
 
     def __setattr__(self, name, value):
         # once initialized, block these core attributes
@@ -343,7 +326,7 @@ class MBartTranslator:
     
     #use for model that is mbart family
     def __init__(self, model_name :str = "facebook/mbart-large-50-many-to-many-mmt", device : Union[str, None] = None):
-        self.__enforce_type(model_name, str, "model_name")
+        enforce_type(model_name, str, "model_name")
         
         #init
         super().__setattr__("_initialized", False)
@@ -355,7 +338,7 @@ class MBartTranslator:
         
         #try input first
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -412,9 +395,9 @@ class MBartTranslator:
         Translates text from a source language to a target language. 
         The source language is automatically detected if not provided
         """
-        self.__enforce_type(text, str, "text")
-        self.__enforce_type(src_lang, (str, type(None)), "src_lang")
-        self.__enforce_type(tgt_lang, str, "tgt_lang")
+        enforce_type(text, str, "text")
+        enforce_type(src_lang, (str, type(None)), "src_lang")
+        enforce_type(tgt_lang, str, "tgt_lang")
         
         if not src_lang:
             iso = detect(text)
@@ -462,12 +445,6 @@ class MBartTranslator:
             return self._iso_to_tag[lang_code]
         # If neither, raise error
         raise ValueError(f"Unknown language code or tag: '{lang_code}'")
-
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __setattr__(self, name, value):
         # once initialized, block these core attributes

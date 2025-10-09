@@ -4,6 +4,7 @@ from transformers import T5TokenizerFast
 from freeai_utils.log_set_up import setup_logging
 import logging
 from typing import Union
+from .utils import enforce_type
 
 #function to use: 
 # construct_sys_prompt
@@ -25,11 +26,11 @@ class DecisionMaker:
     #this class should only answer in 2 ways only
     def __init__(self, sample_ques_ans : str = None, positive_ans = "YES", negative_ans = "NO", model_name : str = "google/flan-t5-base", preferred_device : str = "cuda") -> None:
         #check type before setting
-        self.__enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
-        self.__enforce_type(positive_ans, str, "positive_ans")
-        self.__enforce_type(negative_ans, str, "negative_ans")
-        self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(preferred_device, str, "preferred_device")
+        enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
+        enforce_type(positive_ans, str, "positive_ans")
+        enforce_type(negative_ans, str, "negative_ans")
+        enforce_type(model_name, str, "model_name")
+        enforce_type(preferred_device, str, "preferred_device")
         
         # init not lock
         super().__setattr__("_initialized", False)
@@ -94,9 +95,9 @@ class DecisionMaker:
         It uses optional sample questions and answers to provide examples, and defines the specific strings for positive and negative answers.
         """
         #check type
-        self.__enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
-        self.__enforce_type(negative_ans, str, "negative_ans")
-        self.__enforce_type(positive_ans, str, "positive_ans")
+        enforce_type(sample_ques_ans, (str, type(None)), "sample_ques_ans")
+        enforce_type(negative_ans, str, "negative_ans")
+        enforce_type(positive_ans, str, "positive_ans")
         if sample_ques_ans is type(str) and sample_ques_ans.strip() == "": #ensure it makes a good prompt
             sample_ques_ans = None
             
@@ -108,8 +109,8 @@ class DecisionMaker:
     
     def decide(self, user_question: str, temp_prompt : str = None) -> str:
         """Returns the model's decision as a capitalized string."""
-        self.__enforce_type(user_question, str, "user_question")
-        self.__enforce_type(temp_prompt, (str, type(None)), "temp_prompt")
+        enforce_type(user_question, str, "user_question")
+        enforce_type(temp_prompt, (str, type(None)), "temp_prompt")
         
         if temp_prompt:
             prompt = f"{temp_prompt}\nQuestion: {user_question} ->"
@@ -140,7 +141,7 @@ class DecisionMaker:
     
     @system_prompt.setter
     def system_prompt(self, prompt : str):
-        self.__enforce_type(prompt, str, "prompt")
+        enforce_type(prompt, str, "prompt")
         self._system_prompt = prompt
     
     @property
@@ -152,12 +153,6 @@ class DecisionMaker:
         if getattr(self, "_initialized", False) and name in ("_model_name", "_tokenizer", "_model", "_device"):
             raise AttributeError(f"Cannot reassign '{name}' after initialization")
         super().__setattr__(name, value)
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def _run_examples(self) -> None:
         """Print guide on config for this class"""

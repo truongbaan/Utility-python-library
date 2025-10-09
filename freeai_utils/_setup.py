@@ -12,6 +12,7 @@ import importlib.util
 import click
 from packaging.version import parse
 from importlib.metadata import version
+from .utils import colorize
 
 def install_model(target : str, auto_confirm: bool = False):
     target =target.strip().upper() if target is str else target
@@ -559,20 +560,3 @@ def check_for_updates(package_name) -> bool:
     except Exception as e:
         click.echo(f"An error occurred while checking for updates: {e}")
         return False # Return False on error
-    
-def colorize(text: str, color_code: str) -> str:
-    """Returns a string with the specified ANSI color and a reset code."""
-    return f"\033[{color_code}m{text}\033[0m"
-
-def get_free_space_gb(path='/') -> float:
-    #Defaults to the root directory ('/') which typically represents the system drive.
-    try:
-        disk_stats = shutil.disk_usage(path)
-
-        # Convert bytes to gigabytes
-        free_space_bytes = disk_stats.free
-        free_space_gb = free_space_bytes / (1024**3)
-        return free_space_gb
-    except Exception as e:
-        print(f"Error checking disk space: {e}")
-        return None

@@ -11,8 +11,9 @@ except ImportError:
 import easyocr# need pip install easyocr (use to read text from image)
 import time
 from typing import Optional, List, Union
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 import logging
+from .utils import enforce_type
 
 class Text_Extractor_EasyOCR:
     
@@ -28,8 +29,8 @@ class Text_Extractor_EasyOCR:
         #check type of the input
         if language is None:
             language = ['vi', 'en']
-        self.__enforce_type(language, (str, list), "language")
-        self.__enforce_type(prefer_device, str, "prefer_device")
+        enforce_type(language, (str, list), "language")
+        enforce_type(prefer_device, str, "prefer_device")
         
         if isinstance(language, str): #ensure language is a list
             language = [language]
@@ -87,7 +88,7 @@ class Text_Extractor_EasyOCR:
         Takes a file path to an image and uses OCR to read and extract all text from it. 
         Returns the extracted text as a single string.
         """
-        self.__enforce_type(image_path, str, "image_path")
+        enforce_type(image_path, str, "image_path")
         result = self._reader.readtext(image_path, detail=0)
         return " ".join(result)
         
@@ -111,11 +112,11 @@ class Text_Extractor_EasyOCR:
             __region = capture_region
             
         #check type of the input
-        self.__enforce_type(__region, tuple, "capture_region")
+        enforce_type(__region, tuple, "capture_region")
         if image_name is None:
             _temp_ID = (str)(round(time.time() * 10)) + ".png"   
         else: 
-            self.__enforce_type(image_name, str, "image_name")
+            enforce_type(image_name, str, "image_name")
             _temp_ID = image_name
         screenshot = pyautogui.screenshot(region=__region)  #capture
         screenshot.save(_temp_ID) #careful if there is a file screenshot before run, it would replace that file
@@ -130,10 +131,10 @@ class Text_Extractor_EasyOCR:
         then calculates and sets the pixel coordinates for the capture area.
         """
         #check type of the input
-        self.__enforce_type(crop_left, (int, float), "crop_left")
-        self.__enforce_type(crop_right, (int, float), "crop_right")
-        self.__enforce_type(crop_up, (int, float), "crop_up")
-        self.__enforce_type(crop_down, (int, float), "crop_down")
+        enforce_type(crop_left, (int, float), "crop_left")
+        enforce_type(crop_right, (int, float), "crop_right")
+        enforce_type(crop_up, (int, float), "crop_up")
+        enforce_type(crop_down, (int, float), "crop_down")
         
          # Validate crop percentage values
         if not (0 <= crop_left <= 100):
@@ -162,12 +163,6 @@ class Text_Extractor_EasyOCR:
 
         self._capture_region = (left_x, top_y, capture_width, capture_height)
         return (left_x, top_y, capture_width, capture_height)
-        
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __setattr__(self, name, value):
         # once initialized, block these core attributes

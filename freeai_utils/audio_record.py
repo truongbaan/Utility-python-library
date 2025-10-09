@@ -6,6 +6,7 @@ import keyboard #need pip install keyboard
 from lameenc import Encoder #need pip install lameenc (this is use for MP3Recorder)
 import logging
 import os
+from .utils import enforce_type
 
 #Record with pyaudio
 #3 function: fixed-duration recording, toggle-controlled recording, and silence-based recording.
@@ -72,8 +73,8 @@ class WavRecorder:
 
     def record_fixed(self, duration : int, output_filename : str ="fixed_record.wav") -> None:  # duration in seconds
         """Records audio for a set duration in seconds and saves it to a WAV file."""
-        self.__enforce_type(duration, int, "duration")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(duration, int, "duration")
+        enforce_type(output_filename, str, "output_filename")
         
         # record audio for a fixed duration
         self._open_stream()
@@ -98,8 +99,8 @@ class WavRecorder:
     def record_toggle(self, toggle_key : str ='`', output_filename : str ="toggle_record.wav") -> None:  # default toggle key: backtick
         """Records audio continuously until a specific keyboard key (the default is backtick `) is pressed to stop it."""
         #check type
-        self.__enforce_type(toggle_key, str, "toggle_key")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(toggle_key, str, "toggle_key")
+        enforce_type(output_filename, str, "output_filename")
         
         #Start recording until toggle_key is pressed again.
         self._open_stream()
@@ -132,9 +133,9 @@ class WavRecorder:
         Records audio and automatically stops after a period of silence that exceeds a specified duration and volume threshold.
         """
         #check type 
-        self.__enforce_type(silence_threshold, int, "silence_threshold")
-        self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(silence_threshold, int, "silence_threshold")
+        enforce_type(max_silence_seconds, int, "max_silence_seconds")
+        enforce_type(output_filename, str, "output_filename")
         
         #Record until a period of silence longer than max_silence_seconds is detected.
         self._open_stream()
@@ -169,10 +170,6 @@ class WavRecorder:
 
     def terminate(self):
         self._p.terminate()
-
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
 
 class MP3Recorder:
     def __init__(self, channels=1, rate=44100, chunk=1024, bitrate=192):
@@ -253,15 +250,10 @@ class MP3Recorder:
         samples = np.frombuffer(data, dtype=np.int16).astype(np.float64)
         return np.sqrt(np.mean(samples**2))
 
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(
-                f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
-
     def record_fixed(self, duration: int, output_filename: str ="fixed_record.mp3") -> None:
         """Records audio for a set duration in seconds and saves it to a MP3 file."""
-        self.__enforce_type(duration, int, "duration")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(duration, int, "duration")
+        enforce_type(output_filename, str, "output_filename")
 
         self._open_stream()
         self.logger.info(f"Recording for {duration} seconds...")
@@ -284,8 +276,8 @@ class MP3Recorder:
 
     def record_toggle(self, toggle_key: str ='`', output_filename: str ="toggle_record.mp3") -> None:
         """Records audio continuously until a specific keyboard key (the default is backtick ') is pressed to stop it."""
-        self.__enforce_type(toggle_key, str, "toggle_key")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(toggle_key, str, "toggle_key")
+        enforce_type(output_filename, str, "output_filename")
 
         self._open_stream()
         self._recording = True
@@ -314,9 +306,9 @@ class MP3Recorder:
         """
         Records audio and automatically stops after a period of silence that exceeds a specified duration and volume threshold.
         """
-        self.__enforce_type(silence_threshold, int, "silence_threshold")
-        self.__enforce_type(max_silence_seconds, int, "max_silence_seconds")
-        self.__enforce_type(output_filename, str, "output_filename")
+        enforce_type(silence_threshold, int, "silence_threshold")
+        enforce_type(max_silence_seconds, int, "max_silence_seconds")
+        enforce_type(output_filename, str, "output_filename")
 
         self._open_stream()
         self.logger.info(f"Recording... will stop after >{max_silence_seconds}s below threshold {silence_threshold}.")

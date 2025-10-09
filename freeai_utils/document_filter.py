@@ -9,6 +9,7 @@ from .pdf_docx_reader import PDF_DOCX_Reader
 from freeai_utils.log_set_up import setup_logging
 import torch
 import re
+from .utils import enforce_type
 
 #smaller model: deepset/roberta-base-squad2
 class AIDocumentSearcher:
@@ -30,10 +31,10 @@ class AIDocumentSearcher:
     
     def __init__(self, model_name="deepset/tinyroberta-squad2", path : Optional[str] = None, threshold : float = 0.4, max_per_doc : int = 2, top_answer : int = 4, device: str = "cuda", auto_init : bool = True) -> None:
         #check type first
-        self.__enforce_type(threshold, float, "threshold")
-        self.__enforce_type(max_per_doc, int, "max_per_doc")
-        self.__enforce_type(top_answer, int, "top_answer")
-        self.__enforce_type(auto_init, bool, "auto_init")
+        enforce_type(threshold, float, "threshold")
+        enforce_type(max_per_doc, int, "max_per_doc")
+        enforce_type(top_answer, int, "top_answer")
+        enforce_type(auto_init, bool, "auto_init")
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.propagate = False  # Prevent propagation to the root logger
         
@@ -44,7 +45,7 @@ class AIDocumentSearcher:
         
         preferred_devices = []
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         if torch.cuda.is_available() and "cuda" not in preferred_devices:
             preferred_devices.append("cuda")
@@ -109,7 +110,7 @@ class AIDocumentSearcher:
         then filters the results based on a threshold score, a limit per document, and uniqueness.\n
         Returns a list of tuples containing the text, score, and document ID.
         """
-        self.__enforce_type(prompt, str, "prompt") #check type before start
+        enforce_type(prompt, str, "prompt") #check type before start
         
         result = self._reader.run(query=prompt, documents=self._documents, top_k=self.top_k)
         
@@ -157,10 +158,6 @@ class AIDocumentSearcher:
         for pdf in pdf_urls:
             text = reader.extract_ordered_text(pdf)
             self._documents.append(Document(content=text))
-    
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
         
 class DocumentFilter:
     """
@@ -169,7 +166,7 @@ class DocumentFilter:
     allowing it to quickly identify and filter documents containing a specific keyword or phrase.
     """
     def __init__(self, path: Optional[str] = None, auto_init: bool = True) -> None:
-        self.__enforce_type(auto_init, bool, "auto_init")
+        enforce_type(auto_init, bool, "auto_init")
         self.logger = setup_logging(self.__class__.__name__)
         self.logger.propagate = False
 
@@ -229,10 +226,6 @@ class DocumentFilter:
         for pdf_path in pdf_urls:
             text = reader.extract_ordered_text(pdf_path)
             self._documents[pdf_path] = text
-
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")
         
 def collect_file_paths(directory : str)-> Tuple[List[str], List[str]]:
         """a helper that scans a directory for all PDF and DOCX files and returns their file paths in two separate lists."""

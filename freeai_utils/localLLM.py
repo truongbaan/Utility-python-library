@@ -1,8 +1,9 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 import logging
 import torch
 from typing import Union
+from .utils import enforce_type
 
 #other model: Qwen/Qwen3-4B, or any models that is Qwen
 class LocalLLM:
@@ -18,9 +19,9 @@ class LocalLLM:
     
     def __init__(self, model_name: str = "Qwen/Qwen3-0.6B", preferred_device: str = "cuda", memories_length: int = 4):
         #check type
-        self.__enforce_type(preferred_device, str, "preferred_device")
-        self.__enforce_type(model_name, str, "model_name")
-        self.__enforce_type(memories_length, int, "memories_length")
+        enforce_type(preferred_device, str, "preferred_device")
+        enforce_type(model_name, str, "model_name")
+        enforce_type(memories_length, int, "memories_length")
         
         #init
         super().__setattr__("_initialized", False)
@@ -28,7 +29,7 @@ class LocalLLM:
         
         preferred_devices = []
         if preferred_device is not None:
-            self.__enforce_type(preferred_device, str, "device")
+            enforce_type(preferred_device, str, "device")
             preferred_devices.append(preferred_device)
         if torch.cuda.is_available() and "cuda" not in preferred_devices:
             preferred_devices.append("cuda")
@@ -96,7 +97,7 @@ class LocalLLM:
     
     def ask(self, messages: Union[list, str]):
         """Sends a prompt to Qwen model and Returns the text response."""
-        self.__enforce_type(messages, (list, str), "messages")
+        enforce_type(messages, (list, str), "messages")
         
         if type(messages) is str:
             sent_mes = [{"role": "user", "content": messages}]
@@ -132,7 +133,7 @@ class LocalLLM:
         including the history of the conversation to provide context, 
         then stores the new turn in its memory.
         """
-        self.__enforce_type(prompt, str, "prompt")
+        enforce_type(prompt, str, "prompt")
         
         messages = []
         line = "Here's our previous conversation:\n"
@@ -157,18 +158,12 @@ class LocalLLM:
         Appends a new question-answer pair to the conversation history. 
         Removing the oldest entry if the history exceeds a maximum length.
         """
-        self.__enforce_type(question, str, "question")
-        self.__enforce_type(answer, str, "answer")
+        enforce_type(question, str, "question")
+        enforce_type(answer, str, "answer")
     
         while len(self._history) >= self._max_length:
             self._history.pop(0)
         self._history.append({"question": question, "answer": answer})
-    
-    def __enforce_type(self, value, expected_types, arg_name):
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
     
     def __setattr__(self, name, value):
         # once initialized, block these core attributes

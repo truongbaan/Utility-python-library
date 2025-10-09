@@ -1,16 +1,17 @@
 import requests #need pip install requests
 from bs4 import BeautifulSoup # need pip install beautifulsoup4
 from readability import Document # need pip install readability-lxml
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
 import time
 from typing import Union
 from ddgs import DDGS # need  pip install ddgs
+from .utils import enforce_type
 
 class WebScraper:
     def __init__(self, user_agent: str = "Mozilla/5.0", num_results: int = 5, limit_word_per_url : int = 500):
-        self.__enforce_type(user_agent, str, "user_agent")
-        self.__enforce_type(num_results, int, "num_results")
-        self.__enforce_type(limit_word_per_url, int, "limit_word_per_url")
+        enforce_type(user_agent, str, "user_agent")
+        enforce_type(num_results, int, "num_results")
+        enforce_type(limit_word_per_url, int, "limit_word_per_url")
         self.user_agent = user_agent
         self.num_results = num_results
         self.limit_word = limit_word_per_url
@@ -58,9 +59,9 @@ class WebScraper:
         If grouped=True, returns all extracted text as one string\n
         If grouped=False, returns a list of extracted texts (one per URL).
         """
-        self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(region, str, "region")
-        self.__enforce_type(grouped, bool, "grouped")
+        enforce_type(prompt, str, "prompt")
+        enforce_type(region, str, "region")
+        enforce_type(grouped, bool, "grouped")
         
         results = []
         urls = self._url_search(prompt, region)
@@ -85,9 +86,9 @@ class WebScraper:
         If grouped=True, returns all answers joined as one string.\n
         If grouped=False, returns a list of answers.
         """
-        self.__enforce_type(prompt, str, "prompt")
-        self.__enforce_type(region, str, "region")
-        self.__enforce_type(grouped, bool, "grouped")
+        enforce_type(prompt, str, "prompt")
+        enforce_type(region, str, "region")
+        enforce_type(grouped, bool, "grouped")
         
         try:
             with DDGS() as ddgs:
@@ -104,7 +105,7 @@ class WebScraper:
     
     def list_ddgs_regions(self, keyword: str = None) -> None:
         """Print supported ddgs regions. Optionally filter by a keyword."""
-        self.__enforce_type(keyword, (type(None), str), "keyword")
+        enforce_type(keyword, (type(None), str), "keyword")
         regions = {
             "xa-ar": "Arabia (Arabic)",
             "xa-en": "Arabia (English)",
@@ -186,9 +187,3 @@ class WebScraper:
         else:
             for code, desc in regions.items():
                 print(f"{code:7} -> {desc}")
-
-    def __enforce_type(self, value, expected_types, arg_name) -> None:
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")

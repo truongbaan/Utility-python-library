@@ -18,12 +18,11 @@ _module_to_names = {
     'text_to_speech_gtts': ['gtts_print_supported_languages', 'gtts_speak'],
     'text_to_speech_pyttsx3': ['Text_To_Speech_Pyttsx3'],
     'pdf_docx_reader': ['PDF_DOCX_Reader'],
-    'wrapper': ['time_it'],
     'language_detection': ['LangTranslator', 'LocalTranslator', 'MBartTranslator', 'M2M100Translator'],
     'localLLM': ['LocalLLM'],
     'image_creator': ['SDXL_TurboImage', 'SD15_Image'],
     'live_stt_vosk': ['STT_Vosk'],
-    'utils':        ['enforce_type'],
+    'utils':        ['enforce_type', 'time_it', 'get_free_space_gb', 'colorize'],
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -62,10 +61,9 @@ if TYPE_CHECKING:
     from .text_to_speech_gtts      import gtts_print_supported_languages, gtts_speak
     from .text_to_speech_pyttsx3   import Text_To_Speech_Pyttsx3
     from .pdf_docx_reader          import PDF_DOCX_Reader
-    from .wrapper                  import time_it
     from .decider                  import DecisionMaker
     from .language_detection       import LangTranslator, LocalTranslator, MBartTranslator, M2M100Translator
     from .localLLM                 import LocalLLM
     from .image_creator            import SDXL_TurboImage, SD15_Image
     from .live_stt_vosk            import STT_Vosk
-    from .utils                    import enforce_type
+    from .utils                    import enforce_type, time_it, get_free_space_gb, colorize

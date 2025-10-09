@@ -4,6 +4,7 @@ import torch # need pip install torch
 import logging
 from typing import Optional
 from .log_set_up import setup_logging
+from .utils import enforce_type
 
 #Another model_name : "Salesforce/blip-image-captioning-base"
 
@@ -18,7 +19,7 @@ class ImageCaptioner:
     
     def __init__(self, model_name: str = "Salesforce/blip-image-captioning-large", device: Optional[str] = None):
         #check input type
-        self.__enforce_type(model_name, str, "model_name")
+        enforce_type(model_name, str, "model_name")
         
         #init
         super().__setattr__("_initialized", False)
@@ -39,7 +40,7 @@ class ImageCaptioner:
         
         #try input first
         if device is not None:
-            self.__enforce_type(device, str, "device")
+            enforce_type(device, str, "device")
             preferred_devices.append(device)
         
         # try cuda second 
@@ -96,10 +97,10 @@ class ImageCaptioner:
         Generates a descriptive caption for an image.
         """
         #check type
-        self.__enforce_type(image_path, str, "image_path")
-        self.__enforce_type(max_length, int, "max_length")
-        self.__enforce_type(num_beams, int, "num_beams")
-        self.__enforce_type(early_stopping, bool, "early_stopping")
+        enforce_type(image_path, str, "image_path")
+        enforce_type(max_length, int, "max_length")
+        enforce_type(num_beams, int, "num_beams")
+        enforce_type(early_stopping, bool, "early_stopping")
         
         #check num_beam >= 2
         if num_beams < 2:
@@ -117,7 +118,3 @@ class ImageCaptioner:
 
         # text return
         return self._processor.decode(outputs[0], skip_special_tokens=True)
-
-    def __enforce_type(self, value, expected_type, arg_name):
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_type.__name__}, but received {type(value).__name__}")

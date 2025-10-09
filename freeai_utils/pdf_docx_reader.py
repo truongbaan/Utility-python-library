@@ -5,7 +5,8 @@ import pdfplumber # need pip install pdfplumber
 from typing import Optional
 import logging
 logging.getLogger("pdfminer").setLevel(logging.ERROR) #stop the pdfminer from displaying logs that just info or debug
-from freeai_utils.log_set_up import setup_logging
+from .log_set_up import setup_logging
+from .utils import enforce_type
 try:
     from docx import Document # need pip install python-docx
 except ImportError:
@@ -17,8 +18,8 @@ class PDF_DOCX_Reader:
         # Supports PDF and DOCX formats.
         # param first_page: zero-based index of first page to process
         # param last_page: zero-based index of last page, None means all pages
-        self.__enforce_type(start_page, int, "first_page")
-        self.__enforce_type(last_page, (int, type(None)), "last_page")
+        enforce_type(start_page, int, "first_page")
+        enforce_type(last_page, (int, type(None)), "last_page")
         
         self.first_page = start_page
         self.last_page = last_page
@@ -32,10 +33,10 @@ class PDF_DOCX_Reader:
         # Tries pypdf for PDF, Document for DOCX, and falls back to fitz for PDFs.
         
         #check type
-        self.__enforce_type(first_page, (int, type(None)), "first_page")
-        self.__enforce_type(last_page, (int, type(None)), "last_page")
+        enforce_type(first_page, (int, type(None)), "first_page")
+        enforce_type(last_page, (int, type(None)), "last_page")
         
-        self.__enforce_type(file_path, str, file_path)
+        enforce_type(file_path, str, file_path)
         ext = self.__isSupported(file_path) #extract the end (file type)
         
         #after config, you can still choose the start and end page for specific one
@@ -99,11 +100,11 @@ class PDF_DOCX_Reader:
         # or fallback to fitz. DOCX behaves same as extract_all_text.
         
         #check type
-        self.__enforce_type(first_page, (int, type(None)), "first_page")
-        self.__enforce_type(last_page, (int, type(None)), "last_page")
+        enforce_type(first_page, (int, type(None)), "first_page")
+        enforce_type(last_page, (int, type(None)), "last_page")
 
         #path, file checking
-        self.__enforce_type(file_path, str, "file_path")
+        enforce_type(file_path, str, "file_path")
         ext = self.__isSupported(file_path)
         
         fp = first_page if first_page is not None else self.first_page
@@ -156,11 +157,11 @@ class PDF_DOCX_Reader:
         # Saves images to folder_extract, and returns count.
    
         #check type
-        self.__enforce_type(first_page, (int, type(None)), "first_page")
-        self.__enforce_type(last_page, (int, type(None)), "last_page")
+        enforce_type(first_page, (int, type(None)), "first_page")
+        enforce_type(last_page, (int, type(None)), "last_page")
 
         #path, file checking
-        self.__enforce_type(file_path, str, "file_path")
+        enforce_type(file_path, str, "file_path")
         ext = self.__isSupported(file_path)
         
         fp = first_page if first_page is not None else self.first_page
@@ -213,9 +214,3 @@ class PDF_DOCX_Reader:
             if ext not in ['.pdf', '.docx']:
                 raise ValueError(f"Unsupported file type: {ext}")
             return ext
-    
-    def __enforce_type(self, value, expected_types, arg_name) -> None:
-        if not isinstance(value, expected_types):
-            expected_names = [t.__name__ for t in expected_types] if isinstance(expected_types, tuple) else [expected_types.__name__]
-            expected_str = ", ".join(expected_names)
-            raise TypeError(f"Argument '{arg_name}' must be of type {expected_str}, but received {type(value).__name__}")
