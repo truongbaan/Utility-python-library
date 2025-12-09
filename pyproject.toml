@@ -1,6 +1,6 @@
 [project]
 name = "freeai-utils"
-version = "0.5.14"
+version = "0.5.15"
 description = "A free, zero-config AI utility toolkit with voice, text, image, and web integrations, pdf_docx readability, decider"
 authors = [
     { name="truongbaan", email="truongbaansoftware@gmail.com" }
@@ -18,45 +18,57 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
 
+# CORE DEPENDENCIES
 dependencies = [
-    "numpy",
-    "keyboard",
-    "lameenc",
-    "openai-whisper",
-    "librosa",
-    "google-genai",
-    "pyperclip",
+    "click",
     "python-dotenv",
     "requests",
-    "beautifulsoup4",
-    "readability-lxml",
-    "transformers",
-    "Pillow",
-    "easyocr",
-    "gTTS",
-    "playsound==1.2.2",  # required specific version
-    "pyttsx3",
-    "pymupdf",
-    "pypdf",
-    "pdfplumber",
-    "python-docx",
-    "mutagen",
-    "haystack-ai",
+    "google-genai",
+    "numpy",
     "langdetect",
-    "translators",
+    "pyperclip",
+    "Pillow",
+    "gTTS",
+    "pyttsx3",
+    "playsound==1.2.2", 
+    "lameenc",
+    "librosa",
+    "mutagen",
     "ffmpeg-python",
     "imageio-ffmpeg",
+    "sounddevice",
+    "keyboard",
+    "beautifulsoup4",
+    "readability-lxml",
+    "pymupdf", 
+    "pypdf", 
+    "pdfplumber", 
+    "python-docx",
+]
+
+# OPTIONAL DEPENDENCY GROUPS
+[project.optional-dependencies]
+
+# Libraries that contain or rely heavily on machine learning models
+ai = [
+    "openai-whisper",
+    "vosk",
+    "transformers",
+    "diffusers",
+    "easyocr",
+    "haystack-ai",
+    "peft",
     "accelerate",
     "sentencepiece",
-    "tiktoken",
-    "click",
-    "hf_xet",
-    "diffusers",
-    "sounddevice",
-    "vosk",
-    "protobuf", # for mbart fast
-    "peft", #for lora
+    "protobuf", 
     "ddgs",
+    "translators",
+    "tiktoken",
+    "hf_xet",
+]
+
+all = [
+    "freeai-utils[ai]",
 ]
 
 [project.urls]

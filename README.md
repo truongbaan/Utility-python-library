@@ -58,7 +58,12 @@ Choose your system (OS, package manager, Python version, CUDA version), and copy
 pip install freeai-utils
 ```
 
-> No need to install extra executables or clone large repositories — everything works out of the box with `pip`.
+* **Install Dependencies related to AI Features :**
+    ```bash
+    freeai-utils install-deps ai
+    ```
+
+No need to install extra executables or clone large repositories — everything works out of the box with `pip`.
 
 ---
 

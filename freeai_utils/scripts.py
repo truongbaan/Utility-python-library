@@ -26,10 +26,6 @@ def screenshot_ask_and_answer_clip(secret_key_for_gemini : str = None, hotkey_as
     def stop_script():
         nonlocal active
         active = False
-        
-    if secret_key_for_gemini is None:
-        print("Require secret key for gemini api")
-        return
     
     client = GeminiClient(model_name="models/gemini-2.5-flash-lite",api_key=secret_key_for_gemini)
     keyboard.add_hotkey(hotkey_asking, screenshot)
