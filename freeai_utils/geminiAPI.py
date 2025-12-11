@@ -20,7 +20,7 @@ class GeminiChatBot:
     _max_length: int
     _word_prompt: str
     
-    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
+    def __init__(self, model_name : str ='models/gemini-2.5-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
         enforce_type(memories_length, int, "memories_length")
         enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
@@ -170,7 +170,7 @@ class GeminiClient:
     _word_prompt: str
     
     
-    def __init__(self, model_name : str ='models/gemini-2.0-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
+    def __init__(self, model_name : str ='models/gemini-2.5-flash-lite', api_key : Optional[str] = None, memories_length : int = 4, limit_word_per_respond : int = 150):
         #check data type
         enforce_type(memories_length, int, "memories_length")
         enforce_type(limit_word_per_respond, int, "limit_word_per_respond")
