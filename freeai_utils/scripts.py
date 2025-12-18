@@ -1,8 +1,6 @@
 # Contains standalone scripts for quick-support tasks; not for modular reuse.
-
 from .geminiAPI import GeminiClient
 from .cleaner import Cleaner
-import pyautogui
 import keyboard
 import time
 import os
@@ -13,6 +11,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 screenshot_path = os.path.join(script_dir, "screenshot.png")
 
 def screenshot_ask_and_answer_clip(secret_key_for_gemini : str = None, hotkey_asking : str = "`", hotkey_stopping : str = "esc"):
+    import pyautogui
     print("""
           Note: Use '`' (or any key you have configured) to take screenshot and get code answer.
                 Use 'esc' to stop the program. 
