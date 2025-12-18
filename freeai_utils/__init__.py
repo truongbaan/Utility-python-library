@@ -22,7 +22,8 @@ _module_to_names = {
     'localLLM': ['LocalLLM'],
     'image_creator': ['SDXL_TurboImage', 'SD15_Image'],
     'live_stt_vosk': ['STT_Vosk'],
-    'utils':        ['enforce_type', 'time_it', 'get_free_space_gb', 'colorize'],
+    'utils':        ['enforce_type', 'time_it', 'get_free_space_gb', 'colorize', 'apiRequest'],
+    'apiClient':    ['ApiClient'],
 }
 
 # make a map from the list: a lookup to import specific files for needed tools, avoiding full library load.
@@ -66,4 +67,5 @@ if TYPE_CHECKING:
     from .localLLM                 import LocalLLM
     from .image_creator            import SDXL_TurboImage, SD15_Image
     from .live_stt_vosk            import STT_Vosk
-    from .utils                    import enforce_type, time_it, get_free_space_gb, colorize
+    from .utils                    import enforce_type, time_it, get_free_space_gb, colorize, apiRequest
+    from .apiClient                import ApiClient
