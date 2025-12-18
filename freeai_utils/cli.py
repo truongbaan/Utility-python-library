@@ -9,10 +9,16 @@ from .scripts import screenshot_ask_and_answer_clip
 @click.group(invoke_without_command=True)
 @click.pass_context
 def main(ctx):
-    check_for_updates("freeai-utils")
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         sys.exit(1)
+
+@main.result_callback()
+def check_update(result, **kwargs):
+    """
+    This function runs AFTER the subcommand to check for newer version of the lib.
+    """
+    check_for_updates("freeai-utils")
 
 @main.command(help="Download default models for this library through hugging face ")
 @click.argument("target", required=False)
