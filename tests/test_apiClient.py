@@ -19,7 +19,7 @@ def test_api_client_invalid_method_raises_value_error(client):
         
 def test_api_client_non_string_method_raises_error(client):
     """Tests if calling with a non-string method raises an error."""
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         client.request(method=123)
 
 def test_api_client_simple_get_success(client):

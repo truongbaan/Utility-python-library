@@ -1,6 +1,7 @@
 # Contains standalone scripts for quick-support tasks; not for modular reuse.
 from .geminiAPI import GeminiClient
 from .cleaner import Cleaner
+from dotenv import load_dotenv #need pip install python-dotenv
 import keyboard
 import time
 import os
@@ -25,6 +26,11 @@ def screenshot_ask_and_answer_clip(secret_key_for_gemini : str = None, hotkey_as
     def stop_script():
         nonlocal active
         active = False
+    
+    if secret_key_for_gemini is None:
+        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        load_dotenv(env_path) # load if there is env file
+        secret_key_for_gemini =os.getenv("GEMINI_API_KEY")
     
     client = GeminiClient(model_name="models/gemini-2.5-flash-lite",api_key=secret_key_for_gemini)
     keyboard.add_hotkey(hotkey_asking, screenshot)

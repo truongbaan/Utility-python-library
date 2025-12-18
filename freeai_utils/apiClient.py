@@ -21,11 +21,11 @@ class ApiClient:
         
         super().__setattr__("_initialized", False)
         self._base_url = base_url.rstrip("/") #lock attribute base_url
-        super().__setattr__("_initialized", True)
         self.logger = setup_logging(self.__class__.__name__)
         self._timeout = timeout
         self._authToken = authToken
         self._cookies = cookiesPayload if cookiesPayload else {}
+        super().__setattr__("_initialized", True)
 
     @property
     def base_url(self):

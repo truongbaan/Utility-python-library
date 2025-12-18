@@ -155,7 +155,7 @@ def secret_key(action: str, key_value_pair: str):
     value = ""
     new_line = ""
     
-    if '#' in key_value_pair:
+    if key_value_pair is not None and '#' in key_value_pair:
         print("No comments or character '#' allowed!")
         return
     
@@ -199,7 +199,7 @@ def secret_key(action: str, key_value_pair: str):
             return
 
     if action == 'read': 
-        print(f"\n--- Content of {env_filepath} ---")
+        print(f"\n--- Content of .env file ---\n")
         for line in lines:
             print(line.strip())
         print("----------------------------------------------")
@@ -241,7 +241,7 @@ def secret_key(action: str, key_value_pair: str):
         if lines != updated_lines or (action == 'add' and not key_found):
             with open(env_filepath, 'w') as f:
                 f.writelines(updated_lines)
-            print(f"Successfully wrote updates to {env_filepath}")
+            print(f"Successfully wrote updates to .env file")
         else:
              print("No changes were made to the .env file.")
              
